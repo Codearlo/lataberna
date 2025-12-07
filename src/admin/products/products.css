@@ -1,0 +1,139 @@
+/* src/admin/products/products.css */
+
+/* --- Estilos Generales de Admin --- */
+#app-content {
+    background-color: #f8f9fa; /* Fondo más claro para admin */
+    padding: 30px;
+}
+
+.admin-panel-header h3 {
+    font-size: 2em;
+    color: #343a40;
+    margin-bottom: 20px;
+}
+
+.admin-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.admin-card h4 {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: #495057;
+}
+
+/* --- Formulario --- */
+.product-form .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-form label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #343a40;
+}
+
+.product-form input[type="text"],
+.product-form input[type="number"],
+.product-form input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+.product-form .checkbox-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.product-form .checkbox-group label {
+    margin-left: 10px;
+    margin-bottom: 0;
+    font-weight: normal;
+}
+
+.product-form button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+#save-product-btn {
+    background-color: #28a745; /* Verde */
+    color: white;
+}
+
+#cancel-edit-btn.secondary-btn {
+    background-color: #6c757d; /* Gris */
+    color: white;
+}
+
+.image-preview {
+    margin-top: 10px;
+    border: 1px solid #ced4da;
+    max-width: 150px;
+    padding: 5px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.image-preview img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* --- Tabla de Productos --- */
+#products-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #ffffff;
+}
+
+#products-table th,
+#products-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+#products-table th {
+    background-color: #e9ecef;
+    color: #495057;
+    font-weight: 700;
+}
+
+#products-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-size: 0.9em;
+}
+
+.edit-btn {
+    background-color: #ffc107; /* Amarillo */
+    color: #212529;
+}
+
+.delete-btn {
+    background-color: #dc3545; /* Rojo */
+    color: white;
+}
