@@ -61,24 +61,31 @@ const CartService = {
         return cart.reduce((total, item) => total + (item.price * item.qty), 0);
     },
 
-    // ... (El resto de sendOrderToWhatsapp y clearCart es el mismo)
+    // --- FUNCIÓN sendOrderToWhatsapp CORREGIDA ---
     sendOrderToWhatsapp: () => {
         const cart = CartService.getCart();
         const total = CartService.getCartTotal();
-        const phoneNumber = "51961367961"; // NÚMERO DE TELÉFONO ACTUALIZADO
+        // Número actualizado: 961367961
+        const phoneNumber = "51961367961"; 
         
         if (cart.length === 0) {
             alert("Tu carrito está vacío. ¡Agrega unos tragos primero!");
             return;
         }
 
-        let message = "Hola La Taberna 🍻, quiero pedir:%0A%0A";
+        // 1. Cabecera (sin el emoji)
+        let message = "Hola La Taberna, quiero pedir:%0A%0A";
+        
+        // 2. Ítems (sin el bullet point)
         cart.forEach(item => {
             let subtotal = item.price * item.qty;
-            message += `▪️ ${item.qty}x ${item.name} (S/ ${subtotal.toFixed(2)})%0A`;
+            // Aseguramos que la línea inicie limpiamente con el ítem y termine con %0A
+            message += `${item.qty}x ${item.name} (S/ ${subtotal.toFixed(2)})%0A`;
         });
+        
+        // 3. Total y Dirección (agregamos un newline extra para separar la lista del total)
         message += `%0A💰 *TOTAL A PAGAR: S/ ${total.toFixed(2)}*`;
-        message += "%0A🛵 *Mi dirección de envío es:* "; 
+        message += `%0A🛵 *Mi dirección de envío es:* `; 
 
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
