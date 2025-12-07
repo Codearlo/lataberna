@@ -1,8 +1,8 @@
 /* src/public/modules/layout/header/header.css */
 
-/* Cambiamos el color base del header a negro */
+/* El header principal usa el color primario (negro) */
 #main-header {
-    background-color: var(--secondary-color); /* Negro */
+    background-color: var(--primary-color); /* Negro */
     color: #fff;
     padding: 0; 
     display: flex;
@@ -91,7 +91,7 @@
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: var(--secondary-color); /* Color de destaque (negro) */
+    background-color: var(--secondary-color); /* Color de destaque (negro más oscuro) */
     color: #fff;
     border-radius: 50%;
     width: 20px;
@@ -107,7 +107,7 @@
 
 .header-nav {
     padding: 10px 20px;
-    background-color: #0d0d0d; /* Fondo de navegación muy oscuro */
+    background-color: var(--secondary-color); /* Negro Muy Oscuro */
 }
 
 .header-nav ul {
@@ -128,5 +128,5 @@
 }
 
 .header-nav a:hover {
-    color: var(--secondary-color); /* Usamos el color de destaque (negro, pero lo cambiamos a rojo) */
+    color: #cccccc; /* Gris claro al pasar el mouse */
 }

@@ -1,0 +1,61 @@
+/* src/public/modules/store/toast-notification/toast.css */
+
+#toast-notification-container {
+    position: fixed;
+    top: 20px; /* Posición inicial en la parte superior */
+    right: 20px; /* Por defecto, alineado a la derecha (Desktop/Carrito) */
+    z-index: 2000; 
+    
+    /* Animación de Opacidad */
+    opacity: 0;
+    visibility: hidden; /* Usa visibility para asegurar que no se pueda clickear cuando está oculto */
+    transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out; 
+    
+    padding: 15px 25px;
+    background-color: #28a745; /* Fondo VERDE */
+    color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    min-width: 250px;
+    text-align: left; /* Alineación del texto a la izquierda para mejor lectura */
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Clase para mostrar el toast con opacidad fluida */
+#toast-notification-container.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.toast-message-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast-close-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-left: 15px;
+    padding: 0 5px;
+    line-height: 1;
+    flex-shrink: 0; /* Evita que el botón se comprima */
+}
+
+/* --- Responsive para Móviles (Ajuste de posición) --- */
+@media (max-width: 767px) {
+    #toast-notification-container {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%); /* Centrado horizontal */
+        width: 90%;
+        max-width: 350px;
+    }
+}

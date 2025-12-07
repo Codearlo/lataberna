@@ -2,6 +2,7 @@
 
 // Sube 4 niveles y baja a services/store/
 import { CartService } from '../../../../services/store/cart.service.js'; 
+import { showToast } from '../toast-notification/toast.js'; // NUEVO
 
 // --- Funciones de Renderizado y Manipulación del DOM ---
 
@@ -25,7 +26,8 @@ export function renderProductCard(product) {
     const addButton = card.querySelector('.add-to-cart-btn');
     addButton.addEventListener('click', () => {
         CartService.addToCart(product); 
-        alert(`¡${product.name} añadido!`); 
+        // REEMPLAZO DE alert() por showToast()
+        showToast(`✅ ${product.name} añadido al carrito.`); 
     });
 
     return card;

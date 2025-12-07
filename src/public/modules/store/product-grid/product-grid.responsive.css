@@ -1,5 +1,19 @@
 /* src/public/modules/store/product-grid/product-grid.responsive.css */
 
+/* Teléfono (2 columnas: < 600px) */
+@media (max-width: 599px) {
+    #product-grid-container {
+        /* Forzamos 2 columnas de igual tamaño */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px; /* Reducimos el espacio entre productos para ahorrar espacio */
+    }
+    /* Reducimos la altura de la imagen para que la tarjeta sea más compacta */
+    .product-card img {
+        height: 180px; 
+    }
+}
+
+
 /* Tablet (2 columnas) */
 @media (min-width: 600px) {
     #product-grid-container {

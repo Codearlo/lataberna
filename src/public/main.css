@@ -9,8 +9,8 @@
 
 /* Variables de diseño */
 :root {
-    --primary-color: #000000; /* Negro para texto principal, Logo, Footer */
-    --secondary-color: #dc3545; /* Rojo de destaque para botones y acentos (Similar a la imagen) */
+    --primary-color: #000000; /* Negro (Para encabezado, footer, texto en fondo blanco) */
+    --secondary-color: #0d0d0d; /* Negro Muy Oscuro (Para la barra de navegación) */
     --text-color: #333333; /* Gris oscuro para texto general */
     --background-color: #ffffff; /* Fondo BLANCO */
     --card-bg: #ffffff; /* Fondo de tarjetas BLANCO */

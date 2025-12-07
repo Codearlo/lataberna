@@ -109,7 +109,7 @@
 .remove-item-btn {
     background-color: transparent;
     border: none;
-    color: var(--secondary-color); /* Usamos el color de destaque (rojo) */
+    color: #dc3545; /* ROJO FIJO */
     font-size: 1.1em;
     padding: 0;
     margin-left: 10px; /* Separación del precio */
