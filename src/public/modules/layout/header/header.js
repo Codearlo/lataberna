@@ -1,31 +1,47 @@
 // src/public/modules/layout/header/header.js
 
 import { CartService } from '../../../../services/store/cart.service.js';
+// La importación relativa del módulo JS es correcta.
+import { openCartModal } from '../../store/cart-modal/cart-modal.js'; 
 
 const CART_COUNT_ID = 'cart-count-value';
-const CART_CONTAINER_ID = 'cart-modal-container'; // ID del contenedor del modal
+// Ruta corregida para el fetch
+const HEADER_HTML_PATH = 'src/public/modules/layout/header/header.html'; 
 
 /**
- * Inyecta el HTML del encabezado y establece los listeners iniciales.
+ * Inyecta el HTML del encabezado (cargado de forma asíncrona) y establece los listeners iniciales.
  * @param {string} containerId - El ID del header en index.html ('main-header').
  */
-export function initHeader(containerId) {
+export async function initHeader(containerId) {
     const headerElement = document.getElementById(containerId);
     if (!headerElement) return;
 
-    headerElement.innerHTML = `
-        <div class="logo">La Taberna - Delivery Ica</div>
-        <div class="cart-icon-container">
-            <span id="${CART_COUNT_ID}" class="cart-count">0</span>
-            <i class="cart-icon">🛒</i> 
-        </div>
-    `;
+    try {
+        // 1. Cargar el HTML de forma asíncrona
+        const response = await fetch(HEADER_HTML_PATH);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const headerHtml = await response.text();
+        
+        // 2. Inyectar el HTML cargado
+        headerElement.innerHTML = headerHtml;
 
-    // Adjuntar evento: Abrir el carrito al hacer clic
-    headerElement.querySelector('.cart-icon-container').addEventListener('click', openCartModal);
+        // 3. Adjuntar evento: Abrir el carrito al hacer clic
+        headerElement.querySelector('.cart-icon-container').addEventListener('click', openCartModal);
 
-    // Carga inicial del conteo al iniciar la página
-    updateCartCount();
+        // 4. Carga inicial del conteo al iniciar la página
+        updateCartCount();
+
+    } catch (error) {
+        console.error("Error al cargar o inicializar el encabezado:", error);
+        // Mensaje de fallback en caso de error de carga
+        headerElement.innerHTML = `
+            <div id="main-header" style="background-color: #000; padding: 15px 20px;">
+                <p style="color:#ff0000; font-weight: bold;">Error al cargar el menú: ${error.message}</p>
+            </div>
+        `;
+    }
 }
 
 /**
@@ -41,18 +57,5 @@ export function updateCartCount() {
         countElement.textContent = totalItems > 0 ? totalItems : 0;
         // Muestra el contador solo si hay ítems en el carrito
         countElement.style.display = totalItems > 0 ? 'flex' : 'none'; 
-    }
-}
-
-/**
- * Función para mostrar el modal del carrito (lógica pendiente del modal).
- */
-function openCartModal() {
-    // Usaremos CSS/clases para mostrar/ocultar el modal.
-    // Necesitas crear la función showCartModal en el futuro componente CartModal.
-    const modal = document.getElementById(CART_CONTAINER_ID);
-    if (modal) {
-        modal.classList.add('visible'); // Asume que 'visible' en tu CSS lo muestra
-        // Ejemplo: alert('Mostrar modal');
     }
 }

@@ -2,6 +2,8 @@
 
 // 1. Importación CORREGIDA: Traemos la función del Header (subiendo dos niveles)
 import { updateCartCount } from '../../public/modules/layout/header/header.js'; 
+// Importamos la función para refrescar la vista del modal
+import { renderCartItems } from '../../public/modules/store/cart-modal/cart-modal.js'; 
 
 const CART_KEY = 'lataberna_cart';
 
@@ -14,6 +16,7 @@ const CartService = {
     _saveCart: (cart) => {
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
         updateCartCount(); // Se asegura de llamar a la función del Header.
+        renderCartItems(); // AGREGA: Actualiza el contenido del modal cuando el carrito cambia.
     },
     
     addToCart: (product) => {
@@ -27,6 +30,30 @@ const CartService = {
         }
         
         CartService._saveCart(cart);
+    },
+    
+    // AGREGA: Función para actualizar la cantidad de un producto
+    updateQuantity: (productId, change) => {
+        let cart = CartService.getCart();
+        const existingItemIndex = cart.findIndex(item => item.id === productId);
+
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].qty += change;
+
+            // Si la cantidad es menor o igual a 0, lo eliminamos
+            if (cart[existingItemIndex].qty <= 0) {
+                cart.splice(existingItemIndex, 1);
+            }
+            
+            CartService._saveCart(cart);
+        }
+    },
+
+    // AGREGA: Función para eliminar un producto del carrito
+    removeFromCart: (productId) => {
+        let cart = CartService.getCart();
+        const newCart = cart.filter(item => item.id !== productId);
+        CartService._saveCart(newCart);
     },
     
     getCartTotal: () => {

@@ -9,11 +9,11 @@
 
 /* Variables de diseño */
 :root {
-    --primary-color: #f59e0b; /* Dorado/Amarillo */
-    --secondary-color: #1f2937; /* Gris Oscuro para el header, similar al ejemplo */
-    --text-color: #262626;
-    --background-color: #fafaf9;
-    --card-bg: #ffffff;
+    --primary-color: #ffffff; /* Blanco para texto principal */
+    --secondary-color: #000000; /* Negro para el header y fondo */
+    --text-color: #f0f0f0; /* Gris claro para texto general */
+    --background-color: #1a1a1a; /* Fondo muy oscuro */
+    --card-bg: #2b2b2b; /* Fondo de tarjetas */
     --font-family: sans-serif;
 }
 
@@ -59,5 +59,5 @@ button {
     text-align: center;
     margin-top: 50px;
     font-size: 1.2em;
-    color: #71717a;
+    color: #a0a0a0;
 }

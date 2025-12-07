@@ -13,7 +13,7 @@ export function initCartModal() {
 
     // Estructura HTML base del modal (usamos un div para el fondo y el modal en sí)
     container.innerHTML = `
-        <div class="cart-modal-overlay" onclick="closeCartModal()"></div>
+        <div class="cart-modal-overlay" onclick="window.closeCartModal()"></div>
         <div class="cart-modal">
             <h3>🛒 Tu Pedido</h3>
             <div id="${CART_LIST_ID}"></div>
@@ -22,7 +22,7 @@ export function initCartModal() {
                 <span id="${CART_TOTAL_ID}">S/ 0.00</span>
             </div>
             <button id="checkout-btn" class="checkout-btn">PEDIR POR WHATSAPP</button>
-            <button class="close-btn" onclick="closeCartModal()">Cerrar</button>
+            <button class="close-btn" onclick="window.closeCartModal()">Cerrar</button>
         </div>
     `;
 
@@ -30,8 +30,15 @@ export function initCartModal() {
     document.getElementById('checkout-btn').addEventListener('click', () => {
         // Llama al servicio para enviar el pedido
         CartService.sendOrderToWhatsapp();
-        closeCartModal(); // Cierra el modal después de enviar
+        window.closeCartModal(); // Cierra el modal después de enviar
     });
+    
+    // 6. ADICIÓN: Hacemos las funciones de control de cantidad globales para que funcionen con onclick
+    // Esto es necesario porque el HTML se genera dinámicamente y usa atributos onclick.
+    window.changeQuantity = changeQuantity;
+    window.removeItem = removeItem;
+    window.openCartModal = openCartModal; 
+    window.closeCartModal = closeCartModal;
 }
 
 // 3. Renderiza el contenido actual del carrito
@@ -49,11 +56,12 @@ export function renderCartItems() {
             <div class="cart-item" data-id="${item.id}">
                 <span>${item.name}</span>
                 <div class="quantity-controls">
-                    <button onclick="changeQuantity(${item.id}, -1)">-</button>
+                    <button onclick="window.changeQuantity(${item.id}, -1)">-</button>
                     <span>${item.qty}</span>
-                    <button onclick="changeQuantity(${item.id}, 1)">+</button>
+                    <button onclick="window.changeQuantity(${item.id}, 1)">+</button>
                 </div>
                 <span>S/ ${(item.price * item.qty).toFixed(2)}</span>
+                <button class="remove-item-btn" onclick="window.removeItem(${item.id})">❌</button>
             </div>
         `).join('');
     }
@@ -62,23 +70,26 @@ export function renderCartItems() {
     totalElement.textContent = `S/ ${CartService.getCartTotal().toFixed(2)}`;
 }
 
-// 4. Funciones de Control del Modal (Necesarias en el Scope Global)
+// 4. Funciones de Control del Modal (Exportadas para uso interno y en header.js)
 
-// Función para mostrar el modal (llamada desde header.js)
+// Función para mostrar el modal (llamada desde header.js y ahora global)
 export function openCartModal() {
     renderCartItems(); // Renderiza el contenido ANTES de mostrarlo
     document.getElementById(MODAL_CONTAINER_ID).classList.add('visible');
 }
 
-// Función para cerrar el modal (llamada desde el overlay y el botón Cerrar)
+// Función para cerrar el modal (llamada desde el overlay y el botón Cerrar y ahora global)
 export function closeCartModal() {
     document.getElementById(MODAL_CONTAINER_ID).classList.remove('visible');
 }
 
-// 5. Lógica para cambiar cantidad (simplificada para el ejemplo)
+// 5. Lógica para cambiar cantidad y eliminar (Ahora llama al CartService)
 function changeQuantity(id, change) {
-    // ESTA LÓGICA DEBE ESTAR EN CART.SERVICE.JS, pero la llamamos desde aquí
-    // Ejemplo: CartService.updateQuantity(id, change);
-    // Luego: renderCartItems();
-    alert("Funcionalidad: Implementar lógica de cambio de cantidad y eliminación en CartService.");
+    CartService.updateQuantity(id, change);
+    // Nota: renderCartItems() se llama automáticamente desde CartService._saveCart()
+}
+
+function removeItem(id) {
+    CartService.removeFromCart(id);
+    // Nota: renderCartItems() se llama automáticamente desde CartService._saveCart()
 }

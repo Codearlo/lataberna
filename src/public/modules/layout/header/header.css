@@ -1,19 +1,101 @@
 /* src/public/modules/layout/header/header.css */
 
+/* Cambiamos el color base del header a negro */
 #main-header {
     background-color: var(--secondary-color);
     color: #fff;
-    padding: 15px 20px;
+    padding: 0; 
+    display: flex;
+    flex-direction: column; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    position: sticky; 
+    top: 0;
+    z-index: 999;
+}
+
+/* --- Estilos de la Fila Superior (Top Row) --- */
+
+.header-top-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 15px 20px; 
+    border-bottom: 1px solid #333; 
+    height: 60px;
 }
 
+/* Logo centralizado */
 .logo {
     font-size: 1.5em;
-    font-weight: 800;
-    color: var(--primary-color); /* Color de acento */
+    font-weight: 900;
+    color: #fff; 
+    text-align: center;
+    flex-grow: 1; 
+    line-height: 1.1;
+}
+
+/* Búsqueda */
+.search-container {
+    display: flex;
+    align-items: center;
+    color: #a0a0a0;
+    min-width: 200px; 
+    max-width: 300px;
+    flex-shrink: 0;
+}
+
+/* Contenedores de Iconos SVG */
+.search-icon,
+.account-icon,
+.cart-icon {
+    display: inline-flex; /* Asegura el correcto centrado y tamaño del SVG */
+    align-items: center;
+    justify-content: center;
+}
+
+.search-icon {
+    width: 20px; 
+    height: 20px; 
+    margin-right: 8px;
+    color: #a0a0a0; /* Color del icono de búsqueda */
+}
+/* Aseguramos que el SVG dentro tenga el 100% del tamaño del contenedor */
+.search-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.search-input {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 0.9em;
+    width: 100%;
+    outline: none;
+}
+.search-input::placeholder {
+    color: #a0a0a0;
+    font-weight: 300;
+}
+
+/* Íconos de Cuenta y Carrito */
+.icons-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.account-icon {
+    font-size: 1.5em;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+}
+.account-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .cart-icon-container {
@@ -23,16 +105,22 @@
 }
 
 .cart-icon {
-    font-size: 2em;
+    width: 26px; /* Un poco más grande para el carrito */
+    height: 26px;
     color: #fff;
+}
+.cart-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .cart-count {
+    /* Mantenemos el estilo del contador */
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: var(--primary-color);
-    color: var(--text-color);
+    background-color: #ff0000; 
+    color: #fff;
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -41,4 +129,32 @@
     align-items: center;
     font-size: 0.8em;
     font-weight: bold;
+}
+
+/* --- Estilos de Navegación (Header Nav) --- */
+
+.header-nav {
+    padding: 10px 20px;
+    background-color: #0d0d0d; 
+}
+
+.header-nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap; 
+}
+
+.header-nav a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85em;
+    transition: color 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.header-nav a:hover {
+    color: #ff0000; 
 }
