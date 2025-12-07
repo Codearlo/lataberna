@@ -1,13 +1,13 @@
 /* src/public/modules/layout/header/header.css */
 
-/* Cambiamos el color base del header a blanco */
+/* Cambiamos el color base del header a negro */
 #main-header {
-    background-color: #fff; /* Fondo BLANCO */
-    color: var(--text-color);
+    background-color: var(--secondary-color); /* Negro */
+    color: #fff;
     padding: 0; 
     display: flex;
     flex-direction: column; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra más clara */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
     position: sticky; 
     top: 0;
     z-index: 999;
@@ -20,7 +20,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px; 
-    border-bottom: 1px solid #e0e0e0; /* Borde inferior más claro */
+    border-bottom: 1px solid #333; 
     height: 60px;
 }
 
@@ -29,7 +29,7 @@
     display: none; /* Oculto por defecto */
     background: none;
     border: none;
-    color: var(--primary-color); /* Icono oscuro */
+    color: #fff; /* Icono blanco */
     cursor: pointer;
     padding: 0;
     width: 28px;
@@ -45,7 +45,7 @@
 .logo {
     font-size: 1.8em; 
     font-weight: 900;
-    color: var(--primary-color); /* Logo oscuro */
+    color: #fff; /* Logo blanco */
     text-align: center;
     flex-grow: 1; 
     line-height: 1.1;
@@ -70,7 +70,7 @@
     display: flex;
     align-items: center;
     gap: 15px; 
-    color: var(--primary-color); /* Iconos oscuros */
+    color: #fff;
     flex-shrink: 0;
 }
 
@@ -83,7 +83,7 @@
 .cart-icon {
     width: 26px; 
     height: 26px;
-    color: var(--primary-color); /* Icono de carrito oscuro */
+    color: #fff; /* Icono de carrito blanco */
 }
 
 .cart-count {
@@ -91,7 +91,7 @@
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: var(--secondary-color); /* Color de destaque (rojo) */
+    background-color: var(--secondary-color); /* Color de destaque (negro) */
     color: #fff;
     border-radius: 50%;
     width: 20px;
@@ -107,7 +107,7 @@
 
 .header-nav {
     padding: 10px 20px;
-    background-color: #333333; /* Fondo de navegación oscuro, para contraste */
+    background-color: #0d0d0d; /* Fondo de navegación muy oscuro */
 }
 
 .header-nav ul {
@@ -119,7 +119,7 @@
 }
 
 .header-nav a {
-    color: #fff; /* Enlaces blancos */
+    color: #fff;
     text-decoration: none;
     font-weight: 600;
     font-size: 0.85em;
@@ -128,5 +128,5 @@
 }
 
 .header-nav a:hover {
-    color: var(--secondary-color); /* Color de destaque (rojo) al pasar el mouse */
+    color: var(--secondary-color); /* Usamos el color de destaque (negro, pero lo cambiamos a rojo) */
 }
