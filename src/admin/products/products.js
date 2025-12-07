@@ -1,13 +1,13 @@
 // src/admin/products/products.js
 
-// CORRECCIÓN DE RUTA FINAL: Subir dos niveles (products, admin) y bajar a services/admin
 import { ProductsAdminService } from '../../services/admin/products.service.js';
 
 let productsList = [];
 let isEditing = false;
 let editingProductId = null;
 
-const PRODUCT_FORM_HTML_PATH = './admin/products/products.html'; // Ruta de fetch desde main.js
+// RUTA DE FETCH FINAL: Es relativa al archivo HTML base (src/admin/admin.html)
+const PRODUCT_FORM_HTML_PATH = './products/products.html'; 
 
 /**
  * Inicializa la vista de administración de productos.
@@ -20,6 +20,9 @@ export async function initProductsAdmin(containerId) {
     // 1. Cargar el HTML de la interfaz de productos
     try {
         const response = await fetch(PRODUCT_FORM_HTML_PATH);
+        if (!response.ok) {
+            throw new Error(`Error al obtener HTML. Status: ${response.status} URL: ${response.url}`);
+        }
         const html = await response.text();
         container.innerHTML = html;
         

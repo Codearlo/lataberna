@@ -1,31 +1,61 @@
 // src/admin/admin.js
 
 import { initProductsAdmin } from './products/products.js';
+import { initAuthForm, getSession, logout } from './auth/auth.js'; 
+
+const ADMIN_CONTENT_ID = 'app-content';
 
 /**
- * Inicializa el panel de administración.
- * @param {string} mainContainerId - ID del contenedor principal (app-content).
- * @param {string} footerId - ID del footer.
+ * Carga la interfaz de administración (login o panel de productos).
  */
-export function initAdminPanel(mainContainerId, footerId) {
-    const mainContainer = document.getElementById(mainContainerId);
+export async function initAdminPanel() {
+    const mainContainer = document.getElementById(ADMIN_CONTENT_ID);
     const headerElement = document.getElementById('main-header'); 
-    const footerElement = document.getElementById(footerId);
     
     if (!mainContainer) return;
-    
-    // 1. Limpiar o reemplazar la cabecera y el footer (para admin)
-    if (headerElement) headerElement.innerHTML = `<h2 style="padding: 15px; background: #000; color: #fff;">Panel de Administración LA TABERNA</h2>`;
-    if (footerElement) footerElement.style.display = 'none';
 
-    // 2. Limpiar el contenido existente
-    mainContainer.innerHTML = ''; 
+    // 1. Insertar el layout base del admin DENTRO del <header> y <main>
+    headerElement.innerHTML = `
+        <div id="admin-header-bar"></div>
+    `;
     
-    // 3. Crear el contenedor para el panel de productos
-    const productsPanel = document.createElement('div');
-    productsPanel.id = 'admin-products-panel';
-    mainContainer.appendChild(productsPanel);
-
-    // 4. Inicializar el módulo de productos
-    initProductsAdmin('admin-products-panel'); 
+    // 2. Verificar sesión
+    await checkAuthAndRender();
 }
+
+/**
+ * Verifica si hay una sesión activa y renderiza la vista correspondiente.
+ */
+async function checkAuthAndRender() {
+    const session = await getSession();
+    const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
+    const adminHeaderBar = document.getElementById('admin-header-bar');
+    
+    // Limpiamos el contenido anterior antes de renderizar
+    contentContainer.innerHTML = '';
+    
+    if (session) {
+        // Logueado: Cargar panel de productos
+        
+        // Renderizar barra de título y logout
+        adminHeaderBar.innerHTML = `
+            <div class="admin-title">Panel de Administración LA TABERNA</div>
+            <button id="logout-btn" class="logout-btn">Cerrar Sesión</button>
+        `;
+        document.getElementById('logout-btn').addEventListener('click', logout);
+        
+        // <div> temporal para que initProductsAdmin cargue su HTML
+        contentContainer.innerHTML = `<div id="admin-products-panel"></div>`;
+        initProductsAdmin('admin-products-panel'); 
+    } else {
+        // No logueado: Cargar formulario de login
+        adminHeaderBar.innerHTML = ''; // Limpiar la cabecera si no está logueado
+        initAuthForm(ADMIN_CONTENT_ID, () => {
+            // Callback al iniciar sesión exitosamente
+            checkAuthAndRender(); 
+        });
+    }
+}
+
+// Inicializar el panel al cargar el DOM de admin.html
+document.addEventListener('DOMContentLoaded', initAdminPanel);
