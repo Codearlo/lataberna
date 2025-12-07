@@ -24,78 +24,54 @@
     height: 60px;
 }
 
-/* Logo centralizado */
-.logo {
-    font-size: 1.5em;
-    font-weight: 900;
-    color: #fff; 
-    text-align: center;
-    flex-grow: 1; 
-    line-height: 1.1;
-}
-
-/* Búsqueda */
-.search-container {
-    display: flex;
-    align-items: center;
-    color: #a0a0a0;
-    min-width: 200px; 
-    max-width: 300px;
+/* Botón de Hamburguesa - Oculto por defecto en desktop */
+.menu-toggle-btn {
+    display: none; /* Oculto por defecto */
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
 }
-
-/* Contenedores de Iconos SVG */
-.search-icon,
-.account-icon,
-.cart-icon {
-    display: inline-flex; /* Asegura el correcto centrado y tamaño del SVG */
-    align-items: center;
-    justify-content: center;
-}
-
-.search-icon {
-    width: 20px; 
-    height: 20px; 
-    margin-right: 8px;
-    color: #a0a0a0; /* Color del icono de búsqueda */
-}
-/* Aseguramos que el SVG dentro tenga el 100% del tamaño del contenedor */
-.search-icon svg {
+.menu-toggle-btn svg {
     width: 100%;
     height: 100%;
 }
 
-.search-input {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 0.9em;
-    width: 100%;
-    outline: none;
+/* Logo centralizado */
+.logo {
+    font-size: 1.8em; /* Aumentado ligeramente para mejor impacto */
+    font-weight: 900;
+    color: #fff; 
+    text-align: center;
+    flex-grow: 1; /* Permite que ocupe el espacio principal */
+    line-height: 1.1;
 }
-.search-input::placeholder {
-    color: #a0a0a0;
-    font-weight: 300;
+
+/* Estilos para contenedores de Iconos SVG */
+.cart-icon {
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
+}
+
+/* Aseguramos que los SVGs tomen el 100% de su contenedor */
+.cart-icon svg,
+.menu-toggle-btn svg {
+    width: 100%;
+    height: 100%;
 }
 
 /* Íconos de Cuenta y Carrito */
 .icons-container {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 15px; 
     color: #fff;
     flex-shrink: 0;
-}
-
-.account-icon {
-    font-size: 1.5em;
-    cursor: pointer;
-    width: 24px;
-    height: 24px;
-}
-.account-icon svg {
-    width: 100%;
-    height: 100%;
 }
 
 .cart-icon-container {
@@ -108,10 +84,6 @@
     width: 26px; /* Un poco más grande para el carrito */
     height: 26px;
     color: #fff;
-}
-.cart-icon svg {
-    width: 100%;
-    height: 100%;
 }
 
 .cart-count {

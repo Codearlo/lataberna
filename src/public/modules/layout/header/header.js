@@ -30,7 +30,17 @@ export async function initHeader(containerId) {
         // 3. Adjuntar evento: Abrir el carrito al hacer clic
         headerElement.querySelector('.cart-icon-container').addEventListener('click', openCartModal);
 
-        // 4. Carga inicial del conteo al iniciar la página
+        // 4. Lógica del Menú de Hamburguesa (AÑADIDO)
+        const menuButton = headerElement.querySelector('.menu-toggle-btn');
+        const headerNav = headerElement.querySelector('.header-nav');
+
+        if (menuButton && headerNav) {
+            menuButton.addEventListener('click', () => {
+                headerNav.classList.toggle('is-open'); // Toglea la clase 'is-open'
+            });
+        }
+        
+        // 5. Carga inicial del conteo al iniciar la página
         updateCartCount();
 
     } catch (error) {
