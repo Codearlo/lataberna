@@ -1,13 +1,13 @@
 /* src/public/modules/layout/header/header.css */
 
-/* Cambiamos el color base del header a negro */
+/* Cambiamos el color base del header a blanco */
 #main-header {
-    background-color: var(--secondary-color);
-    color: #fff;
+    background-color: #fff; /* Fondo BLANCO */
+    color: var(--text-color);
     padding: 0; 
     display: flex;
     flex-direction: column; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra más clara */
     position: sticky; 
     top: 0;
     z-index: 999;
@@ -20,7 +20,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px; 
-    border-bottom: 1px solid #333; 
+    border-bottom: 1px solid #e0e0e0; /* Borde inferior más claro */
     height: 60px;
 }
 
@@ -29,7 +29,7 @@
     display: none; /* Oculto por defecto */
     background: none;
     border: none;
-    color: #fff;
+    color: var(--primary-color); /* Icono oscuro */
     cursor: pointer;
     padding: 0;
     width: 28px;
@@ -43,11 +43,11 @@
 
 /* Logo centralizado */
 .logo {
-    font-size: 1.8em; /* Aumentado ligeramente para mejor impacto */
+    font-size: 1.8em; 
     font-weight: 900;
-    color: #fff; 
+    color: var(--primary-color); /* Logo oscuro */
     text-align: center;
-    flex-grow: 1; /* Permite que ocupe el espacio principal */
+    flex-grow: 1; 
     line-height: 1.1;
 }
 
@@ -70,7 +70,7 @@
     display: flex;
     align-items: center;
     gap: 15px; 
-    color: #fff;
+    color: var(--primary-color); /* Iconos oscuros */
     flex-shrink: 0;
 }
 
@@ -81,9 +81,9 @@
 }
 
 .cart-icon {
-    width: 26px; /* Un poco más grande para el carrito */
+    width: 26px; 
     height: 26px;
-    color: #fff;
+    color: var(--primary-color); /* Icono de carrito oscuro */
 }
 
 .cart-count {
@@ -91,7 +91,7 @@
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: #ff0000; 
+    background-color: var(--secondary-color); /* Color de destaque (rojo) */
     color: #fff;
     border-radius: 50%;
     width: 20px;
@@ -107,7 +107,7 @@
 
 .header-nav {
     padding: 10px 20px;
-    background-color: #0d0d0d; 
+    background-color: #333333; /* Fondo de navegación oscuro, para contraste */
 }
 
 .header-nav ul {
@@ -119,7 +119,7 @@
 }
 
 .header-nav a {
-    color: #fff;
+    color: #fff; /* Enlaces blancos */
     text-decoration: none;
     font-weight: 600;
     font-size: 0.85em;
@@ -128,5 +128,5 @@
 }
 
 .header-nav a:hover {
-    color: #ff0000; 
+    color: var(--secondary-color); /* Color de destaque (rojo) al pasar el mouse */
 }

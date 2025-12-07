@@ -30,7 +30,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: var(--card-bg);
+    background-color: #ffffff; /* Fondo del modal BLANCO */
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
@@ -38,14 +38,15 @@
     max-width: 400px;
     max-height: 90%;
     overflow-y: auto;
+    color: var(--text-color); /* Texto oscuro */
 }
 
 .cart-modal h3 {
-    border-bottom: 2px solid var(--primary-color);
+    border-bottom: 2px solid #e0e0e0; /* Borde más claro */
     padding-bottom: 10px;
     margin-bottom: 20px;
     font-size: 1.5em;
-    color: var(--text-color);
+    color: var(--primary-color); /* Título oscuro */
 }
 
 /* Lista de ítems del carrito */
@@ -58,7 +59,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
-    border-bottom: 1px dashed #e5e5e5;
+    border-bottom: 1px dashed #cccccc; /* Borde más claro */
     font-size: 0.95em;
 }
 
@@ -73,7 +74,7 @@
 
 .quantity-controls button {
     background-color: #f0f0f0;
-    color: var(--text-color);
+    color: var(--text-color); /* Botones de cantidad oscuros */
     width: 28px;
     height: 28px;
     padding: 0;
@@ -94,8 +95,9 @@
     font-size: 1.3em;
     font-weight: bold;
     padding-top: 15px;
-    border-top: 2px solid #e5e5e5;
+    border-top: 2px solid #e0e0e0; /* Borde más claro */
     margin-bottom: 20px;
+    color: var(--primary-color);
 }
 
 /* AGREGA: Estilos para el botón de eliminar del ítem */
@@ -107,7 +109,7 @@
 .remove-item-btn {
     background-color: transparent;
     border: none;
-    color: #cc0000;
+    color: var(--secondary-color); /* Usamos el color de destaque (rojo) */
     font-size: 1.1em;
     padding: 0;
     margin-left: 10px; /* Separación del precio */
@@ -119,7 +121,7 @@
 }
 
 .remove-item-btn:hover {
-    background-color: #ffebeb;
+    background-color: #f8f8f8;
 }
 
 

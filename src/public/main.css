@@ -9,11 +9,11 @@
 
 /* Variables de diseño */
 :root {
-    --primary-color: #ffffff; /* Blanco para texto principal */
-    --secondary-color: #000000; /* Negro para el header y fondo */
-    --text-color: #f0f0f0; /* Gris claro para texto general */
-    --background-color: #1a1a1a; /* Fondo muy oscuro */
-    --card-bg: #2b2b2b; /* Fondo de tarjetas */
+    --primary-color: #000000; /* Negro para texto principal */
+    --secondary-color: #dc3545; /* Rojo de destaque, similar al ejemplo (Puedes cambiarlo) */
+    --text-color: #333333; /* Gris oscuro para texto general */
+    --background-color: #ffffff; /* Fondo BLANCO */
+    --card-bg: #ffffff; /* Fondo de tarjetas BLANCO */
     --font-family: sans-serif;
 }
 
@@ -50,7 +50,7 @@ button {
 #main-footer {
     text-align: center;
     padding: 15px 20px;
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color); /* Usamos el color principal para el footer (negro) */
     color: #fff;
     font-size: 0.9em;
 }
