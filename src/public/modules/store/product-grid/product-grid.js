@@ -23,18 +23,31 @@ export async function initProductGrid(containerId) {
 }
 
 function subscribeToProductChanges() {
-    // La lógica Realtime usa la instancia de Supabase
+    // La lógica Realtime debe usar un canal (channel) y apuntar a los cambios de la tabla.
     supabase
-        .from('products')
-        .on('INSERT', (payload) => {
-            const newCard = renderProductCard(payload.new);
-            gridContainer.prepend(newCard); 
-        })
-        .on('UPDATE', (payload) => {
-            updateProductCard(payload.new);
-        })
-        .on('DELETE', (payload) => {
-            removeProductCard(payload.old.id);
-        })
+        .channel('products_changes') // Nombre del canal (puede ser cualquiera)
+        .on(
+            'postgres_changes', // Tipo de evento para cambios en la base de datos
+            { event: 'INSERT', schema: 'public', table: 'products' }, // Configuración para INSERT
+            (payload) => {
+                const newCard = renderProductCard(payload.new);
+                gridContainer.prepend(newCard); 
+            }
+        )
+        .on(
+            'postgres_changes', // Tipo de evento para cambios en la base de datos
+            { event: 'UPDATE', schema: 'public', table: 'products' }, // Configuración para UPDATE
+            (payload) => {
+                updateProductCard(payload.new);
+            }
+        )
+        .on(
+            'postgres_changes', // Tipo de evento para cambios en la base de datos
+            { event: 'DELETE', schema: 'public', table: 'products' }, // Configuración para DELETE
+            (payload) => {
+                // Supabase envía 'old' para DELETE, que contiene el ID
+                removeProductCard(payload.old.id);
+            }
+        )
         .subscribe();
 }
