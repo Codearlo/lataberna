@@ -1,0 +1,125 @@
+/* src/public/modules/store/cart-modal/cart-modal.css */
+
+/* Por defecto, ocultamos el modal */
+#cart-modal-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+/* La clase 'visible' (manejada por JS) lo muestra */
+#cart-modal-container.visible {
+    display: block;
+}
+
+.cart-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.cart-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    max-height: 90%;
+    overflow-y: auto;
+}
+
+.cart-modal h3 {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    color: var(--text-color);
+}
+
+/* Lista de ítems del carrito */
+#cart-items-list {
+    margin-bottom: 20px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #e5e5e5;
+    font-size: 0.95em;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-controls button {
+    background-color: #f0f0f0;
+    color: var(--text-color);
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    line-height: 1;
+    border-radius: 4px;
+    margin: 0 5px;
+}
+
+.quantity-controls button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Resumen y Botones */
+.cart-summary {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.3em;
+    font-weight: bold;
+    padding-top: 15px;
+    border-top: 2px solid #e5e5e5;
+    margin-bottom: 20px;
+}
+
+.checkout-btn {
+    width: 100%;
+    background-color: #25d366; /* Color de WhatsApp */
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.checkout-btn:hover {
+    background-color: #1da851;
+}
+
+.close-btn {
+    width: 100%;
+    background-color: #cccccc;
+    color: var(--text-color);
+}
+
+.close-btn:hover {
+    background-color: #bbbbbb;
+}
+
+.empty-cart-msg {
+    text-align: center;
+    color: #71717a;
+    padding: 20px 0;
+}

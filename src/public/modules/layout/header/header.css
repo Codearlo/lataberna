@@ -1,0 +1,44 @@
+/* src/public/modules/layout/header/header.css */
+
+#main-header {
+    background-color: var(--secondary-color);
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    font-size: 1.5em;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+.cart-icon-container {
+    position: relative;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.cart-icon {
+    font-size: 2em;
+    color: #fff;
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: none; /* Se activa con JS */
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+    font-weight: bold;
+}

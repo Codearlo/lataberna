@@ -15,9 +15,16 @@ export async function initProductGrid(containerId) {
     }
 
     const initialProducts = await getActiveProducts();
-    initialProducts.forEach(product => {
-        gridContainer.appendChild(renderProductCard(product));
-    });
+    
+    if (initialProducts && initialProducts.length > 0) {
+        // Renderizar productos si existen
+        initialProducts.forEach(product => {
+            gridContainer.appendChild(renderProductCard(product));
+        });
+    } else {
+        // Mostrar mensaje si no hay productos
+        gridContainer.innerHTML = '<p class="empty-grid-msg">No hay productos disponibles por ahora. ¡Vuelve pronto!</p>';
+    }
 
     subscribeToProductChanges();
 }
