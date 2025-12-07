@@ -7,10 +7,10 @@
     box-sizing: border-box;
 }
 
-/* Variables de diseño (ejemplo) */
+/* Variables de diseño */
 :root {
-    --primary-color: #f59e0b; /* Amarillo/Naranja (Cerveza) */
-    --secondary-color: #3f3f46; /* Gris oscuro */
+    --primary-color: #f59e0b; /* Dorado/Amarillo */
+    --secondary-color: #1f2937; /* Gris Oscuro para el header, similar al ejemplo */
     --text-color: #262626;
     --background-color: #fafaf9;
     --card-bg: #ffffff;

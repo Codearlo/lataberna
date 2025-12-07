@@ -1,0 +1,16 @@
+/* src/public/modules/layout/header/header.responsive.css */
+
+/* Tablet y Escritorio */
+@media (min-width: 768px) {
+    #main-header {
+        padding: 15px 40px;
+    }
+    
+    .logo {
+        font-size: 1.8em;
+    }
+
+    .cart-icon {
+        font-size: 2.2em;
+    }
+}

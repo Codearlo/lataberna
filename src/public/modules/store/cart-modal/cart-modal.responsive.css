@@ -1,0 +1,31 @@
+/* src/public/modules/store/cart-modal/cart-modal.responsive.css */
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 500px) {
+    .cart-modal {
+        /* Ocupa toda la parte inferior de la pantalla en móviles */
+        width: 100%;
+        max-width: 100%;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        transform: translate(0, 0);
+        border-radius: 8px 8px 0 0;
+        padding: 20px;
+    }
+    
+    .cart-modal-overlay {
+        /* El overlay se extiende solo hasta el borde superior del modal */
+        display: none; /* Ocultamos el overlay en móvil para que el modal parezca flotar */
+    }
+
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .quantity-controls {
+        margin-left: auto;
+    }
+}

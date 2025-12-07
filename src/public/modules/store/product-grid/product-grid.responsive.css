@@ -1,0 +1,23 @@
+/* src/public/modules/store/product-grid/product-grid.responsive.css */
+
+/* Tablet (2 columnas) */
+@media (min-width: 600px) {
+    #product-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+}
+
+/* Escritorio (3 columnas o más, similar al ejemplo) */
+@media (min-width: 900px) {
+    #product-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+}
+
+@media (min-width: 1200px) {
+    #product-grid-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
