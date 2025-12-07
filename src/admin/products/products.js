@@ -6,7 +6,7 @@ let productsList = [];
 let isEditing = false;
 let editingProductId = null;
 
-// RUTA DE FETCH FINAL: Es relativa al archivo HTML base (src/admin/admin.html)
+// RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/admin.html)
 const PRODUCT_FORM_HTML_PATH = './products/products.html'; 
 
 /**
@@ -57,7 +57,8 @@ async function handleFormSubmit(e) {
     const formData = new FormData(form);
     
     const id = document.getElementById('product-id').value;
-    const name = formData.get('name');
+    // LECTURA CORREGIDA: Se asegura de leer el valor del input 'name'
+    const name = formData.get('name'); 
     const price = parseFloat(formData.get('price'));
     const category = formData.get('category');
     const imageFile = document.getElementById('image_file').files[0];

@@ -3,7 +3,7 @@
 // RUTA A CONFIG: Subir de auth/ a admin/, luego a src/, luego bajar a config/
 import { supabase } from '../../config/supabaseClient.js'; 
 
-// RUTA DE FETCH FINAL: Es relativa al archivo HTML base (src/admin/admin.html)
+// RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/admin.html)
 const LOGIN_FORM_HTML_PATH = './auth/auth.html'; 
 
 /**

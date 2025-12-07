@@ -2,9 +2,12 @@
 
 /* --- Estilos Generales de Admin --- */
 #app-content {
-    background-color: #f8f9fa; /* Fondo más claro para admin */
+    background-color: #ffffff; /* Fondo BLANCO para el contenido de administración */
     padding: 30px;
+    color: #343a40; /* Texto oscuro sobre fondo claro */
 }
+
+/* El header tiene un fondo oscuro, pero la barra superior del admin lo define en admin.js */
 
 .admin-panel-header h3 {
     font-size: 2em;
@@ -13,7 +16,7 @@
 }
 
 .admin-card {
-    background-color: #ffffff;
+    background-color: #f8f9fa; /* Fondo ligeramente gris para las tarjetas */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
@@ -81,19 +84,27 @@
     color: white;
 }
 
+/* CORRECCIÓN DE IMAGEN: El contenedor es fijo y la imagen se ajusta */
 .image-preview {
     margin-top: 10px;
     border: 1px solid #ced4da;
     max-width: 150px;
+    max-height: 150px; /* Limita la altura del contenedor */
     padding: 5px;
     border-radius: 4px;
-    overflow: hidden;
+    overflow: hidden; /* Corta cualquier parte que se desborde */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .image-preview img {
-    display: block;
-    width: 100%;
+    /* Ajusta la imagen dentro del contenedor, manteniendo la proporción */
+    width: auto;
     height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
 }
 
 /* --- Tabla de Productos --- */
