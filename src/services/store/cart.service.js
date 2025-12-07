@@ -65,8 +65,8 @@ const CartService = {
     sendOrderToWhatsapp: () => {
         const cart = CartService.getCart();
         const total = CartService.getCartTotal();
-        const phoneNumber = "51999999999"; 
-
+        const phoneNumber = "51961367961"; // NÚMERO DE TELÉFONO ACTUALIZADO
+        
         if (cart.length === 0) {
             alert("Tu carrito está vacío. ¡Agrega unos tragos primero!");
             return;
