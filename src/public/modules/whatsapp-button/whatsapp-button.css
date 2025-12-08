@@ -1,0 +1,41 @@
+/* src/public/modules/whatsapp-button/whatsapp-button.css */
+
+#whatsapp-float-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 50px; /* Reducido para mejor proporción */
+    height: 50px; /* Reducido para mejor proporción */
+    background-color: #25d366; /* Color de WhatsApp */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 9999; /* Asegura que esté por encima de todo */
+    transition: transform 0.3s ease, background-color 0.3s;
+    text-decoration: none;
+    line-height: 1;
+}
+
+#whatsapp-float-btn img {
+    width: 24px; /* Tamaño del GIF */
+    height: 24px; /* Tamaño del GIF */
+    display: block;
+}
+
+#whatsapp-float-btn:hover {
+    transform: scale(1.1); /* Efecto de acercamiento al pasar el mouse */
+    background-color: #1da851;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 767px) {
+    #whatsapp-float-btn {
+        width: 40px; /* Más pequeño en móvil */
+        height: 40px; /* Más pequeño en móvil */
+        right: 15px;
+        bottom: 15px;
+    }
+    /* La imagen sigue siendo 24x24 como se especificó */
+}
