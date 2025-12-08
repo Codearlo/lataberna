@@ -7,8 +7,11 @@ let categoriesList = [];
 let isEditing = false;
 let editingProductId = null;
 let productIdToDelete = null; 
+let currentFilter = 'active'; 
 
-// RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/admin.html)
+// Mapa para almacenar las referencias de las tarjetas DOM por ID.
+let productCardElements = new Map(); 
+
 const PRODUCT_FORM_HTML_PATH = './products/products.html'; 
 const DEBOUNCE_DELAY = 300; 
 let searchTimeout = null;
@@ -30,7 +33,7 @@ export async function initProductsAdmin(containerId) {
         
         await loadCategories();
         attachEventListeners();
-        await loadProducts();
+        await loadProducts(); // Ahora loadProducts llama a createAndHydrateLists y renderProductsTable
         
         // Hacemos las funciones de control de modal globales
         window.openProductModal = openProductModal;
@@ -58,14 +61,17 @@ function attachEventListeners() {
     const createCategoryBtn = document.getElementById('create-category-btn');
     createCategoryBtn.addEventListener('click', handleCreateCategory);
     
-    // Evento de búsqueda en tiempo real
+    // Evento de búsqueda en tiempo real (debounce para evitar recargas excesivas)
     document.getElementById('product-search-input').addEventListener('input', debounceSearch);
     
     // Delegación de eventos para las listas de tarjetas
     document.getElementById('active-products-list').addEventListener('click', handleListActions);
     document.getElementById('all-products-list').addEventListener('click', handleListActions);
     
-    // NUEVO: Evento para confirmar eliminación
+    // Evento para el cambio de pestañas
+    document.getElementById('product-view-tabs').addEventListener('click', handleTabSwitch);
+    
+    // Evento para confirmar eliminación (se mantiene por si se activa desde el modal de edición)
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
 
     // Detener la propagación de clic en el input y botón de la nueva categoría
@@ -73,7 +79,37 @@ function attachEventListeners() {
     createCategoryBtn.addEventListener('click', (e) => e.stopPropagation()); 
 }
 
-// --- Control de Modales ---
+/**
+ * Maneja el clic en las pestañas (Tabs) de la lista de productos.
+ */
+function handleTabSwitch(e) {
+    const target = e.target;
+    if (!target.classList.contains('tab-button')) return;
+
+    const newFilter = target.dataset.filter;
+    
+    // 1. Actualizar el estado del botón activo
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    target.classList.add('active');
+    
+    if (newFilter !== currentFilter) {
+        currentFilter = newFilter;
+        
+        // 2. Ocultar todos los contenedores de vista y mostrar el nuevo
+        document.querySelectorAll('.products-grid').forEach(view => view.classList.remove('active-view'));
+        
+        // Mostrar el contenedor de la vista activa (active o all)
+        const viewContainerId = `${newFilter}-products-list`;
+        document.getElementById(viewContainerId).classList.add('active-view');
+
+        // 3. Re-filtrar la vista con el término de búsqueda actual (usando el display: none/flex)
+        const searchTerm = document.getElementById('product-search-input').value;
+        renderProductsTable(searchTerm); 
+    }
+}
+
+
+// --- Control de Modales (Resto de funciones se mantienen igual) ---
 
 function openProductModal(mode, productId = null) {
     const modalContainer = document.getElementById('product-modal-container');
@@ -102,9 +138,6 @@ function closeProductModal() {
     resetForm();
 }
 
-/**
- * Muestra el modal de confirmación de eliminación.
- */
 function openDeleteModal(id) {
     const product = productsList.find(p => p.id === id);
     if (!product) return;
@@ -114,9 +147,6 @@ function openDeleteModal(id) {
     document.getElementById('delete-modal-container').classList.add('visible');
 }
 
-/**
- * Oculta el modal de confirmación de eliminación.
- */
 function closeDeleteModal() {
     productIdToDelete = null;
     document.getElementById('product-to-delete-name').textContent = '';
@@ -124,14 +154,15 @@ function closeDeleteModal() {
 }
 
 
-// --- Lógica de Búsqueda ---
+// --- Lógica de Búsqueda (Mejorada para evitar recargas visuales) ---
 
 function debounceSearch(e) {
     clearTimeout(searchTimeout);
     const searchTerm = e.target.value.toLowerCase().trim();
     
     searchTimeout = setTimeout(() => {
-        renderProductsTable(searchTerm);
+        // Llama a la función de renderizado/filtrado SÓLO para ocultar/mostrar, no para reconstruir DOM
+        renderProductsTable(searchTerm); 
     }, DEBOUNCE_DELAY);
 }
 
@@ -165,6 +196,7 @@ async function handleFormSubmit(e) {
             imageUrl = await ProductsAdminService.uploadImage(imageFile);
             
             if (isEditing && currentImageUrl && currentImageUrl !== imageUrl) {
+                // Eliminar la imagen antigua solo si estamos editando y la URL ha cambiado.
                 await ProductsAdminService.deleteImage(currentImageUrl);
             }
         }
@@ -180,23 +212,27 @@ async function handleFormSubmit(e) {
         let result;
         if (isEditing) {
             result = await ProductsAdminService.updateProduct(parseInt(id), productData);
-            // Cuando actualizamos, el producto ya no tiene el nombre de la categoría, lo añadimos temporalmente
+            
+            // Actualizamos la lista local y la metadata de categoría
             const categoryName = categoriesList.find(c => c.id === result.categoria_id)?.nombre || 'Sin Categoría';
             Object.assign(result, { category_name: categoryName });
             
-            // Actualizamos la lista local
             const index = productsList.findIndex(p => p.id === result.id);
             if (index !== -1) {
                 productsList[index] = result;
             }
+            
+            // Actualizar el DOM del producto editado
+            updateCardElements(result); 
+            
             alert(`Producto ${result.name} actualizado!`);
         } else {
             result = await ProductsAdminService.createProduct(productData);
             alert(`Producto ${result.name} agregado!`);
-            await loadProducts(); // Recarga completa si es un nuevo producto para obtener la metadata
+            await loadProducts(); // Recarga COMPLETA para un nuevo producto
         }
 
-        renderProductsTable(document.getElementById('product-search-input').value); // Refresca la vista
+        renderProductsTable(document.getElementById('product-search-input').value); // Refresca la vista (filtra)
         closeProductModal(); 
 
     } catch (error) {
@@ -213,90 +249,145 @@ async function handleFormSubmit(e) {
 async function loadProducts() {
     try {
         productsList = await ProductsAdminService.getAllProducts();
-        renderProductsTable();
+        createAndHydrateLists(); // Inicializa el DOM de las listas UNA SOLA VEZ
+        renderProductsTable(); // Filtra la vista inicial
     } catch (error) {
         console.error("Error al cargar productos:", error);
     }
 }
 
 /**
- * Renderiza la lista de productos filtrada por un término de búsqueda.
- * @param {string} searchTerm - Término de búsqueda.
+ * Crea las tarjetas DOM para TODOS los productos y las añade a los contenedores
+ * correspondientes. SOLO SE LLAMA AL INICIO O TRAS CREAR/ELIMINAR.
  */
-function renderProductsTable(searchTerm = '') {
-    const activeList = document.getElementById('active-products-list');
-    const allList = document.getElementById('all-products-list');
-    const activeEmptyMsg = document.getElementById('active-empty-msg');
-    const allEmptyMsg = document.getElementById('all-empty-msg');
+function createAndHydrateLists() {
+    const activeListView = document.getElementById('active-products-list');
+    const allListView = document.getElementById('all-products-list');
     
-    activeList.innerHTML = '';
-    allList.innerHTML = '';
+    // Limpiamos todo antes de reconstruir (solo al inicio o al crear/eliminar)
+    activeListView.innerHTML = '';
+    allListView.innerHTML = '';
     
-    const filteredProducts = productsList.filter(product => {
-        const nameMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const categoryMatch = product.category_name?.toLowerCase().includes(searchTerm.toLowerCase());
-        return nameMatch || categoryMatch;
-    });
-    
-    let activeCount = 0;
-    
-    filteredProducts.forEach(product => {
-        const card = createProductCard(product);
+    productsList.forEach(product => {
+        // Crear la tarjeta
+        const card = createProductCard(product); 
         
-        // 1. Añadir a la lista de "Todos"
-        allList.appendChild(card.cloneNode(true)); // Clonamos el nodo para las dos secciones
+        // 1. Añadir a la lista de "Todos los Productos"
+        allListView.appendChild(card.cloneNode(true)); // Clonamos para que un elemento no esté en dos padres
         
-        // 2. Añadir a la lista de "Activos" si corresponde
+        // 2. Añadir a la lista de "Productos Activos" si corresponde
         if (product.is_active) {
-            activeList.appendChild(card);
-            activeCount++;
+            activeListView.appendChild(card.cloneNode(true));
         }
     });
-    
-    // Manejar mensajes de vacío
-    if (activeCount === 0) {
-        activeEmptyMsg.style.display = 'block';
-    } else {
-        activeEmptyMsg.style.display = 'none';
-    }
-
-    if (filteredProducts.length === 0) {
-        allEmptyMsg.style.display = 'block';
-    } else {
-        allEmptyMsg.style.display = 'none';
-    }
 }
 
 /**
- * Crea la tarjeta visual de un producto para la lista de administración. (ESTRUCTURA VERTICAL)
+ * Actualiza las tarjetas de un producto editado sin reconstruir toda la lista.
+ */
+function updateCardElements(product) {
+    const oldProduct = productsList.find(p => p.id === product.id);
+    
+    if (oldProduct && oldProduct.is_active !== product.is_active) {
+        // Si el estado activo cambió, reconstruimos completamente para asegurar que se mueva de lista.
+        createAndHydrateLists();
+    } else {
+        // Si solo se cambiaron datos (nombre, precio, etc.), actualizamos las tarjetas existentes.
+        const newCard = createProductCard(product);
+        
+        // Buscamos las tarjetas existentes por su data-id
+        const allListCard = document.querySelector(`#all-products-list .product-list-item[data-id="${product.id}"]`);
+        const activeListCard = document.querySelector(`#active-products-list .product-list-item[data-id="${product.id}"]`);
+        
+        // Reemplazamos el HTML de las tarjetas para reflejar el cambio.
+        if(allListCard) allListCard.outerHTML = newCard.outerHTML;
+        if(activeListCard) activeListCard.outerHTML = newCard.outerHTML;
+    }
+}
+
+
+/**
+ * Filtra los productos de la vista activa basándose en el término de búsqueda
+ * SIN reconstruir el DOM, para evitar el parpadeo de las imágenes.
+ */
+function renderProductsTable(searchTerm = '') {
+    const term = searchTerm.toLowerCase().trim();
+    
+    // Seleccionamos SOLO el contenedor de la vista activa actualmente
+    const activeViewContainerId = currentFilter === 'active' ? 'active-products-list' : 'all-products-list';
+    const activeViewContainer = document.getElementById(activeViewContainerId);
+    
+    // Obtenemos todos los ítems DENTRO de la vista activa (ya sea activos o todos)
+    const cardsInActiveView = activeViewContainer.querySelectorAll('.product-list-item');
+    
+    let matchesFound = 0;
+    
+    cardsInActiveView.forEach(card => {
+        // Usamos el dataset.searchable para hacer la búsqueda de manera eficiente
+        const searchableContent = card.dataset.searchable || '';
+        const isMatch = searchableContent.includes(term);
+        
+        // Toggling display instead of rebuilding HTML
+        if (isMatch) {
+            card.style.display = 'flex'; // Usamos flex porque es el display original
+            matchesFound++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Manejo de mensajes de vacío
+    const emptyMsgId = currentFilter === 'active' ? 'active-empty-msg' : 'all-empty-msg';
+    const otherEmptyMsgId = currentFilter === 'active' ? 'all-empty-msg' : 'active-empty-msg';
+    
+    document.getElementById(emptyMsgId).style.display = (matchesFound === 0) ? 'block' : 'none';
+    document.getElementById(otherEmptyMsgId).style.display = 'none'; // Ocultar el mensaje de la pestaña inactiva
+
+    // Si no hay productos en la lista total, mostramos el mensaje de vacío general
+    if (productsList.length === 0) {
+        document.getElementById('active-empty-msg').style.display = 'block';
+        document.getElementById('all-empty-msg').style.display = 'block';
+    }
+}
+
+
+/**
+ * Crea la tarjeta visual de un producto para la lista de administración.
+ * Incluye un data-attribute para la búsqueda.
  */
 function createProductCard(product) {
     const card = document.createElement('div');
-    card.classList.add('product-card-admin');
+    // Usamos 'product-list-item' para el nuevo estilo
+    card.classList.add('product-list-item'); 
     if (!product.is_active) {
         card.classList.add('inactive');
     }
     card.dataset.id = product.id; 
 
-    const imageUrl = product.image_url || 'https://via.placeholder.com/150x150?text=No+Img';
-    const activeIcon = product.is_active ? '✅' : '❌';
-    const categoryName = product.category_name || 'Sin Categoría';
+    // NUEVO: Atributo para búsqueda eficiente en el DOM
+    const searchable = `${product.name} ${product.category_name || ''}`.toLowerCase();
+    card.dataset.searchable = searchable;
     
-    // Nueva estructura vertical (Image - Details - Footer/Actions)
+    const imageUrl = product.image_url || 'https://via.placeholder.com/60x60?text=No+Img';
+    const categoryName = product.category_name || 'Sin Categoría';
+    const isActive = product.is_active;
+
+    // Estructura con nombre, ID, categoría, precio y badge de estado
     card.innerHTML = `
         <div class="product-image-container">
             <img src="${imageUrl}" alt="${product.name}" loading="lazy">
         </div>
-        <div class="product-details">
+        <div class="product-info-minimal">
             <h5 class="product-name-title">${product.name}</h5>
-            <p class="product-category">Categoría: <span>${categoryName}</span></p>
-            <p class="product-status">Activo: <span>${activeIcon}</span></p>
+            <p class="product-id">ID: ${product.id}</p>
+            <p class="product-category">Categoría: ${categoryName}</p>
         </div>
-        <div class="card-footer-actions">
-            <p class="price">S/ ${product.price.toFixed(2)}</p>
-            <div class="actions-group">
-                <button class="action-btn info-btn" data-action="info">Ver/Editar</button>
-                <button class="action-btn delete-btn" data-action="delete">🗑</button>
+        <div class="product-status-price-container">
+             <span class="status-badge ${isActive ? 'active-badge' : 'inactive-badge'}">
+                ${isActive ? 'ACTIVO' : 'INACTIVO'}
+            </span>
+            <div class="product-price-minimal">
+                <span class="price">S/ ${product.price.toFixed(2)}</span>
             </div>
         </div>
     `;
@@ -306,19 +397,15 @@ function createProductCard(product) {
 
 function handleListActions(e) {
     const target = e.target;
-    if (target.tagName !== 'BUTTON') return;
     
-    const card = target.closest('.product-card-admin');
+    // Si se hace clic en cualquier parte de la tarjeta, abrimos el modal de edición/detalle
+    const card = target.closest('.product-list-item');
+    if (!card) return;
+    
     const productId = parseInt(card.dataset.id);
-    const action = target.dataset.action;
     
-    if (action === 'info') {
-        // En este caso, 'info' abre el modal para ver/editar
-        openProductModal('edit', productId);
-    } else if (action === 'delete') {
-        // Abre el modal de confirmación de eliminación
-        openDeleteModal(productId);
-    }
+    // Abre el modal para ver/editar 
+    openProductModal('edit', productId);
 }
 
 function startEditing(id) {
@@ -347,7 +434,6 @@ async function confirmDelete() {
     const product = productsList.find(p => p.id === id);
 
     try {
-        // Bloqueamos los botones y cerramos el modal de confirmación antes de la operación
         document.getElementById('confirm-delete-btn').disabled = true;
         closeDeleteModal(); 
         
@@ -358,6 +444,7 @@ async function confirmDelete() {
         
         alert(`Producto ${product.name} eliminado.`);
         
+        createAndHydrateLists(); // Reconstruir listas después de la eliminación
         renderProductsTable(document.getElementById('product-search-input').value); // Refresca la vista
         
     } catch (error) {
