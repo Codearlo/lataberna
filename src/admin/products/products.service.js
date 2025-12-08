@@ -103,7 +103,9 @@ const ProductsAdminService = {
 
             if (countError) throw countError;
             
-            const totalCount = countData;
+            // Nota: Supabase RPCs devuelven un array si la función es SETOF, 
+            // y el conteo de una función COUNT() debería ser el primer elemento.
+            const totalCount = countData ? countData[0] : 0; 
 
             // 3. Traer categorías para hacer el join en el cliente (para el nombre de categoría)
             const { data: categories, error: catError } = await supabase
@@ -150,7 +152,6 @@ const ProductsAdminService = {
 
     /**
      * Actualiza un producto existente.
-     * productData contiene solo los campos a actualizar
      */
     async updateProduct(id, productData) {
         const { data, error } = await supabase

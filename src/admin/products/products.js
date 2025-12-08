@@ -9,7 +9,7 @@ let editingProductId = null;
 let productIdToDelete = null; 
 let currentFilter = 'active'; 
 
-// NUEVO: Variables de estado para la paginación
+// Variables de estado para la paginación
 let currentPage = 1;
 const PRODUCTS_PER_PAGE = 10;
 let totalProductsCount = 0;
@@ -33,21 +33,23 @@ export async function initProductsAdmin(containerId) {
         const html = await response.text();
         container.innerHTML = html;
         
+        // 1. Cargar datos estáticos
         await loadCategories();
         
-        // Carga inicial (usa el término de búsqueda vacío y página 1)
-        await loadProducts(); 
-        
-        attachEventListeners(); // Adjunta listeners DESPUÉS de cargar el HTML inicial
-        
-        // Hacemos las funciones de control de modal globales
+        // 2. Adjuntar listeners y hacer funciones globales
+        attachEventListeners(); 
         window.openProductModal = openProductModal;
         window.closeProductModal = closeProductModal;
         window.openDeleteModal = openDeleteModal; 
         window.closeDeleteModal = closeDeleteModal; 
         
+        // 3. Carga Inicial de Productos (Dispara la llamada al servicio que fallaba)
+        // La llamada está protegida por el try/catch que ahora solo capturará el error si el *servicio* falla.
+        await loadProducts(); 
+        
     } catch (error) {
         console.error("Error al inicializar el panel de productos:", error);
+        // Si hay un error aquí, es probable que la RPC no exista en la DB o que la URL de Supabase sea incorrecta.
         container.innerHTML = `<p class="error-msg">Error al cargar la interfaz de administración. Revise la consola para detalles.</p>`;
     }
 }
@@ -66,7 +68,7 @@ function attachEventListeners() {
     const createCategoryBtn = document.getElementById('create-category-btn');
     createCategoryBtn.addEventListener('click', handleCreateCategory);
     
-    // NUEVO: Búsqueda manual al presionar Enter
+    // Búsqueda manual al presionar Enter
     document.getElementById('product-search-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault(); 
@@ -83,7 +85,7 @@ function attachEventListeners() {
     // Evento para confirmar eliminación (se mantiene por si se activa desde el modal de edición)
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
 
-    // NUEVO: Delegación de eventos para los botones de paginación (El contenedor ya existe)
+    // DELEGACIÓN DE EVENTOS PARA PAGINACIÓN: El contenedor ya existe
     document.getElementById('pagination-container').addEventListener('click', handlePaginationClick);
 
     // Detener la propagación de clic en el input y botón de la nueva categoría
@@ -266,11 +268,10 @@ async function handleFormSubmit(e) {
 
 /**
  * Carga los productos filtrados y paginados desde la base de datos.
- * Utiliza currentSearchTerm y currentPage.
  */
 async function loadProducts() {
     try {
-        // Obtenemos los productos para la página actual, según el término de búsqueda
+        // Llama a la RPC para filtrar la lista en el servidor
         const result = await ProductsAdminService.getFilteredProductsPaged({
             searchTerm: currentSearchTerm,
             itemsPerPage: PRODUCTS_PER_PAGE,
