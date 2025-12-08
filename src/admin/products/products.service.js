@@ -1,6 +1,6 @@
-// src/services/admin/products.service.js
+// src/services/admin/products/products.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
 const ProductsAdminService = {
     
@@ -80,33 +80,65 @@ const ProductsAdminService = {
         return data[0];
     },
     
-    // --- LÓGICA DE BASE DE DATOS (CRUD de Productos) ---
+    // --- LÓGICA DE BASE DE DATOS (CRUD y Búsqueda Paginada) ---
     
     /**
-     * Obtiene todos los productos, independientemente de su estado (active/inactive),
-     * e incluye el nombre de la categoría (join).
+     * Obtiene productos filtrados y paginados, usando la función RPC en DB.
      */
-    async getAllProducts() {
-        // Hacemos un join a la tabla 'categorias' para obtener el nombre.
-        const { data, error } = await supabase
-            .from('products')
-            .select('*, categoria:categorias(nombre)') // Selecciona todos los campos de products y el nombre de la categoria
-            .order('id', { ascending: false }); 
-        
-        if (error) throw error;
-        // Mapeamos los datos para aplanar el nombre de la categoría para facilidad de uso en el frontend
-        return data.map(product => ({
-            ...product,
-            category_name: product.categoria.nombre // Usamos 'category_name' para consistencia en el frontend
-        }));
+    async getFilteredProductsPaged({ searchTerm = '', itemsPerPage = 10, pageNumber = 1 }) {
+        try {
+            // 1. Obtener los productos de la página actual
+            const { data, error } = await supabase.rpc('search_products_paged', {
+                search_term: searchTerm,
+                items_per_page: itemsPerPage,
+                page_number: pageNumber
+            });
+
+            if (error) throw error;
+            
+            // 2. Obtener el conteo total para la paginación
+            const { data: countData, error: countError } = await supabase.rpc('count_filtered_products', {
+                search_term: searchTerm
+            });
+
+            if (countError) throw countError;
+            
+            const totalCount = countData;
+
+            // 3. Traer categorías para hacer el join en el cliente (para el nombre de categoría)
+            const { data: categories, error: catError } = await supabase
+                .from('categorias')
+                .select('id, nombre');
+
+            if (catError) throw catError;
+
+            const categoryMap = categories.reduce((map, cat) => {
+                map[cat.id] = cat.nombre;
+                return map;
+            }, {});
+
+            const productsWithCategory = data.map(product => ({
+                ...product,
+                category_name: categoryMap[product.categoria_id] || 'Sin Categoría'
+            }));
+            
+            return {
+                products: productsWithCategory,
+                totalCount: totalCount
+            };
+
+        } catch (err) {
+            console.error("Error al obtener productos filtrados:", err);
+            return { products: [], totalCount: 0 };
+        }
     },
+
 
     /**
      * Crea un nuevo producto.
      * productData debe incluir: name, price, categoria_id, is_active, image_url
      */
     async createProduct(productData) {
-        // El campo 'category' fue reemplazado por 'categoria_id'
         const { data, error } = await supabase
             .from('products')
             .insert([productData])
@@ -121,7 +153,6 @@ const ProductsAdminService = {
      * productData contiene solo los campos a actualizar
      */
     async updateProduct(id, productData) {
-        // El campo 'category' fue reemplazado por 'categoria_id'
         const { data, error } = await supabase
             .from('products')
             .update(productData)

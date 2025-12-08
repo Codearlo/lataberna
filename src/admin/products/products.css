@@ -5,6 +5,7 @@
     background-color: #ffffff; 
     padding: 30px;
     color: #343a40; 
+    padding-bottom: 30px; 
 }
 
 
@@ -390,6 +391,54 @@
     font-size: 1.0em; 
 }
 
+/* --- ESTILOS DE PAGINACIÓN --- */
+.pagination-area {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.pagination-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.pagination-content button {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    background-color: #ffffff;
+    border-radius: 4px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.pagination-content button:hover:not(:disabled):not(.active) {
+    background-color: #f0f0f0;
+}
+
+.pagination-content button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination-content button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-left: 15px;
+    white-space: nowrap;
+}
+
 
 /* --- Responsive para Móviles (Max-width: 767px) --- */
 @media (max-width: 767px) {
@@ -421,5 +470,14 @@
     
     .products-grid {
         grid-template-columns: 1fr; 
+    }
+    
+    .pagination-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .pagination-info {
+        margin-left: 0;
+        margin-top: 5px;
     }
 }
