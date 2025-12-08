@@ -285,10 +285,13 @@ async function handleFormSubmit(e) {
 async function loadProducts() {
     const activeViewContainer = document.getElementById('active-products-list');
     const allViewContainer = document.getElementById('all-products-list');
+    const paginationContainer = document.getElementById('pagination-container');
+    const listCard = document.querySelector('.admin-panel-list.admin-card'); 
 
-    // Muestra un mensaje de carga o limpia la vista antes de la solicitud
-    activeViewContainer.innerHTML = '';
-    allViewContainer.innerHTML = '';
+    // 1. Mostrar estado de carga (OPACITY/OVERLAY)
+    if (listCard) {
+        listCard.classList.add('is-loading'); // Agrega la clase de carga para opacar el contenido anterior
+    }
 
     try {
         // Llama a la RPC para filtrar la lista en el servidor
@@ -301,6 +304,10 @@ async function loadProducts() {
         productsList = result.products;
         totalProductsCount = result.totalCount;
         
+        // 2. Solo limpiamos y actualizamos el contenido cuando tenemos la nueva data
+        activeViewContainer.innerHTML = '';
+        allViewContainer.innerHTML = '';
+        
         createAndHydrateLists(); 
         renderPagination();
         renderProductsTable(); 
@@ -308,12 +315,17 @@ async function loadProducts() {
     } catch (error) {
         console.error("Error al cargar productos:", error);
         
-        // Limpiar las listas y mostrar el mensaje de error en el contenedor visible
-        activeViewContainer.innerHTML = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
-        allViewContainer.innerHTML = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
+        // Mostrar mensaje de error
+        const errorHtml = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
+        activeViewContainer.innerHTML = errorHtml;
+        allViewContainer.innerHTML = errorHtml;
+        paginationContainer.innerHTML = '';
 
-        // Ocultar paginación si hay error
-        document.getElementById('pagination-container').innerHTML = '';
+    } finally {
+        // 3. Eliminar estado de carga
+        if (listCard) {
+            listCard.classList.remove('is-loading');
+        }
     }
 }
 

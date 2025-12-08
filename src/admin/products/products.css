@@ -23,6 +23,30 @@
     margin-bottom: 30px;
 }
 
+/* --- NUEVOS ESTILOS PARA ESTADO DE CARGA EN LA LISTA --- */
+.admin-card.admin-panel-list.is-loading {
+    position: relative;
+    /* Oscurece el contenido actual */
+    opacity: 0.5;
+    pointer-events: none; /* Evita clics */
+    transition: opacity 0.3s ease;
+}
+
+.admin-card.admin-panel-list.is-loading::after {
+    content: 'Cargando productos...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007bff; /* Azul primario */
+    z-index: 1001;
+    opacity: 1; /* Asegura que el texto de carga se vea bien */
+}
+/* --- FIN ESTILOS DE CARGA --- */
+
+
 /* --- MODAL (Overlay y Contenido) --- */
 .modal-container {
     display: none; 
