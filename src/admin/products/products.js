@@ -286,12 +286,8 @@ async function loadProducts() {
     const activeViewContainer = document.getElementById('active-products-list');
     const allViewContainer = document.getElementById('all-products-list');
     const paginationContainer = document.getElementById('pagination-container');
-    const listCard = document.querySelector('.admin-panel-list.admin-card'); 
-
-    // 1. Mostrar estado de carga (OPACITY/OVERLAY)
-    if (listCard) {
-        listCard.classList.add('is-loading'); // Agrega la clase de carga para opacar el contenido anterior
-    }
+    
+    // ELIMINADO: La limpieza inicial que causaba el flicker (activeViewContainer.innerHTML = '').
 
     try {
         // Llama a la RPC para filtrar la lista en el servidor
@@ -304,10 +300,7 @@ async function loadProducts() {
         productsList = result.products;
         totalProductsCount = result.totalCount;
         
-        // 2. Solo limpiamos y actualizamos el contenido cuando tenemos la nueva data
-        activeViewContainer.innerHTML = '';
-        allViewContainer.innerHTML = '';
-        
+        // Ahora, la lista solo se borra/actualiza aquí, minimizando el tiempo de espera visual
         createAndHydrateLists(); 
         renderPagination();
         renderProductsTable(); 
@@ -315,29 +308,28 @@ async function loadProducts() {
     } catch (error) {
         console.error("Error al cargar productos:", error);
         
-        // Mostrar mensaje de error
+        // Mostrar mensaje de error (limpiamos solo si hay error, para no borrar el contenido anterior en caso de un error de red intermitente)
         const errorHtml = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
         activeViewContainer.innerHTML = errorHtml;
         allViewContainer.innerHTML = errorHtml;
         paginationContainer.innerHTML = '';
 
     } finally {
-        // 3. Eliminar estado de carga
-        if (listCard) {
-            listCard.classList.remove('is-loading');
-        }
+        // Bloque final eliminado (antes gestionaba la clase de carga)
     }
 }
 
 /**
  * Crea las tarjetas DOM para los productos de la página actual.
+ * ESTA FUNCIÓN AHORA ES CLAVE para la "cero latencia" visual, ya que limpia e inserta
+ * el nuevo contenido inmediatamente.
  */
 function createAndHydrateLists() {
     const activeListView = document.getElementById('active-products-list');
     const allListView = document.getElementById('all-products-list');
     
-    activeListView.innerHTML = '';
-    allListView.innerHTML = '';
+    activeListView.innerHTML = ''; // Limpia el contenido justo antes de renderizar
+    allListView.innerHTML = '';    // Limpia el contenido justo antes de renderizar
     
     productsList.forEach(product => {
         const card = createProductCard(product); 
