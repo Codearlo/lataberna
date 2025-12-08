@@ -1,6 +1,7 @@
-// src/services/admin/profile/profile.service.js
+// src/admin/profile/profile.service.js
 
-import { logout } from '../../../admin/auth/auth.js'; 
+// Ruta corregida: Sube un nivel (profile/) y baja a auth/
+import { logout } from '../auth/auth.js'; 
 
 const ProfileAdminService = {
     

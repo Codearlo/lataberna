@@ -83,7 +83,6 @@ const ProductsAdminService = {
     
     /**
      * Obtiene productos filtrados y paginados, usando la función RPC en DB.
-     * ESTE ES EL MÉTODO QUE FALTABA O ESTABA FUERA DEL OBJETO.
      */
     async getFilteredProductsPaged({ searchTerm = '', itemsPerPage = 10, pageNumber = 1 }) {
         try {
@@ -96,6 +95,9 @@ const ProductsAdminService = {
 
             if (error) throw error;
             
+            // Aseguramos que data sea un array, incluso si es null
+            const productsData = data || []; 
+            
             // 2. Obtener el conteo total para la paginación
             const { data: countData, error: countError } = await supabase.rpc('count_filtered_products', {
                 search_term: searchTerm
@@ -103,9 +105,9 @@ const ProductsAdminService = {
 
             if (countError) throw countError;
             
-            // Nota: Supabase RPCs devuelven un array si la función es SETOF, 
-            // y el conteo de una función COUNT() debería ser el primer elemento.
-            const totalCount = countData ? countData[0] : 0; 
+            // El conteo debería ser el primer elemento del array devuelto por la RPC.
+            // Aseguramos que countData sea un array o tenga una estructura esperada.
+            const totalCount = (Array.isArray(countData) && countData.length > 0) ? countData[0] : 0; 
 
             // 3. Traer categorías para hacer el join en el cliente (para el nombre de categoría)
             const { data: categories, error: catError } = await supabase
@@ -114,12 +116,14 @@ const ProductsAdminService = {
 
             if (catError) throw catError;
 
-            const categoryMap = categories.reduce((map, cat) => {
+            // Aseguramos que categories sea un array
+            const categoryMap = (categories || []).reduce((map, cat) => {
                 map[cat.id] = cat.nombre;
                 return map;
             }, {});
 
-            const productsWithCategory = data.map(product => ({
+            // Mapeamos los datos de productos
+            const productsWithCategory = productsData.map(product => ({
                 ...product,
                 category_name: categoryMap[product.categoria_id] || 'Sin Categoría'
             }));
@@ -131,8 +135,11 @@ const ProductsAdminService = {
 
         } catch (err) {
             console.error("Error al obtener productos filtrados:", err);
-            // Propagar el error para que sea manejado en products.js
-            throw err; 
+            // Si hay un error, devolvemos un estado vacío en lugar de lanzar una excepción sin atrapar
+            return {
+                products: [],
+                totalCount: 0
+            };
         }
     },
 

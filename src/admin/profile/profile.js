@@ -1,6 +1,6 @@
 // src/admin/profile/profile.js
 
-import { ProfileAdminService } from '../../services/admin/profile/profile.service.js';
+import { ProfileAdminService } from './profile.service.js'; // RUTA CORREGIDA
 
 /**
  * Inicializa la vista del perfil.

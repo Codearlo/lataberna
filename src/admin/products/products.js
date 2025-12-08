@@ -1,6 +1,6 @@
 // src/admin/products/products.js
 
-import { ProductsAdminService } from '../../services/admin/products/products.service.js';
+import { ProductsAdminService } from './products.service.js'; // RUTA CORREGIDA
 
 let productsList = [];
 let categoriesList = []; 
