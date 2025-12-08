@@ -1,6 +1,6 @@
-// src/services/admin/products.service.js
+// src/services/admin/products/products.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
 const ProductsAdminService = {
     
@@ -50,26 +50,63 @@ const ProductsAdminService = {
         return true;
     },
     
-    // --- LÓGICA DE BASE DE DATOS (CRUD) ---
+    // --- LÓGICA DE CATEGORÍAS ---
     
     /**
-     * Obtiene todos los productos, independientemente de su estado (active/inactive).
+     * Obtiene todas las categorías.
      */
-    async getAllProducts() {
+    async getCategories() {
         const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .order('id', { ascending: false }); 
+            .from('categorias')
+            .select('id, nombre')
+            .order('nombre', { ascending: true });
         
         if (error) throw error;
         return data;
     },
+    
+    /**
+     * Crea una nueva categoría.
+     * @param {string} nombre - El nombre de la nueva categoría.
+     * @returns {object} La categoría creada.
+     */
+    async createCategory(nombre) {
+        const { data, error } = await supabase
+            .from('categorias')
+            .insert([{ nombre }])
+            .select();
+            
+        if (error) throw error;
+        return data[0];
+    },
+    
+    // --- LÓGICA DE BASE DE DATOS (CRUD de Productos) ---
+    
+    /**
+     * Obtiene todos los productos, independientemente de su estado (active/inactive),
+     * e incluye el nombre de la categoría (join).
+     */
+    async getAllProducts() {
+        // Hacemos un join a la tabla 'categorias' para obtener el nombre.
+        const { data, error } = await supabase
+            .from('products')
+            .select('*, categoria:categorias(nombre)') // Selecciona todos los campos de products y el nombre de la categoria
+            .order('id', { ascending: false }); 
+        
+        if (error) throw error;
+        // Mapeamos los datos para aplanar el nombre de la categoría para facilidad de uso en el frontend
+        return data.map(product => ({
+            ...product,
+            category_name: product.categoria.nombre // Usamos 'category_name' para consistencia en el frontend
+        }));
+    },
 
     /**
      * Crea un nuevo producto.
+     * productData debe incluir: name, price, categoria_id, is_active, image_url
      */
     async createProduct(productData) {
-        // productData debe incluir: name, price, category, is_active, image_url
+        // El campo 'category' fue reemplazado por 'categoria_id'
         const { data, error } = await supabase
             .from('products')
             .insert([productData])
@@ -81,9 +118,10 @@ const ProductsAdminService = {
 
     /**
      * Actualiza un producto existente.
+     * productData contiene solo los campos a actualizar
      */
     async updateProduct(id, productData) {
-        // productData contiene solo los campos a actualizar
+        // El campo 'category' fue reemplazado por 'categoria_id'
         const { data, error } = await supabase
             .from('products')
             .update(productData)

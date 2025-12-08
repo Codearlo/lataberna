@@ -2,66 +2,94 @@
     <h3>Gestión de Productos</h3>
 </div>
 
-<div class="admin-card">
-    <h4>Agregar/Editar Producto</h4>
-    <form id="product-form" class="product-form">
-        <input type="hidden" id="product-id">
-        
-        <div class="form-group">
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="price">Precio (S/):</label>
-            <input type="number" id="price" name="price" step="0.01" required>
-        </div>
-
-        <div class="form-group">
-            <label for="category_id">Categoría Existente:</label>
-            <select id="category_id" name="categoria_id" required>
-                <option value="">-- Seleccione una Categoría --</option>
-            </select>
-        </div>
-        
-        <div class="form-group" id="new-category-group">
-            <label for="new_category_name">O Crear Nueva Categoría:</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="new_category_name" placeholder="Escribe el nombre de la nueva categoría" style="flex-grow: 1;">
-                <button type="button" id="create-category-btn" class="secondary-btn">Crear y Seleccionar</button>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="image_file">Imagen (Nueva):</label>
-            <input type="file" id="image_file" accept="image/*" name="image_file">
+<div id="product-modal-container" class="modal-container">
+    <div class="modal-overlay" onclick="window.closeProductModal()"></div>
+    <div class="modal-content">
+        <button class="modal-close-btn" onclick="window.closeProductModal()">✖</button>
+        <h4 id="modal-title">Agregar/Editar Producto</h4>
+        <form id="product-form" class="product-form">
+            <input type="hidden" id="product-id">
             <input type="hidden" id="current_image_url" name="current_image_url">
-            <div id="image-preview" class="image-preview"></div>
-        </div>
-        
-        <div class="form-group checkbox-group">
-            <input type="checkbox" id="is_active" name="is_active">
-            <label for="is_active">Activo para venta</label>
-        </div>
-        
-        <button type="submit" id="save-product-btn">Guardar Producto</button>
-        <button type="button" id="cancel-edit-btn" class="secondary-btn" style="display: none;">Cancelar Edición</button>
-    </form>
+            
+            <div class="form-grid">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="name">Nombre:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="price">Precio (S/):</label>
+                        <input type="number" id="price" name="price" step="0.01" required>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="is_active" name="is_active">
+                        <label for="is_active">Activo para venta</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category_id">Categoría Existente:</label>
+                        <select id="category_id" name="categoria_id" required>
+                            <option value="">-- Seleccione una Categoría --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="new-category-group">
+                        <label for="new_category_name">O Crear Nueva Categoría:</label>
+                        <div class="input-with-button">
+                            <input type="text" id="new_category_name" placeholder="Escribe el nombre de la nueva categoría">
+                            <button type="button" id="create-category-btn" class="secondary-btn">Crear y Seleccionar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="image_file">Imagen (Nueva):</label>
+                        <input type="file" id="image_file" accept="image/*" name="image_file">
+                        <div id="image-preview" class="image-preview"></div>
+                        <p class="image-tip">Sube una imagen cuadrada para mejores resultados.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="save-product-btn">Guardar Producto</button>
+                <button type="button" id="cancel-edit-btn" class="secondary-btn" style="display: none;">Cancelar Edición</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<div class="admin-panel-list">
-    <h4>Lista de Productos</h4>
-    <table id="products-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Precio</th>
-                <th>Categoría</th>
-                <th>Activo</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+<div id="delete-modal-container" class="modal-container">
+    <div class="modal-overlay" onclick="window.closeDeleteModal()"></div>
+    <div class="modal-content delete-modal">
+        <h4>🚨 Confirmar Eliminación</h4>
+        <p>Estás a punto de eliminar permanentemente el producto: <strong id="product-to-delete-name"></strong>.</p>
+        <p>¿Estás seguro de que deseas continuar? Esta acción no se puede deshacer.</p>
+        <div class="form-actions">
+            <button id="confirm-delete-btn" class="delete-btn">Sí, Eliminar</button>
+            <button class="secondary-btn" onclick="window.closeDeleteModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="admin-panel-list admin-card">
+    <div class="list-header">
+        <input type="text" id="product-search-input" placeholder="Buscar por Nombre o Categoría..." aria-label="Buscador de productos">
+        <button id="open-create-modal-btn" class="primary-btn">➕ Agregar Nuevo Producto</button>
+    </div>
+    
+    <h4 class="list-section-title">Productos Activos</h4>
+    <div id="active-products-list" class="products-grid">
+        </div>
+    <div id="active-empty-msg" class="empty-list-msg" style="display: none;">No hay productos activos que coincidan con la búsqueda.</div>
+
+    <h4 class="list-section-title">Todos los Productos (Incluye Inactivos)</h4>
+    <div id="all-products-list" class="products-grid">
+        </div>
+    <div id="all-empty-msg" class="empty-list-msg" style="display: none;">No hay productos que coincidan con la búsqueda.</div>
+    
 </div>

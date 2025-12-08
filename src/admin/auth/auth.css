@@ -4,7 +4,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
+    /* Usamos el 100% de la altura menos el footer (que ya no tiene margen si no está logueado) */
+    min-height: calc(100vh - 60px); 
 }
 
 .auth-card {
@@ -70,27 +71,4 @@
     border-radius: 4px;
     margin-top: 15px;
     font-size: 0.9em;
-}
-
-/* Estilos para la barra superior del admin después del login */
-#admin-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #343a40; /* Gris oscuro de administración */
-    color: white;
-    padding: 15px 30px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-}
-
-.admin-title {
-    font-size: 1.5em;
-    font-weight: bold;
-}
-
-.logout-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 8px 15px;
 }

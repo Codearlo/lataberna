@@ -1,0 +1,43 @@
+/* src/admin/profile/profile.css */
+
+.profile-card {
+    max-width: 500px;
+    margin: 30px auto;
+}
+
+.profile-card hr {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #e9ecef;
+}
+
+.profile-card .form-group {
+    margin-bottom: 15px;
+}
+
+.profile-card label {
+    font-weight: 700;
+    color: #495057;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.profile-card p, .profile-card .status-badge {
+    font-size: 1em;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background-color: #f1f1f1;
+    display: inline-block;
+}
+
+.status-badge.active-status {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: bold;
+}
+
+#profile-logout-btn {
+    padding: 10px 20px;
+    width: 100%;
+    margin-top: 10px;
+}

@@ -2,12 +2,17 @@
 
 /* --- Estilos Generales de Admin --- */
 #app-content {
-    background-color: #ffffff; /* Fondo BLANCO para el contenido de administración */
+    background-color: #ffffff; 
     padding: 30px;
-    color: #343a40; /* Texto oscuro sobre fondo claro */
+    color: #343a40; 
 }
 
-/* El header tiene un fondo oscuro, pero la barra superior del admin lo define en admin.js */
+/* NUEVO: Ajustar el contenido principal para la barra de navegación inferior de 70px */
+#app-content {
+    /* 30px superior y lateral + 90px inferior (70px nav + 20px espacio) */
+    padding-bottom: 100px; 
+}
+
 
 .admin-panel-header h3 {
     font-size: 2em;
@@ -16,18 +21,73 @@
 }
 
 .admin-card {
-    background-color: #f8f9fa; /* Fondo ligeramente gris para las tarjetas */
+    background-color: #f8f9fa; 
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
 }
 
-.admin-card h4 {
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    color: #495057;
+
+/* --- MODAL (Overlay y Contenido) --- */
+.modal-container {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+.modal-container.visible {
+    display: block;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff; 
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content.delete-modal {
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal-content.delete-modal strong {
+    color: #dc3545;
+}
+
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
 }
 
 /* --- Formulario --- */
@@ -35,6 +95,12 @@
     margin-bottom: 15px;
     display: flex;
     flex-direction: column;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 200px; 
+    gap: 20px;
 }
 
 .product-form label {
@@ -45,13 +111,22 @@
 
 .product-form input[type="text"],
 .product-form input[type="number"],
-.product-form input[type="file"] {
+.product-form select,
+.input-with-button input[type="text"] {
     padding: 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     width: 100%;
-    max-width: 400px;
     box-sizing: border-box;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 10px;
+}
+
+.input-with-button input {
+    flex-grow: 1;
 }
 
 .product-form .checkbox-group {
@@ -65,22 +140,38 @@
     font-weight: normal;
 }
 
-.product-form button {
+.form-actions {
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end; /* Alinea los botones a la derecha */
+}
+.modal-content.delete-modal .form-actions {
+    justify-content: center;
+}
+
+
+.form-actions button {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
     font-weight: bold;
     cursor: pointer;
-    margin-right: 10px;
 }
 
 #save-product-btn {
-    background-color: #28a745; /* Verde */
+    background-color: #28a745; 
     color: white;
 }
 
-#cancel-edit-btn.secondary-btn {
-    background-color: #6c757d; /* Gris */
+.secondary-btn {
+    background-color: #6c757d; 
+    color: white;
+}
+.delete-btn {
+    background-color: #dc3545;
     color: white;
 }
 
@@ -88,63 +179,198 @@
 .image-preview {
     margin-top: 10px;
     border: 1px solid #ced4da;
-    max-width: 150px;
-    max-height: 150px; /* Limita la altura del contenedor */
+    width: 150px; 
+    height: 150px; 
     padding: 5px;
     border-radius: 4px;
-    overflow: hidden; /* Corta cualquier parte que se desborde */
+    overflow: hidden; 
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .image-preview img {
-    /* Ajusta la imagen dentro del contenedor, manteniendo la proporción */
     width: auto;
     height: auto;
     max-width: 100%;
     max-height: 100%;
     display: block;
 }
-
-/* --- Tabla de Productos --- */
-#products-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background-color: #ffffff;
+.image-tip {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-top: 5px;
 }
 
-#products-table th,
-#products-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
+/* --- Lista de Productos, Buscador y Header de Lista --- */
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    gap: 15px;
 }
 
-#products-table th {
-    background-color: #e9ecef;
-    color: #495057;
-    font-weight: 700;
-}
-
-#products-table tbody tr:hover {
-    background-color: #f1f1f1;
-}
-
-.action-btn {
-    padding: 5px 10px;
+#product-search-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ced4da;
     border-radius: 4px;
-    margin-right: 5px;
+    max-width: 400px;
+}
+
+.primary-btn {
+    background-color: #007bff;
+    color: white;
     font-size: 0.9em;
 }
 
-.edit-btn {
-    background-color: #ffc107; /* Amarillo */
-    color: #212529;
+.list-section-title {
+    font-size: 1.3em;
+    color: #343a40;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+.empty-list-msg {
+    color: #6c757d;
+    text-align: center;
+    padding: 20px;
+    border: 1px dashed #ced4da;
+    border-radius: 4px;
+    margin-bottom: 20px;
 }
 
-.delete-btn {
-    background-color: #dc3545; /* Rojo */
+/* --- GRID DE TARJETAS DE PRODUCTOS --- */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.product-card-admin {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+    border: 1px solid #e9ecef;
+}
+.product-card-admin.inactive {
+    opacity: 0.7; /* Atenuar productos inactivos */
+    border-left: 5px solid #6c757d;
+}
+.product-card-admin:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card-admin img {
+    width: 100px; /* Ancho fijo para la imagen */
+    height: 100px; /* Altura fija */
+    object-fit: contain;
+    padding: 5px;
+    border-right: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.product-details {
+    padding: 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-details h5 {
+    font-size: 1.1em;
+    margin: 0 0 5px 0;
+    color: #343a40;
+}
+
+.product-details p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.product-details .price {
+    font-weight: bold;
+    color: #dc3545;
+    font-size: 1.2em;
+}
+
+.card-actions {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.card-actions button {
+    padding: 8px 12px;
+    font-size: 0.85em;
+}
+.card-actions .info-btn {
+    background-color: #007bff;
     color: white;
+}
+
+/* --- Responsive para Móviles (Max-width: 767px) --- */
+@media (max-width: 767px) {
+    #app-content {
+        padding: 15px;
+    }
+    
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        top: 0;
+        left: 0;
+        transform: translate(0, 0);
+        height: 100%;
+        border-radius: 0;
+        padding: 20px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-column:last-child {
+        border-top: 1px solid #e9ecef; 
+        padding-top: 15px;
+        margin-top: 5px;
+    }
+    
+    .image-preview {
+        width: 100%; 
+        height: 200px; 
+    }
+
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: center;
+    }
+    .modal-content.delete-modal .form-actions {
+        flex-direction: row;
+    }
+
+    .list-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    #product-search-input {
+        max-width: 100%;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr; /* Una sola columna en móvil */
+    }
 }
