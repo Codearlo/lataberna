@@ -17,7 +17,7 @@ let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
 
 const PRODUCT_FORM_HTML_PATH = './products/products.html'; 
 let searchTimeout = null; // Variable para manejar el debounce (REUSADA)
-const DEBOUNCE_DELAY = 300; // 300ms de retraso antes de buscar
+const DEBOUNCE_DELAY = 50; // REDUCIDO a 50ms para sensación de tiempo real
 
 /**
  * Inicializa la vista de administración de productos.
@@ -79,6 +79,12 @@ function attachEventListeners() {
         searchTimeout = setTimeout(() => {
             handleDynamicSearch();
         }, DEBOUNCE_DELAY);
+        
+        // APLICAMOS CLASE DE CARGA INMEDIATAMENTE para feedback visual
+        const listCard = document.querySelector('.admin-panel-list.admin-card');
+        if (listCard) {
+            listCard.classList.add('is-searching');
+        }
     });
 
     // Eliminado el listener 'keypress' para Enter, ahora es completamente dinámico.
@@ -108,6 +114,11 @@ function handleDynamicSearch() {
     
     // Evita la recarga si el término de búsqueda no ha cambiado realmente (optimización menor)
     if (searchTerm === currentSearchTerm) {
+        // Si no ha cambiado, removemos la clase de búsqueda inmediatamente
+        const listCard = document.querySelector('.admin-panel-list.admin-card');
+        if (listCard) {
+            listCard.classList.remove('is-searching');
+        }
         return;
     }
     
@@ -134,6 +145,11 @@ function handlePaginationClick(e) {
 
     if (newPage !== currentPage) {
         currentPage = newPage;
+        // Aplicamos la clase de búsqueda/carga al cambiar de página
+        const listCard = document.querySelector('.admin-panel-list.admin-card');
+        if (listCard) {
+            listCard.classList.add('is-searching');
+        }
         loadProducts(); // Recarga la página
     }
 }
@@ -286,8 +302,7 @@ async function loadProducts() {
     const activeViewContainer = document.getElementById('active-products-list');
     const allViewContainer = document.getElementById('all-products-list');
     const paginationContainer = document.getElementById('pagination-container');
-    
-    // ELIMINADO: La limpieza inicial que causaba el flicker (activeViewContainer.innerHTML = '').
+    const listCard = document.querySelector('.admin-panel-list.admin-card'); 
 
     try {
         // Llama a la RPC para filtrar la lista en el servidor
@@ -315,33 +330,46 @@ async function loadProducts() {
         paginationContainer.innerHTML = '';
 
     } finally {
-        // Bloque final eliminado (antes gestionaba la clase de carga)
+        // QUITAMOS CLASE DE CARGA AL FINALIZAR
+        if (listCard) {
+            listCard.classList.remove('is-searching');
+        }
     }
 }
 
 /**
  * Crea las tarjetas DOM para los productos de la página actual.
- * ESTA FUNCIÓN AHORA ES CLAVE para la "cero latencia" visual, ya que limpia e inserta
- * el nuevo contenido inmediatamente.
+ * Utiliza DocumentFragment para evitar la manipulación directa del DOM y el "flicker".
  */
 function createAndHydrateLists() {
     const activeListView = document.getElementById('active-products-list');
     const allListView = document.getElementById('all-products-list');
     
-    activeListView.innerHTML = ''; // Limpia el contenido justo antes de renderizar
-    allListView.innerHTML = '';    // Limpia el contenido justo antes de renderizar
+    // Optimizamos el reemplazo de contenido para evitar el flicker
+    // Creamos un DocumentFragment para cada lista para insertar el contenido de una sola vez
     
+    const activeFragment = document.createDocumentFragment();
+    const allFragment = document.createDocumentFragment();
+
     productsList.forEach(product => {
         const card = createProductCard(product); 
         
-        // 1. Añadir a la lista de "Todos los Productos"
-        allListView.appendChild(card.cloneNode(true)); 
+        // 1. Añadir al fragmento de "Todos los Productos"
+        allFragment.appendChild(card); 
         
-        // 2. Añadir a la lista de "Productos Activos" si corresponde
+        // 2. Añadir al fragmento de "Productos Activos" si corresponde
         if (product.is_active) {
-            activeListView.appendChild(card.cloneNode(true));
+            // Clonamos la tarjeta para agregarla al segundo fragmento
+            activeFragment.appendChild(card.cloneNode(true));
         }
     });
+
+    // Reemplazamos el contenido en una sola operación DOM para cada lista
+    activeListView.innerHTML = '';
+    activeListView.appendChild(activeFragment);
+    
+    allListView.innerHTML = '';
+    allListView.appendChild(allFragment);
 }
 
 /**

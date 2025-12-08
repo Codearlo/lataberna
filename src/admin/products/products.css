@@ -23,6 +23,15 @@
     margin-bottom: 30px;
 }
 
+/* --- NUEVO ESTILO PARA BÚSQUEDA RÁPIDA (FEEDBACK VISUAL SUTIL) --- */
+.admin-panel-list.admin-card.is-searching {
+    opacity: 0.7; /* Opacidad sutil para indicar que se está trabajando */
+    pointer-events: none; /* Deshabilita clics mientras se actualiza */
+    transition: opacity 0.05s ease-out; /* Transición muy rápida */
+}
+/* --- FIN NUEVO ESTILO --- */
+
+
 /* --- MODAL (Overlay y Contenido) --- */
 .modal-container {
     display: none; 
