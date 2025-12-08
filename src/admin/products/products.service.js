@@ -1,6 +1,6 @@
 // src/services/admin/products/products.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../../config/supabaseClient.js'; 
 
 const ProductsAdminService = {
     
@@ -38,7 +38,6 @@ const ProductsAdminService = {
      */
     async deleteImage(publicUrl) {
         // La URL pública es: [SUPABASE_URL]/storage/v1/object/public/[BUCKET]/[PATH]
-        // Necesitamos extraer solo el [PATH]
         const pathSegments = publicUrl.split('/');
         const filePath = pathSegments.slice(pathSegments.indexOf(PRODUCTS_BUCKET) + 1).join('/');
 
@@ -84,6 +83,7 @@ const ProductsAdminService = {
     
     /**
      * Obtiene productos filtrados y paginados, usando la función RPC en DB.
+     * ESTE ES EL MÉTODO QUE FALTABA O ESTABA FUERA DEL OBJETO.
      */
     async getFilteredProductsPaged({ searchTerm = '', itemsPerPage = 10, pageNumber = 1 }) {
         try {
