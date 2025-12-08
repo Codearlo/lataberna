@@ -28,6 +28,7 @@ async function checkAuthAndRender() {
     const session = await getSession();
     const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
     const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
+    const footerElement = document.getElementById('main-footer');
     
     // Limpiamos el contenido anterior antes de renderizar
     contentContainer.innerHTML = '';
@@ -52,12 +53,12 @@ async function checkAuthAndRender() {
         // 4. Mostrar la vista por defecto (Products)
         handleViewChange('products');
 
-        // Aseguramos que el pie de página tenga margen para el nav bar (70px de nav + 10px de padding)
-        document.getElementById('main-footer').style.marginBottom = '80px'; 
+        // El margen ya es manejado por el CSS de bottom-nav (margin-bottom: 90px)
+        footerElement.style.marginBottom = ''; 
         
     } else {
         // No logueado: Cargar formulario de login
-        document.getElementById('main-footer').style.marginBottom = '0'; 
+        footerElement.style.marginBottom = '0'; 
         initAuthForm(ADMIN_CONTENT_ID, () => {
             // Callback al iniciar sesión exitosamente
             checkAuthAndRender(); 

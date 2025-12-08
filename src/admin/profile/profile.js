@@ -23,10 +23,8 @@ export async function initProfileView(containerId) {
 
         // 1. Adjuntar listener de Cerrar Sesión
         document.getElementById('profile-logout-btn').addEventListener('click', () => {
-             if (confirm('¿Estás seguro que quieres cerrar sesión?')) {
-                // Llama al servicio centralizado para manejar el logout
-                ProfileAdminService.handleLogout();
-            }
+             // Ya no necesita el confirm aquí, ya que el servicio lo hace internamente o se asume la acción
+             ProfileAdminService.handleLogout();
         });
 
     } catch (error) {

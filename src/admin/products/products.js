@@ -1,6 +1,5 @@
 // src/admin/products/products.js
 
-// CAMBIO: Importar desde la nueva ubicación modular de servicios
 import { ProductsAdminService } from '../../services/admin/products/products.service.js';
 
 let productsList = [];
@@ -269,7 +268,7 @@ function renderProductsTable(searchTerm = '') {
 }
 
 /**
- * Crea la tarjeta visual de un producto para la lista de administración.
+ * Crea la tarjeta visual de un producto para la lista de administración. (ESTRUCTURA VERTICAL)
  */
 function createProductCard(product) {
     const card = document.createElement('div');
@@ -279,20 +278,23 @@ function createProductCard(product) {
     }
     card.dataset.id = product.id; 
 
-    const imageUrl = product.image_url || 'https://via.placeholder.com/100x100?text=No+Img';
+    const imageUrl = product.image_url || 'https://via.placeholder.com/150x150?text=No+Img';
     const activeIcon = product.is_active ? '✅' : '❌';
     const categoryName = product.category_name || 'Sin Categoría';
     
+    // Nueva estructura vertical (Image - Details - Footer/Actions)
     card.innerHTML = `
-        <img src="${imageUrl}" alt="${product.name}" loading="lazy">
+        <div class="product-image-container">
+            <img src="${imageUrl}" alt="${product.name}" loading="lazy">
+        </div>
         <div class="product-details">
-            <div>
-                <h5>${product.name}</h5>
-                <p>Categoría: ${categoryName}</p>
-                <p>Activo: ${activeIcon}</p>
-            </div>
-            <div class="card-actions">
-                <p class="price">S/ ${product.price.toFixed(2)}</p>
+            <h5 class="product-name-title">${product.name}</h5>
+            <p class="product-category">Categoría: <span>${categoryName}</span></p>
+            <p class="product-status">Activo: <span>${activeIcon}</span></p>
+        </div>
+        <div class="card-footer-actions">
+            <p class="price">S/ ${product.price.toFixed(2)}</p>
+            <div class="actions-group">
                 <button class="action-btn info-btn" data-action="info">Ver/Editar</button>
                 <button class="action-btn delete-btn" data-action="delete">🗑</button>
             </div>

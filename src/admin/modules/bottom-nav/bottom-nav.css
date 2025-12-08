@@ -1,18 +1,25 @@
 /* src/admin/modules/bottom-nav/bottom-nav.css */
 
 :root {
-    --nav-bg: #ffffff; /* Fondo blanco */
+    /* Color base tomado del diseño de la imagen (Morado/Azul Oscuro) */
+    --nav-primary-color: #6a5acd; /* Morado/Púrpura */
+    --nav-bg: #ffffff; /* Fondo Blanco */
     --nav-icon-color: #6c757d; /* Gris para inactivo */
-    --nav-active-color: #007bff; /* Azul primario para activo */
+    --nav-active-bg: #e5e0ff; /* Fondo muy claro para activo */
 }
 
 #admin-bottom-nav {
+    /* Hacemos la barra flotante (bottom: 20px) y le damos esquinas redondeadas */
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 20px; /* Separado del borde inferior */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%; /* Más estrecho para efecto flotante */
+    max-width: 400px;
+    
     background-color: var(--nav-bg); 
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 20px; /* Esquinas redondeadas */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
 
@@ -21,9 +28,9 @@
     justify-content: space-around;
     align-items: center;
     list-style: none;
-    padding: 0 10px;
+    padding: 0;
     margin: 0;
-    height: 70px; /* Altura de barra más cómoda */
+    height: 70px; /* Altura de barra cómoda */
 }
 
 #admin-bottom-nav li {
@@ -31,7 +38,6 @@
     text-align: center;
     position: relative;
     padding: 5px 0;
-    transition: background-color 0.2s;
 }
 
 #admin-bottom-nav a {
@@ -41,24 +47,24 @@
     justify-content: center;
     text-decoration: none;
     color: var(--nav-icon-color); 
-    transition: color 0.3s, transform 0.2s;
+    transition: color 0.3s;
     padding: 5px 0;
     height: 100%;
 }
 
-/* Estado Activo: Base del diseño tipo pastilla */
-#admin-bottom-nav li.active a {
-    color: var(--nav-active-color); /* Icono y texto azul */
+/* Estilo del ítem ACTIVO (Efecto pastilla) */
+#admin-bottom-nav li.active {
+    background-color: var(--nav-active-bg); 
+    border-radius: 10px;
+    margin: 5px; /* Margen para separar la pastilla dentro del nav */
 }
 
-#admin-bottom-nav li.active {
-    background-color: #e9f5ff; /* Fondo azul claro */
-    border-radius: 12px;
-    margin: 5px 5px;
+#admin-bottom-nav li.active a {
+    color: var(--nav-primary-color); 
 }
 
 #admin-bottom-nav .icon {
-    width: 26px; /* Iconos un poco más grandes */
+    width: 26px; 
     height: 26px;
     margin-bottom: 2px;
 }
@@ -71,6 +77,16 @@
 
 /* Espacio en el footer para evitar que el contenido quede detrás de la barra */
 #main-footer {
-    margin-bottom: 70px; 
+    /* La barra empieza en 20px desde abajo y tiene 70px de alto, 
+       así que el contenido debe parar por lo menos 90px desde abajo. */
+    margin-bottom: 90px; 
     padding-bottom: 10px; 
+}
+
+/* Asegurar que en móviles, el botón flotante se mantenga visible */
+@media (max-width: 500px) {
+    #admin-bottom-nav {
+        width: 95%;
+        bottom: 10px; /* Más cerca del borde para no ocupar tanto espacio */
+    }
 }
