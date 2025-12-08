@@ -3,6 +3,7 @@
 import { ProductsAdminService } from '../../services/admin/products.service.js';
 
 let productsList = [];
+let categoriesList = []; // AGREGA: Lista de categorías
 let isEditing = false;
 let editingProductId = null;
 
@@ -26,7 +27,10 @@ export async function initProductsAdmin(containerId) {
         const html = await response.text();
         container.innerHTML = html;
         
-        // 2. Adjuntar eventos y cargar datos iniciales
+        // 2. Cargar categorías antes de adjuntar eventos y productos
+        await loadCategories();
+        
+        // 3. Adjuntar eventos y cargar datos iniciales
         attachEventListeners();
         await loadProducts();
         
@@ -46,9 +50,19 @@ function attachEventListeners() {
     
     // Delegación de eventos para la tabla
     document.getElementById('products-table').addEventListener('click', handleTableActions);
+    
+    // AGREGA: Evento para crear nueva categoría
+    const createCategoryBtn = document.getElementById('create-category-btn');
+    createCategoryBtn.addEventListener('click', handleCreateCategory);
+    
+    // ⭐ NUEVO: Detener la propagación de clic en el input y botón de la nueva categoría
+    // Esto previene que el clic active listeners en elementos contenedores (como el
+    // que podría estar llamando al diálogo de archivos).
+    document.getElementById('new_category_name').addEventListener('click', (e) => e.stopPropagation());
+    createCategoryBtn.addEventListener('click', (e) => e.stopPropagation()); 
 }
 
-// --- Manejo del Formulario ---
+// --- Manejo del Formulario de Productos ---
 
 async function handleFormSubmit(e) {
     e.preventDefault();
@@ -57,20 +71,25 @@ async function handleFormSubmit(e) {
     const formData = new FormData(form);
     
     const id = document.getElementById('product-id').value;
-    // LECTURA CORREGIDA: Se asegura de leer el valor del input 'name'
     const name = formData.get('name'); 
     const price = parseFloat(formData.get('price'));
-    const category = formData.get('category');
+    const categoriaId = parseInt(document.getElementById('category_id').value); // CAMBIO: Obtiene el ID de la categoría
     const imageFile = document.getElementById('image_file').files[0];
     const currentImageUrl = document.getElementById('current_image_url').value;
     const isActive = document.getElementById('is_active').checked;
+    
+    // 1. Validación de Categoría
+    if (!categoriaId) {
+        alert("Por favor, selecciona una categoría existente.");
+        return;
+    }
     
     let imageUrl = currentImageUrl; // Usar URL actual por defecto
 
     try {
         document.getElementById('save-product-btn').disabled = true;
 
-        // 1. Subir nueva imagen si se seleccionó un archivo
+        // 2. Subir nueva imagen si se seleccionó un archivo
         if (imageFile) {
             imageUrl = await ProductsAdminService.uploadImage(imageFile);
             
@@ -80,11 +99,11 @@ async function handleFormSubmit(e) {
             }
         }
         
-        // 2. Preparar datos para DB
+        // 3. Preparar datos para DB
         const productData = {
             name: name,
             price: price,
-            category: category,
+            categoria_id: categoriaId, // CAMBIO: Usa categoria_id
             is_active: isActive,
             image_url: imageUrl,
         };
@@ -100,7 +119,7 @@ async function handleFormSubmit(e) {
             alert(`Producto ${result.name} agregado!`);
         }
 
-        // 3. Recargar y limpiar
+        // 4. Recargar y limpiar
         await loadProducts();
         resetForm();
 
@@ -112,10 +131,73 @@ async function handleFormSubmit(e) {
     }
 }
 
+// --- Manejo de Categorías ---
+
+async function loadCategories() {
+    try {
+        categoriesList = await ProductsAdminService.getCategories();
+        renderCategoriesSelect();
+    } catch (error) {
+        console.error("Error al cargar categorías:", error);
+    }
+}
+
+function renderCategoriesSelect() {
+    const select = document.getElementById('category_id');
+    select.innerHTML = '<option value="">-- Seleccione una Categoría --</option>'; // Limpiar
+    
+    categoriesList.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.nombre;
+        select.appendChild(option);
+    });
+}
+
+async function handleCreateCategory() {
+    const newCategoryName = document.getElementById('new_category_name').value.trim();
+    
+    if (!newCategoryName) {
+        alert("Por favor, introduce el nombre de la nueva categoría.");
+        return;
+    }
+    
+    if (categoriesList.some(c => c.nombre.toLowerCase() === newCategoryName.toLowerCase())) {
+        alert(`La categoría "${newCategoryName}" ya existe.`);
+        document.getElementById('new_category_name').value = '';
+        return;
+    }
+
+    try {
+        document.getElementById('create-category-btn').disabled = true;
+        
+        const newCategory = await ProductsAdminService.createCategory(newCategoryName);
+        
+        alert(`Categoría "${newCategory.nombre}" creada con éxito.`);
+        
+        // 1. Recargar la lista de categorías
+        await loadCategories();
+        
+        // 2. Seleccionar la nueva categoría en el dropdown
+        document.getElementById('category_id').value = newCategory.id;
+        
+        // 3. Limpiar el input de nueva categoría
+        document.getElementById('new_category_name').value = '';
+
+    } catch (error) {
+        console.error("Error al crear categoría:", error);
+        alert(`Error al crear categoría: ${error.message}`);
+    } finally {
+        document.getElementById('create-category-btn').disabled = false;
+    }
+}
+
+
 // --- Manejo de la Tabla ---
 
 async function loadProducts() {
     try {
+        // CAMBIO: La función getAllProducts ahora devuelve objetos con el nombre de la categoría aplanado (product.category_name)
         productsList = await ProductsAdminService.getAllProducts();
         renderProductsTable();
     } catch (error) {
@@ -131,11 +213,12 @@ function renderProductsTable() {
         const row = tableBody.insertRow();
         row.dataset.id = product.id;
         
+        // CAMBIO: Usa product.category_name en lugar de product.category
         row.innerHTML = `
             <td>${product.id}</td>
             <td>${product.name}</td>
             <td>S/ ${product.price.toFixed(2)}</td>
-            <td>${product.category}</td>
+            <td>${product.category_name}</td> 
             <td>${product.is_active ? '✅' : '❌'}</td>
             <td>
                 <button class="action-btn edit-btn" data-action="edit">Editar</button>
@@ -168,7 +251,8 @@ function startEditing(id) {
     document.getElementById('product-id').value = product.id;
     document.getElementById('name').value = product.name;
     document.getElementById('price').value = product.price;
-    document.getElementById('category').value = product.category;
+    // CAMBIO: Setea el ID de la categoría (asumiendo que el campo se llama categoria_id en el objeto del producto)
+    document.getElementById('category_id').value = product.categoria_id; 
     document.getElementById('is_active').checked = product.is_active;
     document.getElementById('current_image_url').value = product.image_url || '';
     
@@ -206,6 +290,7 @@ function resetForm() {
     document.getElementById('cancel-edit-btn').style.display = 'none';
     document.getElementById('image_file').value = ''; // Limpiar el campo de archivo
     document.getElementById('image-preview').innerHTML = '';
+    document.getElementById('new_category_name').value = ''; // Limpiar campo de nueva categoría
     
     isEditing = false;
     editingProductId = null;

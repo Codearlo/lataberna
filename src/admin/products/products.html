@@ -18,10 +18,19 @@
         </div>
 
         <div class="form-group">
-            <label for="category">Categoría:</label>
-            <input type="text" id="category" name="category" required>
+            <label for="category_id">Categoría Existente:</label>
+            <select id="category_id" name="categoria_id" required>
+                <option value="">-- Seleccione una Categoría --</option>
+            </select>
         </div>
-
+        
+        <div class="form-group" id="new-category-group">
+            <label for="new_category_name">O Crear Nueva Categoría:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="new_category_name" placeholder="Escribe el nombre de la nueva categoría" style="flex-grow: 1;">
+                <button type="button" id="create-category-btn" class="secondary-btn">Crear y Seleccionar</button>
+            </div>
+        </div>
         <div class="form-group">
             <label for="image_file">Imagen (Nueva):</label>
             <input type="file" id="image_file" accept="image/*" name="image_file">
