@@ -3,7 +3,7 @@
 import { initProductsAdmin } from './products/products.js';
 import { initProfileView } from './profile/profile.js'; 
 import { initAuthForm, getSession } from './auth/auth.js'; 
-// Asumimos la existencia de initBottomNav y su dependencia en la navegación
+import { initBottomNav } from './modules/bottom-nav/bottom-nav.js'; // Descomentada
 
 const ADMIN_CONTENT_ID = 'app-content';
 const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container'; // Contenedor para la barra de navegación
@@ -42,11 +42,12 @@ async function checkAuthAndRender() {
         `;
 
         // 2. Inicializar las vistas 
-        initProductsAdmin(VIEW_CONTAINERS.products); 
-        initProfileView(VIEW_CONTAINERS.profile);
+        // Llama a initProductsAdmin que a su vez llama a loadProducts
+        await initProductsAdmin(VIEW_CONTAINERS.products); // Usamos await para asegurar que el contenido se inyecte
+        await initProfileView(VIEW_CONTAINERS.profile);
 
         // 3. Inicializar la barra de navegación inferior (Si el módulo bottom-nav.js existe)
-        // initBottomNav(ADMIN_NAV_CONTAINER_ID, handleViewChange);
+        initBottomNav(handleViewChange);
 
         // 4. Mostrar la vista por defecto (Products)
         handleViewChange('products');

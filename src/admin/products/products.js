@@ -270,6 +270,13 @@ async function handleFormSubmit(e) {
  * Carga los productos filtrados y paginados desde la base de datos.
  */
 async function loadProducts() {
+    const activeViewContainer = document.getElementById('active-products-list');
+    const allViewContainer = document.getElementById('all-products-list');
+
+    // Muestra un mensaje de carga o limpia la vista antes de la solicitud
+    activeViewContainer.innerHTML = '';
+    allViewContainer.innerHTML = '';
+
     try {
         // Llama a la RPC para filtrar la lista en el servidor
         const result = await ProductsAdminService.getFilteredProductsPaged({
@@ -287,6 +294,13 @@ async function loadProducts() {
 
     } catch (error) {
         console.error("Error al cargar productos:", error);
+        
+        // Limpiar las listas y mostrar el mensaje de error en el contenedor visible
+        activeViewContainer.innerHTML = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
+        allViewContainer.innerHTML = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
+
+        // Ocultar paginación si hay error
+        document.getElementById('pagination-container').innerHTML = '';
     }
 }
 

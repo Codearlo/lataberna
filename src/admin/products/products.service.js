@@ -131,7 +131,8 @@ const ProductsAdminService = {
 
         } catch (err) {
             console.error("Error al obtener productos filtrados:", err);
-            return { products: [], totalCount: 0 };
+            // Propagar el error para que sea manejado en products.js
+            throw err; 
         }
     },
 
