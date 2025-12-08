@@ -1,6 +1,6 @@
 // src/admin/products/products.js
 
-import { ProductsAdminService } from './products.service.js'; // RUTA CORREGIDA
+import { ProductsAdminService } from './products.service.js';
 
 let productsList = [];
 let categoriesList = []; 
@@ -16,7 +16,8 @@ let totalProductsCount = 0;
 let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
 
 const PRODUCT_FORM_HTML_PATH = './products/products.html'; 
-let searchTimeout = null;
+let searchTimeout = null; // Variable para manejar el debounce (REUSADA)
+const DEBOUNCE_DELAY = 300; // 300ms de retraso antes de buscar
 
 /**
  * Inicializa la vista de administración de productos.
@@ -68,13 +69,19 @@ function attachEventListeners() {
     const createCategoryBtn = document.getElementById('create-category-btn');
     createCategoryBtn.addEventListener('click', handleCreateCategory);
     
-    // Búsqueda manual al presionar Enter
-    document.getElementById('product-search-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault(); 
-            handleManualSearch();
+    // CAMBIO CLAVE: Usa 'input' para búsqueda dinámica y DEBOUNCE
+    document.getElementById('product-search-input').addEventListener('input', (e) => {
+        // Limpiamos el timeout anterior
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
         }
+        // Configuramos un nuevo timeout
+        searchTimeout = setTimeout(() => {
+            handleDynamicSearch();
+        }, DEBOUNCE_DELAY);
     });
+
+    // Eliminado el listener 'keypress' para Enter, ahora es completamente dinámico.
 
     // Delegación de eventos para las listas de tarjetas
     document.getElementById('products-list-views').addEventListener('click', handleListActions);
@@ -94,10 +101,16 @@ function attachEventListeners() {
 }
 
 /**
- * Dispara la búsqueda manual (al presionar Enter o al buscar).
+ * Dispara la búsqueda dinámica (al escribir, con debounce).
  */
-function handleManualSearch() {
+function handleDynamicSearch() {
     const searchTerm = document.getElementById('product-search-input').value.trim();
+    
+    // Evita la recarga si el término de búsqueda no ha cambiado realmente (optimización menor)
+    if (searchTerm === currentSearchTerm) {
+        return;
+    }
+    
     currentSearchTerm = searchTerm;
     currentPage = 1; // Reiniciar siempre a la primera página al buscar
     loadProducts();

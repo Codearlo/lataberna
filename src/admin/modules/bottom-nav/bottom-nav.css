@@ -83,10 +83,30 @@
     padding-bottom: 10px; 
 }
 
-/* Asegurar que en móviles, el botón flotante se mantenga visible */
+/* --- AJUSTES RESPONSIVOS CORREGIDOS (Para Móviles) --- */
 @media (max-width: 500px) {
     #admin-bottom-nav {
         width: 95%;
         bottom: 10px; /* Más cerca del borde para no ocupar tanto espacio */
+        max-width: 100%; /* Permitimos que ocupe todo el ancho si es necesario */
+        border-radius: 15px; /* Ligeramente menos redondeado */
+    }
+    
+    #admin-bottom-nav ul {
+        height: 60px; /* Hacemos la barra un poco más compacta */
+    }
+    
+    #admin-bottom-nav .icon {
+        width: 24px; /* Un poco más pequeño para encajar */
+        height: 24px;
+    }
+    
+    #admin-bottom-nav span {
+        font-size: 0.65em; /* Reducimos el tamaño de la fuente */
+    }
+    
+    /* Aseguramos que el pie de página tenga suficiente espacio */
+    #main-footer {
+        margin-bottom: 80px; 
     }
 }

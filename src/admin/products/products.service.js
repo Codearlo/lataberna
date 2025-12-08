@@ -1,4 +1,4 @@
-// src/services/admin/products/products.service.js
+// src/admin/products/products.service.js
 
 import { supabase, PRODUCTS_BUCKET } from '../../config/supabaseClient.js'; 
 
