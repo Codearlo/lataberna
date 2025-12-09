@@ -2,8 +2,10 @@
 
 import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
-// Importar funciones compartidas para reusabilidad desde add-product
-import { getCategories, createCategory, uploadImage } from '../add-product/add-product.js';
+// --- CORRECCIÓN AQUÍ ---
+// 1. Apuntamos al archivo .services.js (con 's' y 'services')
+// 2. Este archivo contiene las funciones de base de datos, no el controlador de la vista.
+import { getCategories, createCategory, uploadImage } from '../add-product/add-product.services.js';
 
 /**
  * Elimina una imagen del bucket de Supabase Storage.
@@ -84,6 +86,6 @@ export async function deleteProduct(id) {
     if (error) throw error;
 }
 
-// Reexportar SOLO las funciones que vienen de 'add-product'.
-// 'deleteImage' ya se exportó arriba en su definición.
+// Reexportamos SOLO las funciones importadas.
+// deleteImage YA fue exportada arriba, así que no la ponemos aquí para evitar el error "Duplicate export".
 export { getCategories, createCategory, uploadImage };
