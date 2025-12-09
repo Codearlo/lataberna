@@ -10,78 +10,92 @@
     <link rel="stylesheet" href="./add-product.css">
 </head>
 <body>
-    <main id="app-content">
-        <div class="admin-panel-header">
-            <h3>Agregar Nuevo Producto</h3>
-        </div>
+    <form id="product-form" class="product-form">
+        <input type="hidden" id="product-id">
+        <input type="hidden" id="current_image_url" name="current_image_url">
+        
+        <header class="page-header-bar">
+            <button type="button" class="back-btn" onclick="history.back()" aria-label="Volver">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+            </button>
+            <h1 class="header-title">Nuevo Producto</h1>
+            <div style="width: 40px;"></div> </header>
 
-        <div class="admin-card product-form-container">
-            <form id="product-form" class="product-form">
-                <input type="hidden" id="product-id">
-                <input type="hidden" id="current_image_url" name="current_image_url">
-                
-                <div class="form-grid">
-                    <div class="form-column">
-                        <div class="form-group">
-                            <label for="name">Nombre:</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="price">Precio (S/):</label>
-                            <input type="number" id="price" name="price" step="0.01" required>
-                        </div>
-
-                        <div class="form-group checkbox-group">
-                            <input type="checkbox" id="is_active" name="is_active" checked>
-                            <label for="is_active">Activo para venta</label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="category_id">Categoría Existente:</label>
-                            <select id="category_id" name="categoria_id" required>
-                                <option value="">-- Seleccione una Categoría --</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" id="new-category-group">
-                            <label for="new_category_name">O Crear Nueva Categoría:</label>
-                            <div class="input-with-button">
-                                <input type="text" id="new_category_name" placeholder="Escribe el nombre de la nueva categoría">
-                                <button type="button" id="create-category-btn" class="secondary-btn">Crear y Seleccionar</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-column">
-                        <div class="form-group">
-                            <label>Imagen del Producto:</label>
-                            
-                            <div class="image-upload-container">
-                                <input type="file" id="image_file" accept="image/*" name="image_file" class="hidden-file-input" required>
-                                
-                                <label for="image_file" class="image-upload-area">
-                                    <span class="upload-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                    </span>
-                                    <span class="upload-text">Haz clic o arrastra para subir una imagen</span>
-                                </label>
-                                
-                            </div>
-
-                            <div id="image-preview" class="image-preview"></div>
-                            <p class="image-tip">Sube una imagen cuadrada para mejores resultados.</p>
-                        </div>
-                    </div>
+        <main id="app-content" class="mobile-main-content">
+            
+            <div class="image-upload-container">
+                <input type="file" id="image_file" accept="image/*" name="image_file" class="hidden-file-input" required>
+                <div class="image-preview-box" id="image-preview-box">
+                    <label for="image_file" class="upload-placeholder" id="upload-placeholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Subir Imagen</span>
+                    </label>
+                    <div id="image-preview"></div> 
                 </div>
+            </div>
 
-                <div class="form-actions">
-                    <a href="?view=products&action=list" class="secondary-btn">Cancelar y Volver</a>
-                    <button type="submit" id="save-product-btn">Guardar Producto</button>
+            <h3 class="section-label">Detalles del Producto</h3>
+
+            <div class="input-card">
+                <div class="input-icon-wrapper icon-purple">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                 </div>
-            </form>
-        </div>
-    </main>
+                <input type="text" id="name" name="name" class="clean-input" placeholder="Nombre completo (Ej. Ron Abuelo 7 Años)" required autocomplete="off">
+            </div>
+
+            <div class="input-card custom-select-container">
+                <div class="input-icon-wrapper icon-blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </div>
+                <select id="category_id" name="categoria_id" class="clean-input-select" required>
+                    <option value="">Categoría</option>
+                </select>
+                <input type="text" id="category_display" class="clean-input" placeholder="Categoría" readonly>
+                <svg class="chevron-down" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            
+            <div class="input-card input-with-button-card" id="new-category-group">
+                <div class="input-icon-wrapper icon-orange">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"></path><path d="M4 10V3"></path><path d="M12 21v-9"></path><path d="M12 8V3"></path><path d="M20 21v-5"></path><path d="M20 12V3"></path><path d="M1 14h6"></path><path d="M9 8h6"></path><path d="M17 16h6"></path></svg>
+                </div>
+                <input type="text" id="new_category_name" class="clean-input" placeholder="Crear nueva categoría...">
+                <button type="button" id="create-category-btn" class="secondary-btn create-action-btn">Crear</button>
+            </div>
+
+
+            <h3 class="section-label">Precio</h3>
+            
+            <div class="input-card">
+                <div class="input-icon-wrapper icon-green">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <input type="number" id="price" name="price" class="clean-input" placeholder="Precio de Venta" step="0.01" required>
+            </div>
+
+            <h3 class="section-label">Estado</h3>
+            
+            <div class="input-card switch-card">
+                <div class="switch-label-group">
+                    <div class="input-icon-wrapper icon-grey">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    </div>
+                    <span class="switch-text" id="status-text">Producto Activo</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="is_active" name="is_active" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div style="height: 100px;"></div>
+        </main>
+
+        <footer class="form-footer">
+            <button type="submit" id="save-product-btn" class="action-btn action-btn--primary">
+                Guardar Producto
+            </button>
+        </footer>
+    </form>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script type="module" src="./add-product.js"></script> 

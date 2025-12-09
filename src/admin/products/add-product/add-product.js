@@ -22,6 +22,9 @@ export async function initAddProduct(containerId) {
     
     // 2. Adjuntar listeners
     attachEventListeners();
+    
+    // 3. Inicializar el switch de estado
+    setupSwitch();
 }
 
 function attachEventListeners() {
@@ -30,8 +33,23 @@ function attachEventListeners() {
         form.addEventListener('submit', handleFormSubmit);
     }
     
+    // El listener de imagen debe ser adjuntado al input file (que está en hidden-file-input)
     document.getElementById('image_file').addEventListener('change', handleImagePreview);
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
+    
+    // ADICIÓN: Manejar el click en la tarjeta de categoría para abrir el select (en móviles)
+    const categoryCard = document.querySelector('.custom-select-container');
+    if (categoryCard) {
+        categoryCard.addEventListener('click', () => {
+            document.getElementById('category_id').focus();
+        });
+    }
+    
+    // Listener para actualizar el input visible al seleccionar una opción
+    document.getElementById('category_id').addEventListener('change', (e) => {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        document.getElementById('category_display').value = selectedOption.value ? selectedOption.textContent : 'Categoría';
+    });
 }
 
 // --- Lógica del Formulario ---
@@ -57,6 +75,7 @@ async function handleFormSubmit(e) {
 
     try {
         document.getElementById('save-product-btn').disabled = true;
+        document.getElementById('save-product-btn').textContent = 'Guardando...';
 
         if (imageFile) {
             // Usar la función de servicio local
@@ -79,13 +98,14 @@ async function handleFormSubmit(e) {
         alert(`Producto ${result.name} agregado!`);
         
         // Redirigir a la lista después de la creación exitosa
-        window.location.href = '?view=products&action=list'; 
+        window.location.href = '../list-products/list-products.html'; 
 
     } catch (error) {
         console.error("Error al guardar producto:", error);
         alert(`Error al guardar: ${error.message}`);
     } finally {
         document.getElementById('save-product-btn').disabled = false;
+        document.getElementById('save-product-btn').textContent = 'Guardar Producto';
     }
 }
 
@@ -104,7 +124,8 @@ async function loadCategories() {
 
 function renderCategoriesSelect() {
     const select = document.getElementById('category_id');
-    select.innerHTML = '<option value="">-- Seleccione una Categoría --</option>'; 
+    // Mantenemos la opción por defecto visible en el select (aunque se oculta por CSS)
+    select.innerHTML = '<option value="">Categoría</option>'; 
     
     categoriesList.forEach(category => {
         const option = document.createElement('option');
@@ -112,6 +133,10 @@ function renderCategoriesSelect() {
         option.textContent = category.nombre;
         select.appendChild(option);
     });
+    
+    // Inicializar el input visible de la categoría
+    const initialOption = select.options[select.selectedIndex];
+    document.getElementById('category_display').value = initialOption.textContent;
 }
 
 function handleImagePreview(e) {
@@ -121,14 +146,26 @@ function handleImagePreview(e) {
     const file = e ? e.target.files[0] : null;
     const imageUrl = file ? URL.createObjectURL(file) : null;
     
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    
     if (imageUrl) {
         const img = document.createElement('img');
         img.src = imageUrl;
         img.alt = 'Preview';
         previewContainer.appendChild(img);
+        
+        // Ocultar el placeholder cuando hay una imagen
+        if (uploadPlaceholder) {
+            uploadPlaceholder.style.display = 'none';
+        }
 
         if (file) {
             img.onload = () => URL.revokeObjectURL(img.src);
+        }
+    } else {
+        // Mostrar el placeholder si se borra la imagen o es nula
+        if (uploadPlaceholder) {
+            uploadPlaceholder.style.display = 'flex';
         }
     }
 }
@@ -143,6 +180,7 @@ async function handleCreateCategory() {
 
     try {
         document.getElementById('create-category-btn').disabled = true;
+        document.getElementById('create-category-btn').textContent = 'Creando...';
         
         // Usar la función de servicio local
         const newCategory = await createCategory(newCategoryName);
@@ -153,6 +191,8 @@ async function handleCreateCategory() {
         renderCategoriesSelect();
         
         document.getElementById('category_id').value = newCategory.id;
+        // También actualizar el input visible
+        document.getElementById('category_display').value = newCategory.nombre;
         document.getElementById('new_category_name').value = '';
 
     } catch (error) {
@@ -160,5 +200,25 @@ async function handleCreateCategory() {
         alert(`Error al crear categoría: ${error.message}`);
     } finally {
         document.getElementById('create-category-btn').disabled = false;
+        document.getElementById('create-category-btn').textContent = 'Crear';
+    }
+}
+
+function setupSwitch() {
+    const sw = document.getElementById('is_active');
+    const txt = document.getElementById('status-text');
+    
+    if (sw && txt) {
+        const updateStatusText = () => {
+            txt.textContent = sw.checked ? 'Producto Activo' : 'Producto Inactivo';
+            // Usamos colores fijos (Verde/Rojo) como en la referencia
+            txt.style.color = sw.checked ? '#28a745' : '#dc3545'; 
+        };
+
+        // Primera carga
+        updateStatusText(); 
+        
+        // Listener
+        sw.addEventListener('change', updateStatusText);
     }
 }
