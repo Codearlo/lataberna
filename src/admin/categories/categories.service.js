@@ -24,7 +24,7 @@ export async function createCategory(name) {
 }
 
 export async function deleteCategory(id) {
-    // Primero verificamos si hay productos usando esta categoría
+    // 1. Verificar si hay productos (Constraint Check Manual)
     const { count, error: checkError } = await supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
@@ -33,9 +33,10 @@ export async function deleteCategory(id) {
     if (checkError) throw checkError;
 
     if (count > 0) {
-        throw new Error(`No se puede eliminar: Hay ${count} productos en esta categoría.`);
+        throw new Error(`La categoría tiene ${count} productos asociados.`);
     }
 
+    // 2. Eliminar
     const { error } = await supabase
         .from('categorias')
         .delete()
