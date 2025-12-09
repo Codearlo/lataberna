@@ -2,36 +2,50 @@
 
 /* Teléfono (2 columnas: < 600px) */
 @media (max-width: 599px) {
-    #product-grid-container {
-        /* Forzamos 2 columnas de igual tamaño */
+    /* Cambiamos el selector de ID a la clase del grid interno */
+    .category-products-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px; /* Reducimos el espacio entre productos para ahorrar espacio */
+        gap: 10px; 
     }
-    /* Reducimos la altura de la imagen para que la tarjeta sea más compacta */
+    
+    .category-title {
+        font-size: 1.4rem; /* Título más pequeño en móvil */
+        margin-bottom: 20px;
+    }
+
     .product-card img {
-        height: 180px; 
+        height: 150px; /* Imagen más pequeña en móvil */
+    }
+    
+    .product-info {
+        padding: 10px;
+    }
+    
+    .product-name {
+        font-size: 0.9em;
     }
 }
 
 
-/* Tablet (2 columnas) */
+/* Tablet (3 columnas) */
 @media (min-width: 600px) {
-    #product-grid-container {
-        grid-template-columns: repeat(2, 1fr);
+    .category-products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+/* Escritorio (4 columnas) */
+@media (min-width: 900px) {
+    .category-products-grid {
+        grid-template-columns: repeat(4, 1fr);
         gap: 25px;
     }
 }
 
-/* Escritorio (3 columnas o más, similar al ejemplo) */
-@media (min-width: 900px) {
-    #product-grid-container {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 30px;
-    }
-}
-
+/* Escritorio Grande (5 columnas) - Para igualar la imagen de referencia */
 @media (min-width: 1200px) {
-    #product-grid-container {
-        grid-template-columns: repeat(4, 1fr);
+    .category-products-grid {
+        grid-template-columns: repeat(5, 1fr);
     }
 }

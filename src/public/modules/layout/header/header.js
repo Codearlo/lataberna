@@ -1,16 +1,15 @@
 // src/public/modules/layout/header/header.js
 
 import { CartService } from '../../../../services/store/cart.service.js';
-// La importación relativa del módulo JS es correcta.
 import { openCartModal } from '../../store/cart-modal/cart-modal.js'; 
+// Importamos la nueva función del servicio
+import { getMenuCategories } from '../../../../services/store/products.service.js';
 
 const CART_COUNT_ID = 'cart-count-value';
-// Ruta corregida para el fetch
 const HEADER_HTML_PATH = 'src/public/modules/layout/header/header.html'; 
 
 /**
- * Inyecta el HTML del encabezado (cargado de forma asíncrona) y establece los listeners iniciales.
- * @param {string} containerId - El ID del header en index.html ('main-header').
+ * Inyecta el HTML del encabezado y establece los listeners iniciales.
  */
 export async function initHeader(containerId) {
     const headerElement = document.getElementById(containerId);
@@ -27,30 +26,58 @@ export async function initHeader(containerId) {
         // 2. Inyectar el HTML cargado
         headerElement.innerHTML = headerHtml;
 
-        // 3. Adjuntar evento: Abrir el carrito al hacer clic
+        // 3. Renderizar las categorías dinámicas (NUEVO)
+        await renderDynamicMenu();
+
+        // 4. Adjuntar evento: Abrir el carrito al hacer clic
         headerElement.querySelector('.cart-icon-container').addEventListener('click', openCartModal);
 
-        // 4. Lógica del Menú de Hamburguesa (AÑADIDO)
+        // 5. Lógica del Menú de Hamburguesa
         const menuButton = headerElement.querySelector('.menu-toggle-btn');
         const headerNav = headerElement.querySelector('.header-nav');
 
         if (menuButton && headerNav) {
             menuButton.addEventListener('click', () => {
-                headerNav.classList.toggle('is-open'); // Toglea la clase 'is-open'
+                headerNav.classList.toggle('is-open'); 
             });
         }
         
-        // 5. Carga inicial del conteo al iniciar la página
+        // 6. Carga inicial del conteo al iniciar la página
         updateCartCount();
 
     } catch (error) {
         console.error("Error al cargar o inicializar el encabezado:", error);
-        // Mensaje de fallback en caso de error de carga
         headerElement.innerHTML = `
             <div id="main-header" style="background-color: #000; padding: 15px 20px;">
-                <p style="color:#ff0000; font-weight: bold;">Error al cargar el menú: ${error.message}</p>
+                <p style="color:#ff0000; font-weight: bold;">Error: ${error.message}</p>
             </div>
         `;
+    }
+}
+
+/**
+ * Obtiene las categorías de la BD y las añade al menú.
+ */
+async function renderDynamicMenu() {
+    const navList = document.getElementById('header-nav-list');
+    if (!navList) return;
+
+    const categories = await getMenuCategories();
+
+    if (categories && categories.length > 0) {
+        categories.forEach(cat => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            
+            a.href = "#"; 
+            a.textContent = cat.nombre.toUpperCase(); // Convertimos a mayúsculas para mantener el estilo
+            a.dataset.categoryId = cat.id; // Guardamos el ID por si queremos filtrar luego
+            
+            // Opcional: Aquí podrías agregar un evento 'click' para filtrar productos
+            
+            li.appendChild(a);
+            navList.appendChild(li);
+        });
     }
 }
 
@@ -59,13 +86,11 @@ export async function initHeader(containerId) {
  */
 export function updateCartCount() {
     const cart = CartService.getCart();
-    // Suma la cantidad (qty) de todos los ítems
     const totalItems = cart.reduce((total, item) => total + item.qty, 0); 
     const countElement = document.getElementById(CART_COUNT_ID);
     
     if (countElement) {
         countElement.textContent = totalItems > 0 ? totalItems : 0;
-        // Muestra el contador solo si hay ítems en el carrito
         countElement.style.display = totalItems > 0 ? 'flex' : 'none'; 
     }
 }
