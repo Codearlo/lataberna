@@ -1,6 +1,5 @@
-// src/admin/edit-product/edit-product.js
+// src/admin/products/edit-product/edit-product.js
 
-// Importar todas las funciones necesarias del nuevo servicio local
 import { 
     getProductById,
     getCategories, 
@@ -11,12 +10,13 @@ import {
     deleteImage
 } from './edit-product.service.js'; 
 
+import { initToastNotification, showToast } from '../../../public/modules/store/toast-notification/toast.js';
+
 let categoriesList = [];
 let productId = null;
 let currentProduct = null;
 
-// --- Funciones de Control del Modal de Eliminación (ahora interno) ---
-// Se exponen globalmente para su uso en el HTML del modal de eliminación.
+// --- Funciones de Control del Modal de Eliminación ---
 window.openDeleteModal = openDeleteModal; 
 window.closeDeleteModal = closeDeleteModal; 
 
@@ -27,7 +27,6 @@ function openDeleteModal() {
 }
 
 function closeDeleteModal() {
-    document.getElementById('product-to-delete-name').textContent = '';
     document.getElementById('delete-modal-container').classList.remove('visible');
 }
 
@@ -38,50 +37,83 @@ function getProductIdFromUrl() {
     return urlParams.get('id');
 }
 
-/**
- * Inicializa la página de edición de producto.
- */
 export async function initEditProduct(containerId) {
     productId = getProductIdFromUrl();
     const container = document.getElementById(containerId);
+    
+    // Inicializar Toast
+    initToastNotification();
 
-    if (!container || !productId) {
-        container.innerHTML = `<p class="error-msg">Error: ID de producto no especificado para edición.</p>`;
+    if (!productId) {
+        showToast("❌ Error: No se especificó un ID de producto.");
         return;
     }
     
     try {
-        // 1. Cargar datos estáticos (categorías)
-        await loadCategories();
-        
-        // 2. Cargar datos del producto específico
-        await loadProductData(parseInt(productId));
-        
-        // 3. Adjuntar listeners
+        await loadCategories(); // Carga las categorías para el buscador
+        await loadProductData(parseInt(productId)); // Carga datos y rellena inputs
         attachEventListeners();
+        setupSwitch(); // Configura el texto del switch
         
     } catch (error) {
         console.error("Error al inicializar la edición:", error);
-        container.innerHTML = `<p class="error-msg">Error al cargar datos: ${error.message}</p>`;
+        showToast(`❌ Error: ${error.message}`);
     }
 }
 
 function attachEventListeners() {
     const form = document.getElementById('product-form');
-    if (form) {
-        form.addEventListener('submit', handleFormSubmit);
-    }
+    if (form) form.addEventListener('submit', handleFormSubmit);
     
-    document.getElementById('image_file').addEventListener('change', handleImagePreview);
+    // Preview de imagen
+    const imgInput = document.getElementById('image_file');
+    if (imgInput) imgInput.addEventListener('change', handleImagePreview);
+    
+    // Click en la caja de imagen dispara el input
+    const imageBox = document.getElementById('image-preview-box');
+    if (imageBox) {
+        imageBox.addEventListener('click', (e) => {
+            if (e.target.tagName === 'LABEL' || e.target.closest('label')) return;
+            imgInput.click();
+        });
+    }
+
+    // Botones de acción
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
     document.getElementById('delete-product-btn').addEventListener('click', openDeleteModal);
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
+
+    // --- LÓGICA DEL BUSCADOR DE CATEGORÍAS (Igual a add-product) ---
+    const dropdownContainer = document.getElementById('category-dropdown');
+    const searchInput = document.getElementById('category_search');
+    
+    if (searchInput && dropdownContainer) {
+        const filterFn = (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = categoriesList.filter(cat => cat.nombre.toLowerCase().includes(term));
+            renderCategoriesCustomDropdown(filtered);
+            dropdownContainer.classList.add('active-dropdown');
+        };
+
+        searchInput.addEventListener('input', filterFn);
+        searchInput.addEventListener('focus', filterFn);
+
+        document.addEventListener('click', (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+                dropdownContainer.classList.remove('active-dropdown');
+            }
+        });
+        
+        const chevron = dropdownContainer.querySelector('.chevron-down');
+        if (chevron) {
+            chevron.addEventListener('click', () => searchInput.focus());
+        }
+    }
 }
 
 // --- Lógica de Carga y Llenado ---
 
 async function loadProductData(id) {
-    // Usar la nueva función de servicio
     const product = await getProductById(id);
 
     if (!product) {
@@ -90,16 +122,27 @@ async function loadProductData(id) {
     
     currentProduct = product;
     
-    // Llenar el formulario
+    // Llenar inputs
     document.getElementById('product-id').value = product.id;
     document.getElementById('name').value = product.name;
     document.getElementById('price').value = product.price;
-    document.getElementById('category_id').value = product.categoria_id; 
     document.getElementById('is_active').checked = product.is_active;
     document.getElementById('current_image_url').value = product.image_url || '';
     
-    // Mostrar preview
+    // Llenar Categoría (Custom Dropdown Logic)
+    document.getElementById('category_id').value = product.categoria_id;
+    // Asumimos que el servicio devuelve 'category' con el nombre
+    document.getElementById('category_search').value = product.category || ''; 
+
+    // Mostrar preview inicial
     handleImagePreview(null, product.image_url);
+    
+    // Actualizar texto del switch
+    const statusText = document.getElementById('status-text');
+    if(statusText) {
+        statusText.textContent = product.is_active ? 'Producto Activo' : 'Producto Inactivo';
+        statusText.style.color = product.is_active ? '#28a745' : '#dc3545';
+    }
 }
 
 // --- Lógica del Formulario (Update & Delete) ---
@@ -107,33 +150,32 @@ async function loadProductData(id) {
 async function handleFormSubmit(e) {
     e.preventDefault();
     
-    const form = e.target;
-    const formData = new FormData(form);
-    
     const id = parseInt(document.getElementById('product-id').value);
-    const name = formData.get('name'); 
-    const price = parseFloat(formData.get('price'));
+    const name = document.getElementById('name').value;
+    const price = parseFloat(document.getElementById('price').value);
     const categoriaId = parseInt(document.getElementById('category_id').value);
-    const imageFile = document.getElementById('image_file').files[0];
-    const currentImageUrl = document.getElementById('current_image_url').value;
     const isActive = document.getElementById('is_active').checked;
     
+    const imageInput = document.getElementById('image_file');
+    const currentImageUrl = document.getElementById('current_image_url').value;
+    
     if (!categoriaId) {
-        alert("Por favor, selecciona una categoría existente.");
+        showToast("⚠️ Por favor, selecciona una categoría.");
         return;
     }
     
     let imageUrl = currentImageUrl; 
 
     try {
-        document.getElementById('save-product-btn').disabled = true;
+        const saveBtn = document.getElementById('save-product-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Actualizando...';
 
-        if (imageFile) {
-            // Usar la función de servicio local
-            imageUrl = await uploadImage(imageFile);
+        if (imageInput.files[0]) {
+            imageUrl = await uploadImage(imageInput.files[0]);
             
+            // Si cambió la imagen, borramos la vieja si existe
             if (currentImageUrl && currentImageUrl !== imageUrl) {
-                // Usar la función de servicio local
                 await deleteImage(currentImageUrl);
             }
         }
@@ -146,18 +188,18 @@ async function handleFormSubmit(e) {
             image_url: imageUrl,
         };
 
-        // Usar la función de servicio local
         const result = await updateProduct(id, productData);
-        alert(`Producto ${result.name} actualizado!`);
+        showToast(`✅ Producto "${result.name}" actualizado!`);
         
-        // Redirigir a la lista después de la actualización exitosa
-        window.location.href = '?view=products&action=list'; 
+        setTimeout(() => {
+             window.location.href = '../list-products/list-products.html'; 
+        }, 1500);
 
     } catch (error) {
-        console.error("Error al actualizar producto:", error);
-        alert(`Error al actualizar: ${error.message}`);
-    } finally {
+        console.error("Error al actualizar:", error);
+        showToast(`❌ Error: ${error.message}`);
         document.getElementById('save-product-btn').disabled = false;
+        document.getElementById('save-product-btn').textContent = 'Actualizar';
     }
 }
 
@@ -165,56 +207,80 @@ async function confirmDelete() {
     if (!currentProduct) return;
 
     try {
-        document.getElementById('confirm-delete-btn').disabled = true;
-        closeDeleteModal(); 
+        const deleteBtn = document.getElementById('confirm-delete-btn');
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Eliminando...';
         
         // Eliminar imagen primero
         if (currentProduct.image_url) {
             await deleteImage(currentProduct.image_url);
         }
         
-        // Eliminar producto
         await deleteProduct(currentProduct.id);
         
-        alert(`Producto ${currentProduct.name} eliminado.`);
+        closeDeleteModal();
+        showToast(`🗑️ Producto eliminado.`);
         
-        // Redirigir a la lista después de la eliminación
-        window.location.href = '?view=products&action=list'; 
+        setTimeout(() => {
+            window.location.href = '../list-products/list-products.html'; 
+        }, 1500);
         
     } catch (error) {
-        console.error("Error al eliminar producto:", error);
-        alert(`Error al eliminar: ${error.message}`);
-    } finally {
-        document.getElementById('confirm-delete-btn').disabled = false;
+        console.error("Error al eliminar:", error);
+        showToast(`❌ Error al eliminar: ${error.message}`);
+        closeDeleteModal();
     }
 }
 
-// --- Funciones de Utilidad y Categorías (Reutilizadas) ---
+// --- Funciones de Utilidad (Categorías e Imagen) ---
 
 async function loadCategories() {
     try {
-        // Usar la función de servicio local
         categoriesList = await getCategories();
-        renderCategoriesSelect();
+        // Inicializamos el dropdown (vacio o completo)
+        renderCategoriesCustomDropdown(categoriesList);
     } catch (error) {
         console.error("Error al cargar categorías:", error);
     }
 }
 
-function renderCategoriesSelect() {
-    const select = document.getElementById('category_id');
-    select.innerHTML = '<option value="">-- Seleccione una Categoría --</option>'; 
+function renderCategoriesCustomDropdown(listToRender) {
+    const optionsList = document.getElementById('dropdown-options');
+    const hiddenInput = document.getElementById('category_id');
+    const searchInput = document.getElementById('category_search');
     
-    categoriesList.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.nombre;
-        select.appendChild(option);
+    if (!optionsList) return;
+    optionsList.innerHTML = ''; 
+    
+    if (listToRender.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'dropdown-item';
+        li.textContent = "No se encontraron resultados";
+        li.style.color = "#999";
+        optionsList.appendChild(li);
+        return;
+    }
+    
+    listToRender.forEach(category => {
+        const li = document.createElement('li');
+        li.className = 'dropdown-item';
+        li.textContent = category.nombre;
+        
+        li.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            hiddenInput.value = category.id;
+            searchInput.value = category.nombre; 
+            document.getElementById('category-dropdown').classList.remove('active-dropdown');
+        });
+        
+        optionsList.appendChild(li);
     });
 }
 
 function handleImagePreview(e, url = null) {
     const previewContainer = document.getElementById('image-preview');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    
     previewContainer.innerHTML = '';
     
     const file = e ? e.target.files[0] : null;
@@ -225,39 +291,56 @@ function handleImagePreview(e, url = null) {
         img.src = imageUrl;
         img.alt = 'Preview';
         previewContainer.appendChild(img);
-
-        if (file) {
-            img.onload = () => URL.revokeObjectURL(img.src);
-        }
+        
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        if (file) img.onload = () => URL.revokeObjectURL(img.src);
+    } else {
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
     }
 }
 
 async function handleCreateCategory() {
-    const newCategoryName = document.getElementById('new_category_name').value.trim();
+    const newCatInput = document.getElementById('new_category_name');
+    const newCategoryName = newCatInput.value.trim();
     
     if (!newCategoryName) {
-        alert("Por favor, introduce el nombre de la nueva categoría.");
+        showToast("⚠️ Introduce un nombre para la categoría.");
         return;
     }
 
     try {
-        document.getElementById('create-category-btn').disabled = true;
+        const createBtn = document.getElementById('create-category-btn');
+        createBtn.disabled = true;
         
-        // Usar la función de servicio local
         const newCategory = await createCategory(newCategoryName);
-        
-        alert(`Categoría "${newCategory.nombre}" creada con éxito.`);
+        showToast(`✅ Categoría creada.`);
         
         categoriesList.push(newCategory);
-        renderCategoriesSelect();
+        renderCategoriesCustomDropdown(categoriesList);
         
         document.getElementById('category_id').value = newCategory.id;
-        document.getElementById('new_category_name').value = '';
+        document.getElementById('category_search').value = newCategory.nombre;
+        
+        newCatInput.value = '';
+        createBtn.disabled = false;
 
     } catch (error) {
-        console.error("Error al crear categoría:", error);
-        alert(`Error al crear categoría: ${error.message}`);
-    } finally {
-        document.getElementById('create-category-btn').disabled = false;
+        showToast(`❌ Error: ${error.message}`);
     }
 }
+
+function setupSwitch() {
+    const sw = document.getElementById('is_active');
+    const txt = document.getElementById('status-text');
+    
+    if (sw && txt) {
+        sw.addEventListener('change', () => {
+            txt.textContent = sw.checked ? 'Producto Activo' : 'Producto Inactivo';
+            txt.style.color = sw.checked ? '#28a745' : '#dc3545'; 
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initEditProduct('app-content');
+});
