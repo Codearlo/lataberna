@@ -128,25 +128,34 @@ function updateActiveView(filter) {
         activeGrid.classList.add('active-view');
     }
     
-    // Ocultar mensajes de lista vacía
-    document.getElementById(`active-empty-msg`)?.style.display = 'none';
-    document.getElementById(`all-empty-msg`)?.style.display = 'none';
+    // FIX SINTAXIS: Reemplazar el optional chaining con verificación 'if'
+    const activeMsg = document.getElementById(`active-empty-msg`);
+    if (activeMsg) activeMsg.style.display = 'none';
+    const allMsg = document.getElementById(`all-empty-msg`);
+    if (allMsg) allMsg.style.display = 'none';
 }
 
 
 // --- Lógica de Carga y Renderizado ---
 
 async function loadProducts() {
-    const listContainer = document.querySelector(PRODUCTS_LIST_CONTAINER_ID).querySelector(`.products-grid.active-view`);
-    const emptyMsgElement = document.getElementById(`active-empty-msg`); 
+    // Selecciona el contenedor de la lista de productos activo
+    const activeListId = currentFilter === 'all' ? ALL_PRODUCTS_GRID_ID : ACTIVE_PRODUCTS_GRID_ID;
+    const listContainer = document.getElementById(activeListId);
+    // Obtiene el elemento de mensaje vacío.
+    const emptyMsgElement = document.getElementById(`${currentFilter}-empty-msg`); 
     
+    if (!listContainer) return; // Salir si el contenedor no existe
+
     // Indicador de búsqueda/carga
     const mainContainer = document.getElementById('app-content');
     mainContainer.classList.add('is-searching');
     
     // Mostrar spinner de carga de la muestra del usuario
     listContainer.innerHTML = `<div class="u-flex-center" style="padding:40px"><div class="spin" style="width:24px;height:24px;border:2px solid #FFC107;border-top-color:transparent;border-radius:50%"></div></div>`;
-    emptyMsgElement.style.display = 'none';
+    
+    // Mantenemos la verificación 'if' para asegurar compatibilidad
+    if (emptyMsgElement) emptyMsgElement.style.display = 'none'; 
 
     try {
         // Usamos currentFilter directamente ('active' o 'all')
@@ -160,12 +169,18 @@ async function loadProducts() {
         totalProducts = totalCount;
 
         if (products.length === 0) {
-            listContainer.innerHTML = `<div style="text-align:center; padding:60px 20px; color:#52525b; font-size:0.9rem">No se encontraron productos</div>`;
+            // Mostrar mensaje de lista vacía
+            listContainer.innerHTML = ''; 
+            if (emptyMsgElement) {
+                emptyMsgElement.style.display = 'block';
+            }
         } else {
+            // Renderizar productos
             listContainer.innerHTML = '';
             products.forEach(product => {
                 listContainer.appendChild(renderProductCard(product));
             });
+            if (emptyMsgElement) emptyMsgElement.style.display = 'none';
         }
         
         renderPagination();

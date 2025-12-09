@@ -42,8 +42,10 @@ export async function getFilteredProductsPaged({ searchTerm = '', filterBy = 'ac
     }
     
     // 3. Aplicar ordenación (por nombre de categoría y luego por ID)
+    // FIX: Se utiliza el alias 'categoria' en lugar del nombre de tabla 'categorias'
+    // en la opción 'foreignTable' para asegurar la correcta ordenación cuando se usa el alias en el SELECT.
     query = query
-        .order('nombre', { foreignTable: 'categorias', ascending: true }) 
+        .order('nombre', { foreignTable: 'categoria', ascending: true }) 
         .order('id', { ascending: false }); 
         
     // 4. Aplicar paginación
