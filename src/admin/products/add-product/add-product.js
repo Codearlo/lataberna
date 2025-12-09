@@ -9,19 +9,18 @@ import {
 
 let categoriesList = [];
 
-// --- ESTA FUNCIÓN INICIALIZA TODO ---
+/**
+ * Inicializa la página de agregar producto.
+ */
 export async function initAddProduct(containerId) {
-    console.log("Iniciando Add Product..."); // DEBUG: Verificar que arranca
+    console.log("Iniciando Add Product..."); 
     const container = document.getElementById(containerId);
-    
-    // Aunque el contenedor sea todo el body o main, necesitamos asegurar que los elementos existan
     
     try {
         // 1. Cargar datos estáticos (Categorías)
-        console.log("Cargando categorías..."); // DEBUG
         await loadCategories();
         
-        // 2. Adjuntar listeners a los botones y forms
+        // 2. Adjuntar listeners (botones, forms y CLIC EN IMAGEN)
         attachEventListeners();
         
         // 3. Inicializar el switch de estado visual
@@ -38,20 +37,35 @@ function attachEventListeners() {
         form.addEventListener('submit', handleFormSubmit);
     }
     
-    // Listener para la imagen
+    // Listener estándar para cuando el archivo cambia (mostrar preview)
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImagePreview);
+
+    // --- SOLUCIÓN DEL CLICK ---
+    // Hacemos que TODO el recuadro punteado sea clicable
+    const imageBox = document.getElementById('image-preview-box');
+    if (imageBox) {
+        imageBox.addEventListener('click', (e) => {
+            // Si el usuario clicó en el texto "Subir Imagen" (que es un label),
+            // el navegador ya abre el archivo solo. No hacemos nada para no abrirlo 2 veces.
+            if (e.target.tagName === 'LABEL' || e.target.closest('label')) return;
+
+            // Si clicó en el espacio vacío o en la imagen de preview, forzamos el click
+            const fileInput = document.getElementById('image_file');
+            if (fileInput) fileInput.click();
+        });
+    }
 
     // Listener para crear categoría
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
     
-    // Manejar el click en la tarjeta de categoría para abrir el select (UX Móvil)
+    // Manejar el click en la tarjeta de categoría para abrir el select (Mejora UX Móvil)
     const categoryCard = document.querySelector('.custom-select-container');
     if (categoryCard) {
         categoryCard.addEventListener('click', () => {
             const select = document.getElementById('category_id');
-            if(select) select.focus(); // Intenta abrir o enfocar
+            if(select) select.focus(); 
         });
     }
     
@@ -62,7 +76,8 @@ function attachEventListeners() {
             const selectedOption = e.target.options[e.target.selectedIndex];
             const displayInput = document.getElementById('category_display');
             if(displayInput) {
-                displayInput.value = selectedOption.value ? selectedOption.textContent : 'Categoría';
+                // Si el valor es vacío, mostrar el placeholder original o texto por defecto
+                displayInput.value = selectedOption.value ? selectedOption.textContent : '';
             }
         });
     }
@@ -72,9 +87,7 @@ function attachEventListeners() {
 
 async function handleFormSubmit(e) {
     e.preventDefault();
-    console.log("Enviando formulario...");
     
-    // Obtenemos los valores
     const nameInput = document.getElementById('name');
     const priceInput = document.getElementById('price');
     const catInput = document.getElementById('category_id');
@@ -100,7 +113,6 @@ async function handleFormSubmit(e) {
         saveBtn.textContent = 'Guardando...';
 
         if (imageFile) {
-            console.log("Subiendo imagen...");
             imageUrl = await uploadImage(imageFile);
         } else {
             alert("Debe seleccionar una imagen para el producto.");
@@ -117,7 +129,6 @@ async function handleFormSubmit(e) {
             image_url: imageUrl,
         };
 
-        console.log("Guardando producto en BD:", productData);
         const result = await createProduct(productData);
         alert(`Producto ${result.name} agregado!`);
         
@@ -141,7 +152,6 @@ async function handleFormSubmit(e) {
 async function loadCategories() {
     try {
         categoriesList = await getCategories();
-        console.log("Categorías cargadas:", categoriesList); // DEBUG
         renderCategoriesSelect();
     } catch (error) {
         console.error("Error al cargar categorías:", error);
@@ -182,11 +192,12 @@ function handleImagePreview(e) {
         img.alt = 'Preview';
         previewContainer.appendChild(img);
         
+        // Ocultar el texto de "Subir Imagen" cuando ya hay foto
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
         
-        // Liberar memoria
         if (file) img.onload = () => URL.revokeObjectURL(img.src);
     } else {
+        // Volver a mostrar el texto si se quita la foto
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
     }
 }
@@ -212,7 +223,6 @@ async function handleCreateCategory() {
         categoriesList.push(newCategory);
         renderCategoriesSelect();
         
-        // Autoseleccionar la nueva categoría
         const select = document.getElementById('category_id');
         const displayInput = document.getElementById('category_display');
         
@@ -247,11 +257,7 @@ function setupSwitch() {
     }
 }
 
-// =========================================================
-// ¡AQUÍ ESTÁ LA SOLUCIÓN!
-// Ejecutamos la función al cargar el DOM.
-// =========================================================
+// Ejecutar al cargar
 document.addEventListener('DOMContentLoaded', () => {
-    // Pasamos el ID del contenedor principal si es necesario, o simplemente iniciamos
     initAddProduct('app-content');
 });
