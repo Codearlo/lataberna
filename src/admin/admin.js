@@ -1,18 +1,73 @@
 // src/admin/admin.js
 
-import { initProductsAdmin } from './products/products.js';
 import { initProfileView } from './profile/profile.js'; 
 import { initAuthForm, getSession } from './auth/auth.js'; 
-import { initBottomNav } from './modules/bottom-nav/bottom-nav.js'; // Descomentada
+import { initBottomNav } from './modules/bottom-nav/bottom-nav.js'; 
+// Importamos las nuevas funciones de inicialización
+import { initListProducts } from './list-products/list-products.js';
+import { initAddProduct } from './add-product/add-product.js';
+import { initEditProduct } from './edit-product/edit-product.js';
+
 
 const ADMIN_CONTENT_ID = 'app-content';
-const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container'; // Contenedor para la barra de navegación
+const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container'; 
 
 // Contenedores para las vistas modulares
 const VIEW_CONTAINERS = {
-    products: 'admin-products-panel',
+    products: 'admin-products-panel', // Se mantiene 'products' para el bottom-nav
     profile: 'admin-profile-panel' 
 };
+
+/**
+ * Función que actúa como router para la vista de productos.
+ * Carga el HTML y el JS de la sub-vista apropiada (Listar, Agregar, Editar).
+ */
+async function initProductsRouter(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Crear un contenedor intermedio para la sub-vista
+    container.innerHTML = `<div id="products-subview-container"></div>`;
+    const subviewContainer = document.getElementById('products-subview-container');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action') || 'list';
+
+    let htmlPath, initFunc;
+    
+    switch (action) {
+        case 'add':
+            htmlPath = './add-product/add-product.html';
+            initFunc = initAddProduct;
+            break;
+        case 'edit':
+            htmlPath = './edit-product/edit-product.html';
+            initFunc = initEditProduct;
+            break;
+        case 'list':
+        default:
+            htmlPath = './list-products/list-products.html';
+            initFunc = initListProducts;
+            break;
+    }
+    
+    try {
+        const response = await fetch(htmlPath);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const html = await response.text();
+        subviewContainer.innerHTML = html;
+        
+        // Llamar a la función de inicialización, pasándole el ID del sub-contenedor
+        await initFunc('products-subview-container');
+
+    } catch (error) {
+        console.error(`Error al cargar la sub-vista ${htmlPath}:`, error);
+        subviewContainer.innerHTML = `<p class="error-msg">Error al cargar la vista: ${error.message}</p>`;
+    }
+}
+
 
 /**
  * Carga la interfaz de administración (login o panel de la vista activa).
@@ -42,11 +97,10 @@ async function checkAuthAndRender() {
         `;
 
         // 2. Inicializar las vistas 
-        // Llama a initProductsAdmin que a su vez llama a loadProducts
-        await initProductsAdmin(VIEW_CONTAINERS.products); // Usamos await para asegurar que el contenido se inyecte
+        await initProductsRouter(VIEW_CONTAINERS.products); // Router para productos
         await initProfileView(VIEW_CONTAINERS.profile);
 
-        // 3. Inicializar la barra de navegación inferior (Si el módulo bottom-nav.js existe)
+        // 3. Inicializar la barra de navegación inferior
         initBottomNav(handleViewChange);
 
         // 4. Mostrar la vista por defecto (Products)
@@ -69,9 +123,14 @@ async function checkAuthAndRender() {
 
 /**
  * Gestiona el cambio entre las vistas de administración (llamada por la barra de navegación inferior).
- * @param {string} newView - La vista a mostrar ('products' o 'profile').
  */
 export function handleViewChange(newView) {
+    // Limpiar los parámetros de la URL al cambiar de vista principal
+    const url = new URL(window.location.href);
+    url.searchParams.delete('action');
+    url.searchParams.delete('id');
+    window.history.pushState({}, '', url);
+
     // Ocultar todas las vistas
     Object.values(VIEW_CONTAINERS).forEach(id => {
         const viewElement = document.getElementById(id);
@@ -84,6 +143,12 @@ export function handleViewChange(newView) {
     const activeViewElement = document.getElementById(VIEW_CONTAINERS[newView]);
     if (activeViewElement) {
         activeViewElement.style.display = 'block';
+        
+        // Si la vista es 'products', la re-inicializamos para que el router cargue 'list' por defecto.
+        if (newView === 'products') {
+             initProductsRouter(VIEW_CONTAINERS.products);
+        }
+        
     } else {
          console.error(`Contenedor para la vista '${newView}' no encontrado.`);
     }

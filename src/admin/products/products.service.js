@@ -1,6 +1,6 @@
-// src/admin/products/products.service.js
+// src/admin/products.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../config/supabaseClient.js'; 
 
 const ProductsAdminService = {
     
@@ -8,8 +8,6 @@ const ProductsAdminService = {
     
     /**
      * Sube un archivo de imagen al Storage de Supabase.
-     * @param {File} file - El objeto File de la imagen.
-     * @returns {string} La URL pública de la imagen.
      */
     async uploadImage(file) {
         // Usamos el timestamp y un nombre aleatorio para asegurar unicidad
@@ -24,7 +22,6 @@ const ProductsAdminService = {
             
         if (error) throw error;
 
-        // Obtener la URL pública (Supabase 2.x ya no requiere token para buckets públicos)
         const { data: publicUrlData } = supabase.storage
             .from(PRODUCTS_BUCKET)
             .getPublicUrl(data.path);
@@ -34,10 +31,8 @@ const ProductsAdminService = {
 
     /**
      * Elimina una imagen del Storage de Supabase usando su URL pública.
-     * @param {string} publicUrl - La URL pública de la imagen.
      */
     async deleteImage(publicUrl) {
-        // La URL pública es: [SUPABASE_URL]/storage/v1/object/public/[BUCKET]/[PATH]
         const pathSegments = publicUrl.split('/');
         const filePath = pathSegments.slice(pathSegments.indexOf(PRODUCTS_BUCKET) + 1).join('/');
 
@@ -66,8 +61,6 @@ const ProductsAdminService = {
     
     /**
      * Crea una nueva categoría.
-     * @param {string} nombre - El nombre de la nueva categoría.
-     * @returns {object} La categoría creada.
      */
     async createCategory(nombre) {
         const { data, error } = await supabase
@@ -86,7 +79,6 @@ const ProductsAdminService = {
      */
     async getFilteredProductsPaged({ searchTerm = '', itemsPerPage = 10, pageNumber = 1 }) {
         try {
-            // 1. Obtener los productos de la página actual
             const { data, error } = await supabase.rpc('search_products_paged', {
                 search_term: searchTerm,
                 items_per_page: itemsPerPage,
@@ -95,34 +87,27 @@ const ProductsAdminService = {
 
             if (error) throw error;
             
-            // Aseguramos que data sea un array, incluso si es null
             const productsData = data || []; 
             
-            // 2. Obtener el conteo total para la paginación
             const { data: countData, error: countError } = await supabase.rpc('count_filtered_products', {
                 search_term: searchTerm
             });
 
             if (countError) throw countError;
             
-            // El conteo debería ser el primer elemento del array devuelto por la RPC.
-            // Aseguramos que countData sea un array o tenga una estructura esperada.
             const totalCount = (Array.isArray(countData) && countData.length > 0) ? countData[0] : 0; 
 
-            // 3. Traer categorías para hacer el join en el cliente (para el nombre de categoría)
             const { data: categories, error: catError } = await supabase
                 .from('categorias')
                 .select('id, nombre');
 
             if (catError) throw catError;
 
-            // Aseguramos que categories sea un array
             const categoryMap = (categories || []).reduce((map, cat) => {
                 map[cat.id] = cat.nombre;
                 return map;
             }, {});
 
-            // Mapeamos los datos de productos
             const productsWithCategory = productsData.map(product => ({
                 ...product,
                 category_name: categoryMap[product.categoria_id] || 'Sin Categoría'
@@ -135,7 +120,6 @@ const ProductsAdminService = {
 
         } catch (err) {
             console.error("Error al obtener productos filtrados:", err);
-            // Si hay un error, devolvemos un estado vacío en lugar de lanzar una excepción sin atrapar
             return {
                 products: [],
                 totalCount: 0
@@ -146,7 +130,6 @@ const ProductsAdminService = {
 
     /**
      * Crea un nuevo producto.
-     * productData debe incluir: name, price, categoria_id, is_active, image_url
      */
     async createProduct(productData) {
         const { data, error } = await supabase
@@ -176,12 +159,10 @@ const ProductsAdminService = {
      * Elimina un producto.
      */
     async deleteProduct(id, imageUrl) {
-        // 1. Eliminar la imagen del Storage (si existe)
         if (imageUrl) {
             await ProductsAdminService.deleteImage(imageUrl);
         }
 
-        // 2. Eliminar el registro de la DB
         const { error } = await supabase
             .from('products')
             .delete()

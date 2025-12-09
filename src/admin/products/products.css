@@ -23,188 +23,14 @@
     margin-bottom: 30px;
 }
 
-/* --- NUEVO ESTILO PARA BÚSQUEDA RÁPIDA (FEEDBACK VISUAL SUTIL) --- */
+/* --- ESTILO PARA BÚSQUEDA RÁPIDA (FEEDBACK VISUAL SUTIL) --- */
 .admin-panel-list.admin-card.is-searching {
-    opacity: 0.7; /* Opacidad sutil para indicar que se está trabajando */
-    pointer-events: none; /* Deshabilita clics mientras se actualiza */
-    transition: opacity 0.05s ease-out; /* Transición muy rápida */
+    opacity: 0.7; 
+    pointer-events: none; 
+    transition: opacity 0.05s ease-out; 
 }
-/* --- FIN NUEVO ESTILO --- */
+/* --- FIN ESTILO --- */
 
-
-/* --- MODAL (Overlay y Contenido) --- */
-.modal-container {
-    display: none; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-}
-
-.modal-container.visible {
-    display: block;
-}
-
-.modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-}
-
-.modal-content {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #ffffff; 
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    width: 95%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-content.delete-modal {
-    max-width: 400px;
-    text-align: center;
-}
-
-.modal-content.delete-modal strong {
-    color: #dc3545;
-}
-
-
-.modal-close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    color: #999;
-    cursor: pointer;
-    line-height: 1;
-}
-
-/* --- Formulario --- */
-.product-form .form-group {
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 200px; 
-    gap: 20px;
-}
-
-.product-form label {
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #343a40;
-}
-
-.product-form input[type="text"],
-.product-form input[type="number"],
-.product-form select,
-.input-with-button input[type="text"] {
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.input-with-button {
-    display: flex;
-    gap: 10px;
-}
-
-.input-with-button input {
-    flex-grow: 1;
-}
-
-.product-form .checkbox-group {
-    flex-direction: row;
-    align-items: center;
-}
-
-.product-form .checkbox-group label {
-    margin-left: 10px;
-    margin-bottom: 0;
-    font-weight: normal;
-}
-
-.form-actions {
-    padding-top: 20px;
-    border-top: 1px solid #e9ecef;
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end; 
-}
-.modal-content.delete-modal .form-actions {
-    justify-content: center;
-}
-
-
-.form-actions button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-#save-product-btn {
-    background-color: #28a745; 
-    color: white;
-}
-
-.secondary-btn {
-    background-color: #6c757d; 
-    color: white;
-}
-.delete-btn {
-    background-color: #dc3545;
-    color: white;
-}
-
-/* CORRECCIÓN DE IMAGEN: El contenedor es fijo y la imagen se ajusta */
-.image-preview {
-    margin-top: 10px;
-    border: 1px solid #ced4da;
-    width: 150px; 
-    height: 150px; 
-    padding: 5px;
-    border-radius: 4px;
-    overflow: hidden; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.image-preview img {
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    display: block;
-}
-.image-tip {
-    font-size: 0.8em;
-    color: #6c757d;
-    margin-top: 5px;
-}
 
 /* --- Lista de Productos, Buscador y Botón de Agregar --- */
 .list-header-top {
@@ -226,19 +52,21 @@
 
 .primary-btn.full-width-btn {
     width: 100%;
-    background-color: #007bff;
-    color: white;
+    /* Estilo del botón principal de AGREGAR: Dorado/Negro */
+    background-color: #FFC107; 
+    color: #343a40;
     font-size: 1.1em;
     padding: 12px;
     border-radius: 8px;
     transition: background-color 0.2s;
+    font-weight: bold;
 }
 .primary-btn.full-width-btn:hover {
-    background-color: #0056b3;
+    background-color: #e0a800; /* Dorado más oscuro */
 }
 
 
-/* --- TAB STYLES --- */
+/* --- TAB STYLES (DORADO) --- */
 .tabs-container {
     display: flex;
     gap: 0;
@@ -259,14 +87,14 @@
     white-space: nowrap; 
 }
 
-/* Estilo activo: Sin fondo, solo un subrayado azul */
+/* Estilo activo: Dorado */
 .tab-button.active {
     background-color: transparent; 
-    color: #007bff; /* Color del texto primario (Azul) */
+    color: #FFC107; /* Color del texto Dorado */
     font-weight: 700;
     /* Subrayado con borde inferior */
-    border-bottom: 2px solid #007bff; 
-    padding-bottom: 10px; /* Separación del texto al borde */
+    border-bottom: 2px solid #FFC107; 
+    padding-bottom: 10px; 
 }
 
 .tab-button:hover:not(.active) {
@@ -360,7 +188,7 @@
 .product-status-price-container {
     display: flex;
     flex-direction: column;
-    align-items: flex-end; /* Alinea los ítems a la derecha */
+    align-items: flex-end; 
     justify-content: space-between;
     flex-shrink: 0;
     margin-left: 15px;
@@ -451,32 +279,7 @@
 
 /* --- Responsive para Móviles (Max-width: 767px) --- */
 @media (max-width: 767px) {
-    #app-content {
-        padding: 15px;
-        padding-bottom: 15px; 
-    }
-    
-    .modal-content {
-        width: 100%;
-        max-width: 100%;
-        top: 0;
-        left: 0;
-        transform: translate(0, 0);
-        height: 100%;
-        border-radius: 0;
-        padding: 20px;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .list-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    
+    /* Lista de productos */
     .products-grid {
         grid-template-columns: 1fr; 
     }

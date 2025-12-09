@@ -1,0 +1,229 @@
+/* src/admin/add-product/add-product.css */
+
+/* Contenedor de Formulario Principal */
+.product-form-container {
+    max-width: 850px;
+    margin: 30px auto;
+}
+
+/* --- Formulario --- */
+.product-form .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 250px; /* Ajustado el ancho de la columna de imagen */
+    gap: 30px;
+}
+
+.product-form label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #343a40;
+}
+
+.product-form input[type="text"],
+.product-form input[type="number"],
+.product-form select,
+.input-with-button input[type="text"] {
+    /* Estilo de input elegante */
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+.product-form input[type="text"]:focus,
+.product-form input[type="number"]:focus,
+.input-with-button input[type="text"]:focus,
+.product-form select:focus {
+    border-color: #FFC107; /* Borde dorado al enfocar */
+    box-shadow: 0 0 0 1px #FFC107;
+    outline: none;
+}
+
+/* Estilo específico para Select (Mejora visual) */
+.product-form select {
+    appearance: none; 
+    background-color: #fff;
+    /* Flecha oscura */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23343a40'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); 
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    padding-right: 30px; 
+    cursor: pointer;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 10px;
+}
+
+.input-with-button input {
+    flex-grow: 1;
+}
+
+.product-form .checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    padding-top: 5px; 
+    padding-bottom: 5px; 
+}
+
+.product-form .checkbox-group label {
+    margin-left: 10px;
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.form-actions {
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end; 
+}
+
+.form-actions button, .form-actions a {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* Botones de Acción: Dorado/Negro */
+#save-product-btn {
+    background-color: #FFC107; /* Dorado Primario */
+    color: #343a40; /* Texto Oscuro */
+}
+#save-product-btn:hover {
+    background-color: #e0a800; /* Dorado más oscuro al pasar el mouse */
+}
+
+.secondary-btn {
+    background-color: #6c757d; /* Gris para neutral (Cancelar y Volver) */
+    color: white;
+}
+.secondary-btn:hover {
+    background-color: #5a6268;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+.delete-btn:hover {
+    background-color: #a02030;
+}
+
+/* --- ESTILOS DEL ÁREA DE CARGA DE IMAGEN (Dorado Punteado) --- */
+.hidden-file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.image-upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    /* El estilo de la línea punteada (DORADO) */
+    border: 2px dashed #FFC107; 
+    border-radius: 8px;
+    background-color: #ffffff; /* Fondo Blanco */
+    padding: 20px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    min-height: 150px; /* Altura mínima para que se vea bien */
+}
+
+.image-upload-area:hover {
+    background-color: #fff3cd50; /* Dorado muy claro transparente al pasar el mouse */
+    border-color: #e0a800;
+}
+
+.upload-icon svg {
+    width: 38px; 
+    height: 38px;
+    color: #FFC107; /* Icono Dorado */
+    margin-bottom: 5px;
+}
+
+.upload-text {
+    font-size: 0.9em;
+    color: #495057;
+    font-weight: 600;
+}
+
+
+/* CORRECCIÓN DE IMAGEN PREVIEW */
+.image-preview {
+    margin-top: 15px; 
+    width: 100%; /* Ocupa todo el ancho de la columna */
+    max-width: 250px;
+    height: 150px; 
+    padding: 0; 
+    border-radius: 4px;
+    overflow: hidden; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.image-preview img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); 
+}
+.image-tip {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* --- Responsive (Formulario) --- */
+@media (max-width: 767px) {
+    .product-form-container {
+        padding: 15px;
+        margin: 15px auto;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        justify-content: center;
+        gap: 15px; 
+    }
+    
+    .form-actions button, .form-actions a {
+        width: 100%;
+    }
+}

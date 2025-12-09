@@ -1,13 +1,6 @@
-// src/admin/products/products.js
+// src/admin/list-products/list-products.js
 
-import { ProductsAdminService } from './products.service.js';
-import { 
-    initEditProductModal, 
-    openProductModal, 
-    closeProductModal, 
-    openDeleteModal, 
-    closeDeleteModal 
-} from './edit-product/edit-product.js'; // Importamos el nuevo módulo
+import { ProductsAdminService } from '../products.service.js';
 
 // Variables de estado (DEBEN MANTENERSE AQUÍ)
 let productsList = [];
@@ -20,67 +13,34 @@ const PRODUCTS_PER_PAGE = 10;
 let totalProductsCount = 0;
 let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
 
-const PRODUCT_LIST_HTML_PATH = './products/products.html'; 
-const MODAL_HTML_PATH = './products/edit-product/edit-product.html'; // Nueva ruta para el HTML del modal
-
+const LIST_HTML_PATH = './list-products/list-products.html'; 
 let searchTimeout = null; 
 const DEBOUNCE_DELAY = 50; 
 
 /**
- * Inicializa la vista de administración de productos.
+ * Inicializa la vista de listado de productos.
  */
-export async function initProductsAdmin(containerId) {
+export async function initListProducts(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
     try {
-        const listResponse = await fetch(PRODUCT_LIST_HTML_PATH);
-        if (!listResponse.ok) {
-            throw new Error(`Error al obtener HTML de lista. Status: ${listResponse.status}`);
-        }
-        const listHtml = await listResponse.text();
-
-        const modalResponse = await fetch(MODAL_HTML_PATH);
-        if (!modalResponse.ok) {
-            throw new Error(`Error al obtener HTML de modal. Status: ${modalResponse.status}`);
-        }
-        const modalHtml = await modalResponse.text();
-
-        // Inyectar el HTML de la lista y el modal en el contenedor principal
-        container.innerHTML = listHtml + modalHtml;
-        
         // 1. Cargar datos estáticos
         await loadCategories();
         
-        // 2. Inicializar el módulo del modal inyectando dependencias
-        initEditProductModal({
-            currentProductsList: productsList,
-            currentCategoriesList: categoriesList,
-            loadProductsFunc: loadProducts // Pasamos la función de recarga
-        });
-        
-        // 3. Adjuntar listeners para el listado/búsqueda
+        // 2. Adjuntar listeners
         attachEventListeners(); 
         
-        // 4. Hacer funciones del modal globales (para onclicks en el HTML)
-        window.openProductModal = openProductModal;
-        window.closeProductModal = closeProductModal;
-        window.openDeleteModal = openDeleteModal; 
-        window.closeDeleteModal = closeDeleteModal; 
-
-        // 5. Carga Inicial de Productos
+        // 3. Carga Inicial de Productos
         await loadProducts(); 
         
     } catch (error) {
-        console.error("Error al inicializar el panel de productos:", error);
-        container.innerHTML = `<p class="error-msg">Error al cargar la interfaz de administración. Revise la consola para detalles.</p>`;
+        console.error("Error al inicializar el panel de listado de productos:", error);
+        container.innerHTML = `<p class="error-msg">Error al cargar la interfaz de listado. Revise la consola para detalles.</p>`;
     }
 }
 
 function attachEventListeners() {
-    // Escucha del botón de crear producto (ahora solo llama a la función exportada)
-    document.getElementById('open-create-modal-btn').addEventListener('click', () => openProductModal('create'));
-    
     // Evento de búsqueda dinámica (DEBOUNCE)
     document.getElementById('product-search-input').addEventListener('input', (e) => {
         if (searchTimeout) {
@@ -97,7 +57,7 @@ function attachEventListeners() {
         }
     });
 
-    // Delegación de eventos para las listas de tarjetas (llama a openProductModal)
+    // Delegación de eventos para las listas de tarjetas (AHORA NAVEGA A LA PÁGINA DE EDICIÓN)
     document.getElementById('products-list-views').addEventListener('click', handleListActions);
     
     // Evento para el cambio de pestañas
@@ -182,22 +142,23 @@ function handleTabSwitch(e) {
 }
 
 /**
- * Maneja el clic en una tarjeta de producto para abrir el modal de edición.
+ * Maneja el clic en una tarjeta de producto para abrir la página de edición.
  */
 function handleListActions(e) {
     const target = e.target;
     const card = target.closest('.product-list-item');
     if (!card) return;
     
-    const productId = parseInt(card.dataset.id);
-    openProductModal('edit', productId);
+    const productId = card.dataset.id;
+    
+    // NAVEGACIÓN A PÁGINA DE EDICIÓN
+    window.location.href = `?view=products&action=edit&id=${productId}`;
 }
 
-// --- Lógica de la Lista y Paginación ---
+// --- Lógica de la Lista y Paginación (Cargada desde el servicio) ---
 
 /**
  * Carga los productos filtrados y paginados desde la base de datos.
- * Esta función es crítica y es pasada como dependencia.
  */
 async function loadProducts() {
     const activeViewContainer = document.getElementById('active-products-list');
@@ -212,7 +173,6 @@ async function loadProducts() {
             pageNumber: currentPage
         });
         
-        // La lista debe actualizarse por referencia para que el módulo de edición la vea
         productsList.splice(0, productsList.length, ...result.products); 
         totalProductsCount = result.totalCount;
         
@@ -238,7 +198,7 @@ async function loadProducts() {
 async function loadCategories() {
     try {
         const newCategories = await ProductsAdminService.getCategories();
-        categoriesList.splice(0, categoriesList.length, ...newCategories); // Actualiza categoriesList por referencia
+        categoriesList.splice(0, categoriesList.length, ...newCategories); // Actualiza categoriesList
     } catch (error) {
         console.error("Error al cargar categorías:", error);
     }
@@ -246,7 +206,7 @@ async function loadCategories() {
 
 /**
  * Crea las tarjetas DOM para los productos de la página actual.
- * Utiliza DocumentFragment para evitar la manipulación directa del DOM y el "flicker".
+ * Utiliza DocumentFragment para evitar el "flicker".
  */
 function createAndHydrateLists() {
     const activeListView = document.getElementById('active-products-list');
