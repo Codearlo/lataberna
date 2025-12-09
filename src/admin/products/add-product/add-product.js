@@ -1,6 +1,12 @@
 // src/admin/add-product/add-product.js
 
-import { ProductsAdminService } from '../products.service.js'; // Ruta corregida
+// Ruta corregida para importar las funciones del nuevo servicio local
+import { 
+    getCategories, 
+    createCategory, 
+    uploadImage, 
+    createProduct 
+} from './add-product.service.js'; 
 
 let categoriesList = [];
 
@@ -53,7 +59,8 @@ async function handleFormSubmit(e) {
         document.getElementById('save-product-btn').disabled = true;
 
         if (imageFile) {
-            imageUrl = await ProductsAdminService.uploadImage(imageFile);
+            // Usar la función de servicio local
+            imageUrl = await uploadImage(imageFile);
         } else {
             alert("Debe seleccionar una imagen para el producto.");
             return;
@@ -67,7 +74,8 @@ async function handleFormSubmit(e) {
             image_url: imageUrl,
         };
 
-        const result = await ProductsAdminService.createProduct(productData);
+        // Usar la función de servicio local
+        const result = await createProduct(productData);
         alert(`Producto ${result.name} agregado!`);
         
         // Redirigir a la lista después de la creación exitosa
@@ -86,7 +94,8 @@ async function handleFormSubmit(e) {
 
 async function loadCategories() {
     try {
-        categoriesList = await ProductsAdminService.getCategories();
+        // Usar la función de servicio local
+        categoriesList = await getCategories();
         renderCategoriesSelect();
     } catch (error) {
         console.error("Error al cargar categorías:", error);
@@ -135,7 +144,8 @@ async function handleCreateCategory() {
     try {
         document.getElementById('create-category-btn').disabled = true;
         
-        const newCategory = await ProductsAdminService.createCategory(newCategoryName);
+        // Usar la función de servicio local
+        const newCategory = await createCategory(newCategoryName);
         
         alert(`Categoría "${newCategory.nombre}" creada con éxito.`);
         

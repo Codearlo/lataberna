@@ -1,373 +1,251 @@
 // src/admin/products/list-products/list-products.js
 
-import { ProductsAdminService } from '../products.service.js';
-import { getSession, initAuthForm } from '../../auth/auth.js';
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
+import { getSession, initAuthForm } from '../../auth/auth.js'; 
+import { getFilteredProductsPaged } from './list-products.service.js'; // NUEVO SERVICIO
 
-// **NUEVAS RUTAS DE NAVEGACIÓN PARA ESTA PÁGINA (DOS NIVELES)**
+// --- Configuración de Paginación y Estado ---
+const ITEMS_PER_PAGE = 10;
+let currentPage = 1;
+let currentFilter = 'active'; // 'active' | 'all'
+let currentSearchTerm = '';
+let isSearchActive = false;
+let totalProducts = 0;
+
+// **RUTAS DE NAVEGACIÓN**
 const PRODUCTS_VIEW_ROUTES = {
-    // Para ir a sí misma (Products), se mantiene la ruta actual (./)
-    'products': './list-products.html',
-    // Para ir a Profile, se suben dos niveles (a 'admin/') y se baja a 'profile/'
-    'profile': '../../profile/profile.html' 
+    'products': './list-products.html', // A sí misma
+    'profile': '../../profile/profile.html' // A la vista de perfil
 };
 
-// Variables de estado (DEBEN MANTENERSE AQUÍ)
-let productsList = [];
-let categoriesList = []; 
-let currentFilter = 'active'; // El filtro inicial de la pestaña
-
-// Variables de estado para la paginación
-let currentPage = 1;
-const PRODUCTS_PER_PAGE = 10;
-let totalProductsCount = 0;
-let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
-
 const ADMIN_CONTENT_ID = 'app-content';
-const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container';
-const CURRENT_VIEW = 'products';
-
-let searchTimeout = null; 
-const DEBOUNCE_DELAY = 50; 
+const PRODUCTS_LIST_CONTAINER_ID = '#products-list-views';
+const ACTIVE_PRODUCTS_GRID_ID = 'active-products-list';
+const ALL_PRODUCTS_GRID_ID = 'all-products-list';
+const PAGINATION_CONTAINER_ID = 'pagination-container';
 
 
 /**
- * Inicializa la vista de listado de productos (Full Page).
+ * Inicializa la página de gestión de productos.
  */
 export async function initListProductsPage() {
     const session = await getSession();
     const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
-    const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
 
     if (!session) {
-        // No logueado: Cargar formulario de login
-        // La URL de login debe ser relativa a la página actual, subiendo un nivel.
-        const authPath = '../../auth/auth.html'; 
-        
-        // El contenido del formulario de login se carga en el contenedor principal
-        const response = await fetch(authPath);
-        if (response.ok) {
-            const html = await response.text();
-            contentContainer.innerHTML = html;
-            // Inicializamos la lógica de Auth
-            initAuthForm(ADMIN_CONTENT_ID, () => {
-                 // Callback al iniciar sesión exitosamente
-                 window.location.href = './list-products.html'; 
-            });
-        }
-
-        if (navContainer) navContainer.style.display = 'none';
+        // No logueado: Cargar formulario de login y detener
+        initAuthForm(ADMIN_CONTENT_ID);
+        // Opcional: Redirigir al login
         return;
     }
 
-    // Logueado: Cargar contenido y navegación
+    // Logueado: Inicializar la vista
     try {
+        // 1. Adjuntar listeners
+        attachEventListeners();
         
-        // 1. Inicializar la barra de navegación y los listeners DE INMEDIATO
-        // Esto desbloquea el renderizado de la UI y los eventos (búsqueda, tabs)
-        attachEventListeners(); 
-        initBottomNav(CURRENT_VIEW, '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
-        if (navContainer) navContainer.style.display = 'block';
-
-        // 2. Ejecutar la carga de datos PESADOS de forma ASÍNCRONA
-        // Esto ocurre mientras el usuario ve la barra de navegación y el esqueleto de la página.
-        await loadCategories();
-        await loadProducts(); // Esta función renderiza la lista una vez que los datos llegan.
+        // 2. Inicializar la navegación inferior
+        initBottomNav('products', '../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES);
+        
+        // 3. Cargar datos iniciales (Productos activos en la primera página)
+        await loadProducts();
         
     } catch (error) {
-        console.error("Error al inicializar el panel de listado de productos:", error);
-        contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz de listado. Revise la consola para detalles.</p>`;
+        console.error("Error al inicializar la lista de productos:", error);
+        contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz de productos.</p>`;
     }
 }
 
 
 function attachEventListeners() {
-    // Evento de búsqueda dinámica (DEBOUNCE)
-    document.getElementById('product-search-input').addEventListener('input', (e) => {
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
+    // 1. Buscador (Debounce o simplemente en el evento 'input' por simplicidad)
+    const searchInput = document.getElementById('product-search-input');
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            handleDynamicSearch();
-        }, DEBOUNCE_DELAY);
+            currentSearchTerm = searchInput.value.trim();
+            currentPage = 1; // Resetear la página al buscar
+            loadProducts();
+        }, 300); // 300ms de debounce
+    });
+
+    // 2. Tabs de Filtrado
+    const tabsContainer = document.getElementById('product-view-tabs');
+    tabsContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.tab-button');
+        if (!button) return;
+
+        // Actualizar estado de las tabs
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
         
-        // APLICAMOS CLASE DE CARGA INMEDIATAMENTE para feedback visual
-        const listCard = document.querySelector('.admin-panel-list.admin-card');
-        if (listCard) {
-            listCard.classList.add('is-searching');
+        // Actualizar el estado de la vista
+        currentFilter = button.dataset.filter;
+        currentPage = 1; // Resetear la página al cambiar de filtro
+        updateActiveView(currentFilter);
+        loadProducts();
+    });
+    
+    // 3. Paginación (Delegación)
+    document.getElementById(PAGINATION_CONTAINER_ID).addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (!button || button.disabled) return;
+        
+        if (button.dataset.page) {
+            currentPage = parseInt(button.dataset.page);
+            loadProducts();
         }
     });
 
-    // Delegación de eventos para las listas de tarjetas (AHORA NAVEGA A LA PÁGINA DE EDICIÓN)
-    document.getElementById('products-list-views').addEventListener('click', handleListActions);
-    
-    // Evento para el cambio de pestañas
-    document.getElementById('product-view-tabs').addEventListener('click', handleTabSwitch);
-    
-    // DELEGACIÓN DE EVENTOS PARA PAGINACIÓN
-    document.getElementById('pagination-container').addEventListener('click', handlePaginationClick);
-}
-
-/**
- * Dispara la búsqueda dinámica (al escribir, con debounce).
- */
-function handleDynamicSearch() {
-    const searchTerm = document.getElementById('product-search-input').value.trim();
-    
-    if (searchTerm === currentSearchTerm) {
-        const listCard = document.querySelector('.admin-panel-list.admin-card');
-        if (listCard) {
-            listCard.classList.remove('is-searching');
+    // 4. Delegación para el ítem de la lista (Redirigir a Edición)
+    const productListViews = document.getElementById('products-list-views');
+    productListViews.addEventListener('click', (e) => {
+        const listItem = e.target.closest('.product-list-item');
+        if (listItem) {
+            const productId = listItem.dataset.id;
+            window.location.href = `../edit-product/edit-product.html?id=${productId}`;
         }
-        return;
-    }
-    
-    currentSearchTerm = searchTerm;
-    currentPage = 1; 
-    loadProducts();
+    });
 }
 
 /**
- * Maneja el clic en los botones de paginación.
+ * Muestra el contenedor de la lista de productos correcto.
+ * @param {string} filter - 'active' o 'all'
  */
-function handlePaginationClick(e) {
-    const target = e.target;
-    let newPage = currentPage;
+function updateActiveView(filter) {
+    const activeGrid = document.getElementById(ACTIVE_PRODUCTS_GRID_ID);
+    const allGrid = document.getElementById(ALL_PRODUCTS_GRID_ID);
+    
+    activeGrid.classList.remove('active-view');
+    allGrid.classList.remove('active-view');
 
-    if (target.id === 'prev-page-btn') {
-        newPage = Math.max(1, currentPage - 1);
-    } else if (target.id === 'next-page-btn') {
-        const totalPages = Math.ceil(totalProductsCount / PRODUCTS_PER_PAGE);
-        newPage = Math.min(totalPages, currentPage + 1);
-    } else if (target.dataset.page) {
-        newPage = parseInt(target.dataset.page);
-    }
-
-    if (newPage !== currentPage) {
-        currentPage = newPage;
-        const listCard = document.querySelector('.admin-panel-list.admin-card');
-        if (listCard) {
-            listCard.classList.add('is-searching');
-        }
-        loadProducts(); 
+    if (filter === 'active') {
+        activeGrid.classList.add('active-view');
+    } else {
+        allGrid.classList.add('active-view');
     }
 }
 
 
-/**
- * Maneja el clic en las pestañas (Tabs) de la lista de productos.
- */
-function handleTabSwitch(e) {
-    const target = e.target;
-    if (!target.classList.contains('tab-button')) return;
+// --- Lógica de Carga y Renderizado ---
 
-    const newFilter = target.dataset.filter;
-    
-    // 1. Actualizar el estado del botón activo
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    target.classList.add('active');
-    
-    if (newFilter !== currentFilter) {
-        currentFilter = newFilter;
-        
-        // 2. Ocultar todos los contenedores de vista y mostrar el nuevo
-        document.querySelectorAll('.products-grid').forEach(view => view.classList.remove('active-view'));
-        
-        // Mostrar el contenedor de la vista activa (active o all)
-        const viewContainerId = `${newFilter}-products-list`;
-        document.getElementById(viewContainerId).classList.add('active-view');
-
-        // 3. Simplemente manejamos la visibilidad de los mensajes de vacío
-        renderProductsTable(); 
-    }
-}
-
-/**
- * Maneja el clic en una tarjeta de producto para abrir la página de edición.
- */
-function handleListActions(e) {
-    const target = e.target;
-    const card = target.closest('.product-list-item');
-    if (!card) return;
-    
-    const productId = card.dataset.id;
-    
-    // NAVEGACIÓN A PÁGINA DE EDICIÓN
-    window.location.href = `../edit-product/edit-product.html?id=${productId}`;
-}
-
-// --- Lógica de la Lista y Paginación (Cargada desde el servicio) ---
-
-/**
- * Carga los productos filtrados y paginados desde la base de datos.
- */
 async function loadProducts() {
-    const activeViewContainer = document.getElementById('active-products-list');
-    const allViewContainer = document.getElementById('all-products-list');
-    const paginationContainer = document.getElementById('pagination-container');
-    const listCard = document.querySelector('.admin-panel-list.admin-card'); 
+    const listContainer = document.querySelector(PRODUCTS_LIST_CONTAINER_ID).querySelector(`.products-grid.active-view`);
+    const emptyMsgElement = document.getElementById(`${currentFilter}-empty-msg`);
+    
+    // Indicador de búsqueda/carga
+    const panel = document.querySelector('.admin-panel-list.admin-card');
+    panel.classList.add('is-searching');
+    
+    listContainer.innerHTML = '';
+    emptyMsgElement.style.display = 'none';
 
     try {
-        const result = await ProductsAdminService.getFilteredProductsPaged({
+        // Usar la función de servicio local
+        const { products, totalCount } = await getFilteredProductsPaged({
             searchTerm: currentSearchTerm,
-            itemsPerPage: PRODUCTS_PER_PAGE,
+            filterBy: currentFilter,
+            itemsPerPage: ITEMS_PER_PAGE,
             pageNumber: currentPage
         });
         
-        productsList.splice(0, productsList.length, ...result.products); 
-        totalProductsCount = result.totalCount;
+        totalProducts = totalCount;
+
+        if (products.length === 0) {
+            emptyMsgElement.style.display = 'block';
+        } else {
+            products.forEach(product => {
+                listContainer.appendChild(renderProductListItem(product));
+            });
+        }
         
-        createAndHydrateLists(); 
         renderPagination();
-        renderProductsTable(); 
 
     } catch (error) {
         console.error("Error al cargar productos:", error);
-        
-        const errorHtml = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
-        activeViewContainer.innerHTML = errorHtml;
-        allViewContainer.innerHTML = errorHtml;
-        paginationContainer.innerHTML = '';
-
+        listContainer.innerHTML = `<p class="error-msg" style="text-align:center;">Error al cargar la lista de productos: ${error.message}</p>`;
     } finally {
-        if (listCard) {
-            listCard.classList.remove('is-searching');
-        }
+        panel.classList.remove('is-searching');
     }
 }
 
-async function loadCategories() {
-    try {
-        const newCategories = await ProductsAdminService.getCategories();
-        categoriesList.splice(0, categoriesList.length, ...newCategories); // Actualiza categoriesList
-    } catch (error) {
-        console.error("Error al cargar categorías:", error);
-    }
-}
 
 /**
- * Crea las tarjetas DOM para los productos de la página actual.
- * Utiliza DocumentFragment para evitar el "flicker".
+ * Genera el HTML para un ítem de la lista de productos.
+ * @param {object} product - Objeto de producto.
  */
-function createAndHydrateLists() {
-    const activeListView = document.getElementById('active-products-list');
-    const allListView = document.getElementById('all-products-list');
+function renderProductListItem(product) {
+    const item = document.createElement('div');
+    item.classList.add('product-list-item');
+    item.classList.add(product.is_active ? 'active-item' : 'inactive');
+    item.dataset.id = product.id;
+
+    const statusText = product.is_active ? 'Activo' : 'Inactivo';
+    const statusClass = product.is_active ? 'active-badge' : 'inactive-badge';
     
-    const activeFragment = document.createDocumentFragment();
-    const allFragment = document.createDocumentFragment();
-
-    productsList.forEach(product => {
-        const card = createProductCard(product); 
-        
-        allFragment.appendChild(card); 
-        
-        if (product.is_active) {
-            activeFragment.appendChild(card.cloneNode(true));
-        }
-    });
-
-    activeListView.innerHTML = '';
-    activeListView.appendChild(activeFragment);
-    
-    allListView.innerHTML = '';
-    allListView.appendChild(allFragment);
-}
-
-/**
- * Renderiza la interfaz de paginación.
- */
-function renderPagination() {
-    const paginationContainer = document.getElementById('pagination-container');
-    const totalPages = Math.ceil(totalProductsCount / PRODUCTS_PER_PAGE);
-    
-    paginationContainer.innerHTML = ''; 
-
-    if (totalProductsCount === 0 || totalPages === 1) {
-        return;
-    }
-    
-    const paginationContent = document.createElement('div');
-    paginationContent.classList.add('pagination-content');
-    
-    const prevBtn = `<button id="prev-page-btn" class="secondary-btn" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button>`;
-    const nextBtn = `<button id="next-page-btn" class="secondary-btn" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
-    
-    let pageNumbers = '';
-    const maxButtons = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-    let endPage = Math.min(totalPages, currentPage + Math.floor(maxButtons / 2));
-
-    if (endPage - startPage + 1 < maxButtons) {
-        if (currentPage <= Math.floor(maxButtons / 2)) {
-            endPage = Math.min(totalPages, maxButtons);
-        } else if (currentPage > totalPages - Math.floor(maxButtons / 2)) {
-            startPage = Math.max(1, totalPages - maxButtons + 1);
-        }
-    }
-
-
-    for (let i = startPage; i <= endPage; i++) {
-        const isActive = i === currentPage ? 'active' : '';
-        pageNumbers += `<button class="page-number-btn ${isActive}" data-page="${i}">${i}</button>`;
-    }
-
-    paginationContent.innerHTML = `
-        ${prevBtn}
-        ${pageNumbers}
-        ${nextBtn}
-        <span class="pagination-info">Página ${currentPage} de ${totalPages} (${totalProductsCount} productos)</span>
-    `;
-
-    paginationContainer.appendChild(paginationContent);
-}
-
-function renderProductsTable() {
-    const activeViewContainerId = currentFilter === 'active' ? 'active-products-list' : 'all-products-list';
-    const activeViewContainer = document.getElementById(activeViewContainerId);
-    
-    const matchesFound = activeViewContainer.children.length;
-
-    const emptyMsgId = currentFilter === 'active' ? 'active-empty-msg' : 'all-empty-msg';
-    const otherEmptyMsgId = currentFilter === 'active' ? 'all-empty-msg' : 'active-empty-msg';
-    
-    document.getElementById(emptyMsgId).style.display = (matchesFound === 0) ? 'block' : 'none';
-    document.getElementById(otherEmptyMsgId).style.display = 'none'; 
-}
-
-
-function createProductCard(product) {
-    const card = document.createElement('div');
-    card.classList.add('product-list-item'); 
-    if (!product.is_active) {
-        card.classList.add('inactive');
-    }
-    card.dataset.id = product.id; 
-    
-    const imageUrl = product.image_url || 'https://via.placeholder.com/60x60?text=No+Img';
-    const categoryName = product.category_name || 'Sin Categoría';
-    const isActive = product.is_active;
-
-    card.innerHTML = `
+    item.innerHTML = `
         <div class="product-image-container">
-            <img src="${imageUrl}" alt="${product.name}" loading="lazy">
+            <img src="${product.image_url}" alt="${product.name} imagen">
         </div>
         <div class="product-info-minimal">
-            <h5 class="product-name-title">${product.name}</h5>
-            <p class="product-id">ID: ${product.id}</p>
-            <p class="product-category">Categoría: ${categoryName}</p>
+            <h4 class="product-name-title">${product.name}</h4>
+            <p class="product-category">${product.category}</p>
         </div>
         <div class="product-status-price-container">
-             <span class="status-badge ${isActive ? 'active-badge' : 'inactive-badge'}">
-                ${isActive ? 'ACTIVO' : 'INACTIVO'}
-            </span>
-            <div class="product-price-minimal">
-                <span class="price">S/ ${product.price.toFixed(2)}</span>
-            </div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+            <p class="product-price-minimal"><span class="price">S/ ${product.price.toFixed(2)}</span></p>
         </div>
     `;
 
-    return card;
+    return item;
 }
 
-// Función de inicialización debe ser llamada al cargar el DOM
+/**
+ * Renderiza los botones de paginación.
+ */
+function renderPagination() {
+    const paginationArea = document.getElementById(PAGINATION_CONTAINER_ID);
+    const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
+    
+    if (totalPages <= 1) {
+        paginationArea.innerHTML = '';
+        return;
+    }
+
+    let paginationHTML = '<div class="pagination-content">';
+    
+    // Botón Anterior
+    paginationHTML += `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&laquo; Anterior</button>`;
+
+    // Botones de página (Mostrar hasta 5 páginas centradas)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (currentPage - 2 < 1) {
+        endPage = Math.min(totalPages, 5);
+    }
+    if (currentPage + 2 > totalPages) {
+        startPage = Math.max(1, totalPages - 4);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const activeClass = i === currentPage ? 'active' : '';
+        paginationHTML += `<button data-page="${i}" class="${activeClass}">${i}</button>`;
+    }
+    
+    // Botón Siguiente
+    paginationHTML += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente &raquo;</button>`;
+    
+    // Información de productos
+    const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalProducts);
+
+    paginationHTML += `</div><p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalProducts} productos</p>`;
+    
+    paginationArea.innerHTML = paginationHTML;
+}
+
+
+// Iniciar al cargar el DOM
 document.addEventListener('DOMContentLoaded', initListProductsPage);

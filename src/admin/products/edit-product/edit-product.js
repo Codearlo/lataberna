@@ -1,6 +1,15 @@
 // src/admin/edit-product/edit-product.js
 
-import { ProductsAdminService } from '../products.service.js'; // Ruta corregida
+// Importar todas las funciones necesarias del nuevo servicio local
+import { 
+    getProductById,
+    getCategories, 
+    createCategory, 
+    uploadImage, 
+    updateProduct,
+    deleteProduct,
+    deleteImage
+} from './edit-product.service.js'; 
 
 let categoriesList = [];
 let productId = null;
@@ -72,18 +81,12 @@ function attachEventListeners() {
 // --- Lógica de Carga y Llenado ---
 
 async function loadProductData(id) {
-    // Usamos la búsqueda paginada para obtener el producto
-    const result = await ProductsAdminService.getFilteredProductsPaged({
-        searchTerm: id.toString(), // Usamos el ID como término de búsqueda
-        itemsPerPage: 1,
-        pageNumber: 1
-    });
+    // Usar la nueva función de servicio
+    const product = await getProductById(id);
 
-    if (!result.products || result.products.length === 0) {
+    if (!product) {
          throw new Error(`Producto con ID ${id} no encontrado.`);
     }
-    
-    const product = result.products[0];
     
     currentProduct = product;
     
@@ -126,10 +129,12 @@ async function handleFormSubmit(e) {
         document.getElementById('save-product-btn').disabled = true;
 
         if (imageFile) {
-            imageUrl = await ProductsAdminService.uploadImage(imageFile);
+            // Usar la función de servicio local
+            imageUrl = await uploadImage(imageFile);
             
             if (currentImageUrl && currentImageUrl !== imageUrl) {
-                await ProductsAdminService.deleteImage(currentImageUrl);
+                // Usar la función de servicio local
+                await deleteImage(currentImageUrl);
             }
         }
         
@@ -141,7 +146,8 @@ async function handleFormSubmit(e) {
             image_url: imageUrl,
         };
 
-        const result = await ProductsAdminService.updateProduct(id, productData);
+        // Usar la función de servicio local
+        const result = await updateProduct(id, productData);
         alert(`Producto ${result.name} actualizado!`);
         
         // Redirigir a la lista después de la actualización exitosa
@@ -162,7 +168,13 @@ async function confirmDelete() {
         document.getElementById('confirm-delete-btn').disabled = true;
         closeDeleteModal(); 
         
-        await ProductsAdminService.deleteProduct(currentProduct.id, currentProduct.image_url);
+        // Eliminar imagen primero
+        if (currentProduct.image_url) {
+            await deleteImage(currentProduct.image_url);
+        }
+        
+        // Eliminar producto
+        await deleteProduct(currentProduct.id);
         
         alert(`Producto ${currentProduct.name} eliminado.`);
         
@@ -181,7 +193,8 @@ async function confirmDelete() {
 
 async function loadCategories() {
     try {
-        categoriesList = await ProductsAdminService.getCategories();
+        // Usar la función de servicio local
+        categoriesList = await getCategories();
         renderCategoriesSelect();
     } catch (error) {
         console.error("Error al cargar categorías:", error);
@@ -230,7 +243,8 @@ async function handleCreateCategory() {
     try {
         document.getElementById('create-category-btn').disabled = true;
         
-        const newCategory = await ProductsAdminService.createCategory(newCategoryName);
+        // Usar la función de servicio local
+        const newCategory = await createCategory(newCategoryName);
         
         alert(`Categoría "${newCategory.nombre}" creada con éxito.`);
         
