@@ -20,7 +20,7 @@ export async function initAddProduct(containerId) {
         // 1. Cargar datos estáticos (Categorías)
         await loadCategories();
         
-        // 2. Adjuntar listeners (botones, forms y CLIC EN IMAGEN)
+        // 2. Adjuntar listeners (botones, forms, imagen y dropdown)
         attachEventListeners();
         
         // 3. Inicializar el switch de estado visual
@@ -37,47 +37,40 @@ function attachEventListeners() {
         form.addEventListener('submit', handleFormSubmit);
     }
     
-    // Listener estándar para cuando el archivo cambia (mostrar preview)
+    // Listener para imagen
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImagePreview);
 
-    // --- SOLUCIÓN DEL CLICK ---
-    // Hacemos que TODO el recuadro punteado sea clicable
+    // SOLUCIÓN CLICK IMAGEN (Recuadro completo clicable)
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) {
         imageBox.addEventListener('click', (e) => {
-            // Si el usuario clicó en el texto "Subir Imagen" (que es un label),
-            // el navegador ya abre el archivo solo. No hacemos nada para no abrirlo 2 veces.
             if (e.target.tagName === 'LABEL' || e.target.closest('label')) return;
-
-            // Si clicó en el espacio vacío o en la imagen de preview, forzamos el click
             const fileInput = document.getElementById('image_file');
             if (fileInput) fileInput.click();
         });
     }
 
-    // Listener para crear categoría
+    // Listener crear categoría
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
     
-    // Manejar el click en la tarjeta de categoría para abrir el select (Mejora UX Móvil)
-    const categoryCard = document.querySelector('.custom-select-container');
-    if (categoryCard) {
-        categoryCard.addEventListener('click', () => {
-            const select = document.getElementById('category_id');
-            if(select) select.focus(); 
-        });
-    }
+    // --- LÓGICA DEL CUSTOM DROPDOWN ---
+    const dropdownContainer = document.getElementById('category-dropdown');
     
-    // Listener para actualizar el input visible al seleccionar una opción del select
-    const categorySelect = document.getElementById('category_id');
-    if (categorySelect) {
-        categorySelect.addEventListener('change', (e) => {
-            const selectedOption = e.target.options[e.target.selectedIndex];
-            const displayInput = document.getElementById('category_display');
-            if(displayInput) {
-                // Si el valor es vacío, mostrar el placeholder original o texto por defecto
-                displayInput.value = selectedOption.value ? selectedOption.textContent : '';
+    if (dropdownContainer) {
+        // Toggle abrir/cerrar
+        dropdownContainer.addEventListener('click', (e) => {
+            // Evitar que se cierre si clickeamos dentro (propagación), 
+            // pero sí queremos que se cierre si seleccionamos algo (manejado abajo).
+            // Lo más simple: toggle class
+            dropdownContainer.classList.toggle('active-dropdown');
+        });
+
+        // Cerrar si clickeamos fuera
+        document.addEventListener('click', (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+                dropdownContainer.classList.remove('active-dropdown');
             }
         });
     }
@@ -90,7 +83,10 @@ async function handleFormSubmit(e) {
     
     const nameInput = document.getElementById('name');
     const priceInput = document.getElementById('price');
+    
+    // OJO: Ahora leemos del input hidden
     const catInput = document.getElementById('category_id');
+    
     const imgInput = document.getElementById('image_file');
     const activeInput = document.getElementById('is_active');
 
@@ -101,7 +97,7 @@ async function handleFormSubmit(e) {
     const isActive = activeInput.checked;
     
     if (!categoriaId) {
-        alert("Por favor, selecciona una categoría existente.");
+        alert("Por favor, selecciona una categoría.");
         return;
     }
     
@@ -152,29 +148,48 @@ async function handleFormSubmit(e) {
 async function loadCategories() {
     try {
         categoriesList = await getCategories();
-        renderCategoriesSelect();
+        renderCategoriesCustomDropdown();
     } catch (error) {
         console.error("Error al cargar categorías:", error);
     }
 }
 
-function renderCategoriesSelect() {
-    const select = document.getElementById('category_id');
-    const displayInput = document.getElementById('category_display');
+function renderCategoriesCustomDropdown() {
+    const optionsList = document.getElementById('dropdown-options');
+    const hiddenInput = document.getElementById('category_id');
+    const displayText = document.getElementById('dropdown-text');
     
-    if (!select) return;
+    if (!optionsList) return;
 
-    select.innerHTML = '<option value="">-- Seleccionar --</option>'; 
+    optionsList.innerHTML = ''; // Limpiar
+    
+    // Resetear selección
+    hiddenInput.value = "";
+    displayText.textContent = "Categoría";
+    displayText.classList.add('placeholder');
     
     categoriesList.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.nombre;
-        select.appendChild(option);
+        const li = document.createElement('li');
+        li.className = 'dropdown-item';
+        li.textContent = category.nombre;
+        li.dataset.value = category.id;
+        
+        // Evento al seleccionar opción
+        li.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar burbujeo inmediato
+            
+            // Setear valores
+            hiddenInput.value = category.id;
+            displayText.textContent = category.nombre;
+            displayText.classList.remove('placeholder');
+            
+            // Cerrar dropdown visualmente
+            const container = document.getElementById('category-dropdown');
+            if(container) container.classList.remove('active-dropdown');
+        });
+        
+        optionsList.appendChild(li);
     });
-    
-    select.value = "";
-    if (displayInput) displayInput.value = ""; 
 }
 
 function handleImagePreview(e) {
@@ -192,12 +207,10 @@ function handleImagePreview(e) {
         img.alt = 'Preview';
         previewContainer.appendChild(img);
         
-        // Ocultar el texto de "Subir Imagen" cuando ya hay foto
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
         
         if (file) img.onload = () => URL.revokeObjectURL(img.src);
     } else {
-        // Volver a mostrar el texto si se quita la foto
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
     }
 }
@@ -221,13 +234,17 @@ async function handleCreateCategory() {
         alert(`Categoría "${newCategory.nombre}" creada.`);
         
         categoriesList.push(newCategory);
-        renderCategoriesSelect();
+        renderCategoriesCustomDropdown();
         
-        const select = document.getElementById('category_id');
-        const displayInput = document.getElementById('category_display');
+        // Autoseleccionar la nueva categoría
+        const hiddenInput = document.getElementById('category_id');
+        const displayText = document.getElementById('dropdown-text');
         
-        if(select) select.value = newCategory.id;
-        if(displayInput) displayInput.value = newCategory.nombre;
+        if(hiddenInput) hiddenInput.value = newCategory.id;
+        if(displayText) {
+            displayText.textContent = newCategory.nombre;
+            displayText.classList.remove('placeholder');
+        }
         
         newCatInput.value = '';
 
@@ -257,7 +274,6 @@ function setupSwitch() {
     }
 }
 
-// Ejecutar al cargar
 document.addEventListener('DOMContentLoaded', () => {
     initAddProduct('app-content');
 });
