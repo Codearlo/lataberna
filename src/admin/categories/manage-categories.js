@@ -4,66 +4,81 @@ import { getCategories, createCategory, deleteCategory, getCategoryProductCount 
 import { initToastNotification, showToast } from '../../public/modules/store/toast-notification/toast.js';
 
 let selectedCategories = new Set();
-let categoriesData = []; 
+let allCategoriesData = []; // Guardamos TODAS las categorías aquí para filtrar localmente
 
 async function initManageCategories() {
     initToastNotification();
-    await loadAndRenderCategories();
+    await fetchCategories(); // Carga inicial
 
-    const addBtn = document.getElementById('add-category-btn');
-    const input = document.getElementById('new-category-input');
+    // Referencias DOM
+    const searchInput = document.getElementById('search-input');
+    const openCreateBtn = document.getElementById('open-create-modal-btn');
     const deleteSelectedBtn = document.getElementById('delete-selected-btn');
 
-    addBtn.addEventListener('click', handleAddCategory);
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleAddCategory();
+    // 1. Buscador en tiempo real
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allCategoriesData.filter(cat => 
+            cat.nombre.toLowerCase().includes(term)
+        );
+        renderCategoriesList(filtered);
     });
 
+    // 2. Abrir Modal Crear
+    openCreateBtn.addEventListener('click', openCreateModal);
+
+    // 3. Eliminar Seleccionados
     deleteSelectedBtn.addEventListener('click', handleBulkDelete);
 }
 
-async function loadAndRenderCategories() {
+// --- CARGA Y RENDERIZADO ---
+
+async function fetchCategories() {
     const container = document.getElementById('categories-list-container');
     
-    // Resetear selección
-    selectedCategories.clear();
-    const countSpan = document.getElementById('selected-count');
-    if(countSpan) updateSelectionUI();
-
     try {
-        categoriesData = await getCategories();
-        
-        if (categoriesData.length === 0) {
-            container.innerHTML = '<div class="empty-state">No hay categorías registradas.</div>';
-            return;
-        }
-
-        container.innerHTML = '';
-        categoriesData.forEach(cat => {
-            const card = document.createElement('div');
-            card.className = 'category-card';
-            card.dataset.id = cat.id; 
-            
-            card.innerHTML = `
-                <span class="category-name">
-                    <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                    ${cat.nombre}
-                </span>
-                
-                <div class="custom-checkbox">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-            `;
-
-            card.addEventListener('click', () => toggleSelection(card, cat.id));
-            container.appendChild(card);
-        });
-
+        allCategoriesData = await getCategories();
+        // Renderizamos la lista completa inicialmente
+        renderCategoriesList(allCategoriesData);
     } catch (error) {
         console.error(error);
         container.innerHTML = '<div class="empty-state" style="color:red">Error al cargar categorías.</div>';
     }
 }
+
+function renderCategoriesList(listToRender) {
+    const container = document.getElementById('categories-list-container');
+    container.innerHTML = '';
+
+    if (listToRender.length === 0) {
+        container.innerHTML = '<div class="empty-state">No se encontraron categorías.</div>';
+        return;
+    }
+
+    listToRender.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        // Si ya estaba seleccionada, mantenemos el estilo
+        if (selectedCategories.has(cat.id)) {
+            card.classList.add('selected');
+        }
+        
+        card.innerHTML = `
+            <span class="category-name">
+                <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                ${cat.nombre}
+            </span>
+            <div class="custom-checkbox">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+        `;
+
+        card.addEventListener('click', () => toggleSelection(card, cat.id));
+        container.appendChild(card);
+    });
+}
+
+// --- SELECCIÓN ---
 
 function toggleSelection(cardElement, id) {
     if (selectedCategories.has(id)) {
@@ -87,7 +102,66 @@ function updateSelectionUI() {
     btn.disabled = count === 0;
 }
 
-// --- LÓGICA DE ELIMINACIÓN MASIVA ---
+// --- CREACIÓN (MODAL) ---
+
+function openCreateModal() {
+    const modal = document.getElementById('create-modal-container');
+    const input = document.getElementById('modal-new-category-name');
+    const btnCancel = document.getElementById('btn-cancel-create');
+    const btnConfirm = document.getElementById('btn-confirm-create');
+
+    input.value = ''; // Limpiar input anterior
+    modal.classList.add('visible');
+    input.focus(); // Enfocar input automáticamente
+
+    // Handlers para botones
+    const close = () => {
+        modal.classList.remove('visible');
+        btnCancel.removeEventListener('click', close);
+        btnConfirm.removeEventListener('click', save);
+        // Remover listener de Enter
+        input.removeEventListener('keypress', handleEnter);
+    };
+
+    const save = async () => {
+        const name = input.value.trim();
+        if (!name) {
+            showToast("⚠️ Escribe un nombre.");
+            return;
+        }
+
+        try {
+            btnConfirm.disabled = true;
+            btnConfirm.textContent = "...";
+            
+            await createCategory(name);
+            showToast(`✅ Categoría creada.`);
+            
+            close(); // Cerrar modal
+            await fetchCategories(); // Recargar lista
+            
+            // Limpiar buscador si había algo
+            document.getElementById('search-input').value = '';
+
+        } catch (error) {
+            showToast(`❌ Error: ${error.message}`);
+        } finally {
+            btnConfirm.disabled = false;
+            btnConfirm.textContent = "Guardar";
+        }
+    };
+
+    // Permitir guardar con Enter
+    const handleEnter = (e) => {
+        if (e.key === 'Enter') save();
+    };
+
+    btnCancel.addEventListener('click', close);
+    btnConfirm.addEventListener('click', save);
+    input.addEventListener('keypress', handleEnter);
+}
+
+// --- ELIMINACIÓN MASIVA ---
 
 async function handleBulkDelete() {
     if (selectedCategories.size === 0) return;
@@ -99,43 +173,43 @@ async function handleBulkDelete() {
     btn.textContent = "Verificando...";
 
     const idsToDelete = Array.from(selectedCategories);
-    const conflicts = [];     // Tienen productos
-    const safeToDelete = [];  // Vacías
+    const conflicts = [];
+    const safeToDelete = [];
 
     try {
         // 1. Clasificar
         for (const id of idsToDelete) {
-            const category = categoriesData.find(c => c.id === id);
+            const category = allCategoriesData.find(c => c.id === id);
+            if (!category) continue; // Por seguridad
+
             const count = await getCategoryProductCount(id);
             
             if (count > 0) {
-                conflicts.push({ id, name: category ? category.nombre : 'Categoría', count });
+                conflicts.push({ id, name: category.nombre, count });
             } else {
-                safeToDelete.push({ id, name: category ? category.nombre : 'Categoría' });
+                safeToDelete.push({ id, name: category.nombre });
             }
         }
 
         let deletedCount = 0;
 
-        // 2. Conflictos (Mover a SIN CATEGORIA)
+        // 2. Conflictos
         for (const item of conflicts) {
             const decision = await showConflictModal(item.name, item.count);
-            
             if (decision === 'continue') {
-                btn.textContent = `Moviendo productos de ${item.name}...`;
-                // true = mover productos a SIN CATEGORIA y luego borrar
-                await deleteCategory(item.id, true); 
+                btn.textContent = `Moviendo ${item.name}...`;
+                await deleteCategory(item.id, true);
                 deletedCount++;
             }
         }
 
-        // 3. Seguras (Vacías)
+        // 3. Seguras
         if (safeToDelete.length > 0) {
             const namesList = safeToDelete.map(i => i.name);
             const confirmed = await showBatchConfirmModal(namesList);
 
             if (confirmed) {
-                btn.textContent = "Eliminando restantes...";
+                btn.textContent = "Eliminando...";
                 for (const item of safeToDelete) {
                     await deleteCategory(item.id, false);
                     deletedCount++;
@@ -144,22 +218,30 @@ async function handleBulkDelete() {
         }
 
         if (deletedCount > 0) {
-            showToast(`✅ ${deletedCount} categorías eliminadas.`);
+            showToast(`✅ ${deletedCount} eliminadas.`);
+            selectedCategories.clear();
+            updateSelectionUI();
         }
 
     } catch (error) {
-        console.error("Error en eliminación masiva:", error);
+        console.error(error);
         showToast(`❌ Error: ${error.message}`);
     } finally {
         if (btn) {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
         }
-        await loadAndRenderCategories();
+        await fetchCategories();
+        // Si el usuario tenía algo escrito en el buscador, lo reaplicamos visualmente
+        const searchTerm = document.getElementById('search-input').value;
+        if (searchTerm) {
+             // Disparar evento manualmente para refiltrar
+             document.getElementById('search-input').dispatchEvent(new Event('input'));
+        }
     }
 }
 
-// Promesas Modales (Sin cambios en lógica, solo reuso)
+// Modales Promesas
 function showConflictModal(categoryName, count) {
     return new Promise((resolve) => {
         const modal = document.getElementById('conflict-modal-container');
@@ -206,32 +288,6 @@ function showBatchConfirmModal(namesList) {
         btnCancel.addEventListener('click', handleCancel, { once: true });
         btnConfirm.addEventListener('click', handleConfirm, { once: true });
     });
-}
-
-// --- CREACIÓN ---
-
-async function handleAddCategory() {
-    const input = document.getElementById('new-category-input');
-    const name = input.value.trim();
-
-    if (!name) {
-        showToast("⚠️ Escribe un nombre para la categoría.");
-        return;
-    }
-
-    try {
-        const btn = document.getElementById('add-category-btn');
-        btn.disabled = true;
-        await createCategory(name);
-        showToast(`✅ Categoría "${name}" creada.`);
-        input.value = '';
-        await loadAndRenderCategories();
-    } catch (error) {
-        console.error(error);
-        showToast(`❌ Error: ${error.message}`);
-    } finally {
-        document.getElementById('add-category-btn').disabled = false;
-    }
 }
 
 document.addEventListener('DOMContentLoaded', initManageCategories);
