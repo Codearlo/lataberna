@@ -1,0 +1,140 @@
+/* src/admin/categories/manage-categories.css */
+
+body {
+    background-color: #ffffff;
+    color: #343a40;
+    font-family: var(--font-family, sans-serif);
+    padding-bottom: 90px;
+}
+
+.page-header-bar {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: transparent;
+    border: none;
+    color: #343a40;
+    padding: 0;
+    margin-right: 15px;
+    cursor: pointer;
+}
+
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.mobile-main-content {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Formulario de Creación */
+.add-category-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+
+.clean-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    padding: 5px;
+    color: #343a40;
+}
+
+.add-btn {
+    background-color: #FFC107;
+    color: #343a40;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-btn:hover {
+    background-color: #e0a800;
+}
+
+/* Lista de Categorías */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-card {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-color: #FFC107;
+}
+
+.category-name {
+    font-weight: 600;
+    color: #343a40;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.folder-icon {
+    color: #FFC107;
+}
+
+.delete-cat-btn {
+    background: #fff5f5;
+    border: 1px solid #ffc9c9;
+    color: #dc3545;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delete-cat-btn:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.empty-state {
+    text-align: center;
+    color: #6c757d;
+    margin-top: 30px;
+}

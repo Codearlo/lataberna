@@ -1,43 +1,197 @@
 /* src/admin/profile/profile.css */
 
-.profile-card {
-    max-width: 500px;
-    margin: 30px auto;
+/* --- LAYOUT GENERAL (Igual que add-product) --- */
+body {
+    background-color: #ffffff;
+    color: #343a40;
+    font-family: var(--font-family, sans-serif);
+    padding-bottom: 90px; /* Espacio para el nav inferior */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-.profile-card hr {
-    margin: 20px 0;
-    border: 0;
-    border-top: 1px solid #e9ecef;
+/* --- HEADER --- */
+.page-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centrado */
+    padding: 15px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.profile-card .form-group {
-    margin-bottom: 15px;
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+    color: #343a40;
 }
 
-.profile-card label {
-    font-weight: 700;
-    color: #495057;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.profile-card p, .profile-card .status-badge {
-    font-size: 1em;
-    padding: 8px 10px;
-    border-radius: 4px;
-    background-color: #f1f1f1;
-    display: inline-block;
-}
-
-.status-badge.active-status {
-    background-color: #d4edda;
-    color: #155724;
-    font-weight: bold;
-}
-
-#profile-logout-btn {
-    padding: 10px 20px;
+/* --- CONTENIDO PRINCIPAL --- */
+.mobile-main-content {
+    padding: 20px;
+    max-width: 600px; /* Un poco más estrecho para perfil */
+    margin: 0 auto;
     width: 100%;
-    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- SECCIÓN DE AVATAR --- */
+.profile-header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    background-color: #fffbef; /* Fondo crema */
+    border: 3px solid #FFC107; /* Borde dorado */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+}
+
+.avatar-circle svg {
+    width: 50px;
+    height: 50px;
+    color: #FFC107;
+}
+
+.user-name-display {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    color: #343a40;
+}
+
+.user-role-badge {
+    background-color: #343a40; /* Negro */
+    color: #FFC107; /* Texto Dorado */
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* --- TARJETAS DE INFORMACIÓN (Estilo Input Card Readonly) --- */
+.section-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 5px;
+}
+
+.info-card {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Colores de Iconos */
+.icon-gold { background: rgba(255, 193, 7, 0.15); color: #e0a800; }
+.icon-blue { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+.icon-green { background: rgba(25, 135, 84, 0.1); color: #198754; }
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    color: #adb5bd;
+    margin-bottom: 2px;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #343a40;
+    font-weight: 600;
+}
+
+/* --- BOTÓN DE CERRAR SESIÓN --- */
+.logout-container {
+    margin-top: 20px;
+}
+
+.logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    border: 1px solid #ffebeb;
+    background-color: #fff5f5; /* Fondo rojo muy claro */
+    color: #dc3545; /* Rojo */
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #dc3545;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.logout-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Desktop Fix */
+@media (min-width: 768px) {
+    .page-header-bar {
+        position: static;
+        border-bottom: none;
+        padding-top: 30px;
+        justify-content: flex-start;
+        padding-left: 0;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .header-title {
+        font-size: 1.8rem;
+    }
 }
