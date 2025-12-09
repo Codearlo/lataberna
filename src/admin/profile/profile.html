@@ -1,23 +1,45 @@
-<div class="admin-panel-header">
-    <h3>Perfil de Administrador</h3>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Taberna - Perfil de Administrador</title>
 
-<div class="admin-card profile-card">
-    <h4>Información de la Cuenta</h4>
-    <p>Aquí puedes gestionar la configuración de tu cuenta de administrador.</p>
+    <link rel="stylesheet" href="../../public/main.css"> 
+    <link rel="stylesheet" href="../auth/auth.css">
+    <link rel="stylesheet" href="./profile.css">
+    <link rel="stylesheet" href="../modules/bottom-nav/bottom-nav.css">
+</head>
+<body>
+    <main id="app-content" class="admin-profile-panel">
+        <div class="admin-panel-header">
+            <h3>Perfil de Administrador</h3>
+        </div>
 
-    <div class="form-group">
-        <label>Correo Electrónico:</label>
-        <p>admin@lataberna.com (Ejemplo)</p>
-    </div>
+        <div class="admin-card profile-card">
+            <h4>Información de la Cuenta</h4>
+            <p>Aquí puedes gestionar la configuración de tu cuenta de administrador.</p>
 
-    <div class="form-group">
-        <label>Estado:</label>
-        <span class="status-badge active-status">Activo</span>
-    </div>
+            <div class="form-group">
+                <label>Correo Electrónico:</label>
+                <p>admin@lataberna.com (Ejemplo)</p>
+            </div>
 
-    <hr>
+            <div class="form-group">
+                <label>Estado:</label>
+                <span class="status-badge active-status">Activo</span>
+            </div>
+
+            <hr>
+            
+            <h4>Acción de Seguridad</h4>
+            <button id="profile-logout-btn" class="delete-btn">Cerrar Sesión</button>
+        </div>
+    </main>
     
-    <h4>Acción de Seguridad</h4>
-    <button id="profile-logout-btn" class="delete-btn">Cerrar Sesión</button>
-</div>
+    <div id="admin-nav-container"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module" src="./profile.js"></script> 
+</body>
+</html>

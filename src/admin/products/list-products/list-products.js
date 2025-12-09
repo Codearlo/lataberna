@@ -1,29 +1,50 @@
 // src/admin/list-products/list-products.js
 
 import { ProductsAdminService } from '../products.service.js';
+import { getSession, initAuthForm } from '../../auth/auth.js';
+import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
 
 // Variables de estado (DEBEN MANTENERSE AQUÍ)
-let productsList = [];
-let categoriesList = []; 
-let currentFilter = 'active'; 
+// ... (variables) ...
 
-// Variables de estado para la paginación
-let currentPage = 1;
-const PRODUCTS_PER_PAGE = 10;
-let totalProductsCount = 0;
-let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
+const ADMIN_CONTENT_ID = 'app-content';
+const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container';
+const CURRENT_VIEW = 'products';
 
-const LIST_HTML_PATH = './list-products/list-products.html'; 
 let searchTimeout = null; 
 const DEBOUNCE_DELAY = 50; 
 
+
 /**
- * Inicializa la vista de listado de productos.
+ * Inicializa la vista de listado de productos (Full Page).
  */
-export async function initListProducts(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
+export async function initListProductsPage() {
+    const session = await getSession();
+    const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
+    const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
+
+    if (!session) {
+        // No logueado: Cargar formulario de login
+        // La URL de login debe ser relativa a la página actual, subiendo un nivel.
+        const authPath = '../auth/auth.html'; 
+        
+        // El contenido del formulario de login se carga en el contenedor principal
+        const response = await fetch(authPath);
+        if (response.ok) {
+            const html = await response.text();
+            contentContainer.innerHTML = html;
+            // Inicializamos la lógica de Auth
+            initAuthForm(ADMIN_CONTENT_ID, () => {
+                 // Callback al iniciar sesión exitosamente
+                 window.location.href = './list-products.html'; 
+            });
+        }
+
+        if (navContainer) navContainer.style.display = 'none';
+        return;
+    }
+
+    // Logueado: Cargar contenido y navegación
     try {
         // 1. Cargar datos estáticos
         await loadCategories();
@@ -34,11 +55,18 @@ export async function initListProducts(containerId) {
         // 3. Carga Inicial de Productos
         await loadProducts(); 
         
+        // 4. Inicializar la barra de navegación inferior
+        initBottomNav(CURRENT_VIEW);
+        
+        // 5. Asegurar que el nav sea visible
+        if (navContainer) navContainer.style.display = 'block';
+        
     } catch (error) {
         console.error("Error al inicializar el panel de listado de productos:", error);
-        container.innerHTML = `<p class="error-msg">Error al cargar la interfaz de listado. Revise la consola para detalles.</p>`;
+        contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz de listado. Revise la consola para detalles.</p>`;
     }
 }
+
 
 function attachEventListeners() {
     // Evento de búsqueda dinámica (DEBOUNCE)
@@ -152,7 +180,7 @@ function handleListActions(e) {
     const productId = card.dataset.id;
     
     // NAVEGACIÓN A PÁGINA DE EDICIÓN
-    window.location.href = `?view=products&action=edit&id=${productId}`;
+    window.location.href = `../edit-product/edit-product.html?id=${productId}`;
 }
 
 // --- Lógica de la Lista y Paginación (Cargada desde el servicio) ---
@@ -327,3 +355,6 @@ function createProductCard(product) {
 
     return card;
 }
+
+// Función de inicialización debe ser llamada al cargar el DOM
+document.addEventListener('DOMContentLoaded', initListProductsPage);

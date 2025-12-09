@@ -3,8 +3,8 @@
 // RUTA A CONFIG: Subir de auth/ a admin/, luego a src/, luego bajar a config/
 import { supabase } from '../../config/supabaseClient.js'; 
 
-// RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/admin.html)
-const LOGIN_FORM_HTML_PATH = './auth/auth.html'; 
+// RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/auth/auth.html)
+const LOGIN_FORM_HTML_PATH = './auth.html'; 
 
 /**
  * Carga el formulario de login y adjunta el listener de submit.
@@ -55,7 +55,8 @@ async function handleLoginSubmit(e, onAuthSuccess) {
         }
 
         // Si la autenticación es exitosa
-        onAuthSuccess();
+        // REDIRECCIÓN A LA NUEVA PÁGINA DE PRODUCTOS
+        window.location.href = '../list-products/list-products.html'; 
 
     } catch (error) {
         errorMsgElement.textContent = `Error: ${error.message}`;
@@ -78,6 +79,6 @@ export async function getSession() {
  */
 export async function logout() {
     await supabase.auth.signOut();
-    // Redirigir a la página de login (src/admin/admin.html)
-    window.location.href = './admin.html';
+    // Redirigir a la página de login
+    window.location.href = './auth.html'; 
 }

@@ -1,31 +1,56 @@
-<div class="admin-panel-header">
-    <h3>Gestión de Productos</h3>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Taberna - Gestión de Productos</title>
 
-<div class="admin-panel-list admin-card">
-    <div class="list-header-top">
-        <input type="text" id="product-search-input" placeholder="Buscar por Nombre o Categoría..." aria-label="Buscador de productos">
-    </div>
-
-    <div class="add-product-container">
-        <a href="?view=products&action=add" id="open-create-page-btn" class="primary-btn full-width-btn">➕ Agregar Nuevo Producto</a>
-    </div>
+    <link rel="stylesheet" href="../../../public/main.css"> 
     
-    <div id="product-view-tabs" class="tabs-container">
-        <button class="tab-button active" data-filter="active">Productos Activos</button>
-        <button class="tab-button" data-filter="all">Todos los Productos</button>
-    </div>
-    
-    <div id="products-list-views">
-        <div id="active-products-list" class="products-grid active-view">
+    <link rel="stylesheet" href="../../auth/auth.css">
+    <link rel="stylesheet" href="./list-products.css">
+    <link rel="stylesheet" href="../../modules/bottom-nav/bottom-nav.css">
+</head>
+<body>
+    <main id="app-content">
+        <div id="products-list-view-container">
+            <div class="admin-panel-header">
+                <h3>Gestión de Productos</h3>
             </div>
-        <div id="all-products-list" class="products-grid">
-            </div>
-    </div>
-    
-    <div id="pagination-container" class="pagination-area"></div>
 
-    <div id="active-empty-msg" class="empty-list-msg" style="display: none;">No hay productos activos que coincidan con la búsqueda.</div>
-    <div id="all-empty-msg" class="empty-list-msg" style="display: none;">No hay productos que coincidan con la búsqueda.</div>
+            <div class="admin-panel-list admin-card">
+                <div class="list-header-top">
+                    <input type="text" id="product-search-input" placeholder="Buscar por Nombre o Categoría..." aria-label="Buscador de productos">
+                </div>
+
+                <div class="add-product-container">
+                    <a href="../add-product/add-product.html" id="open-create-page-btn" class="primary-btn full-width-btn">➕ Agregar Nuevo Producto</a>
+                </div>
+                
+                <div id="product-view-tabs" class="tabs-container">
+                    <button class="tab-button active" data-filter="active">Productos Activos</button>
+                    <button class="tab-button" data-filter="all">Todos los Productos</button>
+                </div>
+                
+                <div id="products-list-views">
+                    <div id="active-products-list" class="products-grid active-view">
+                        </div>
+                    <div id="all-products-list" class="products-grid">
+                        </div>
+                </div>
+                
+                <div id="pagination-container" class="pagination-area"></div>
+
+                <div id="active-empty-msg" class="empty-list-msg" style="display: none;">No hay productos activos que coincidan con la búsqueda.</div>
+                <div id="all-empty-msg" class="empty-list-msg" style="display: none;">No hay productos que coincidan con la búsqueda.</div>
+                
+            </div>
+        </div>
+    </main>
     
-</div>
+    <div id="admin-nav-container"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module" src="./list-products.js"></script> 
+</body>
+</html>

@@ -1,0 +1,295 @@
+/* src/admin/list-products/list-products.css */
+
+/* --- Estilos Generales de Admin --- */
+#products-subview-container {
+    background-color: #ffffff; 
+    padding: 30px;
+    color: #343a40; 
+    padding-bottom: 30px; 
+}
+
+
+.admin-panel-header h3 {
+    font-size: 2em;
+    color: #343a40;
+    margin-bottom: 20px;
+}
+
+.admin-card {
+    background-color: #f8f9fa; 
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+/* --- ESTILO PARA BÚSQUEDA RÁPIDA (FEEDBACK VISUAL SUTIL) --- */
+.admin-panel-list.admin-card.is-searching {
+    opacity: 0.7; 
+    pointer-events: none; 
+    transition: opacity 0.05s ease-out; 
+}
+/* --- FIN ESTILO --- */
+
+
+/* --- Lista de Productos, Buscador y Botón de Agregar --- */
+.list-header-top {
+    margin-bottom: 10px;
+}
+
+#product-search-input {
+    width: 100%; /* Ocupa todo el ancho */
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 8px; /* Más redondeado */
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.add-product-container {
+    margin-bottom: 20px;
+}
+
+.primary-btn.full-width-btn {
+    width: 100%;
+    /* Estilo del botón principal de AGREGAR: Dorado/Negro */
+    background-color: #FFC107; 
+    color: #343a40;
+    font-size: 1.1em;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+}
+.primary-btn.full-width-btn:hover {
+    background-color: #e0a800; /* Dorado más oscuro */
+}
+
+
+/* --- TAB STYLES (DORADO) --- */
+.tabs-container {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    overflow-x: auto; 
+}
+
+.tab-button {
+    background-color: transparent;
+    color: #6c757d;
+    border: none;
+    padding: 8px 15px;
+    font-weight: 600;
+    border-radius: 0; 
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap; 
+}
+
+/* Estilo activo: Dorado */
+.tab-button.active {
+    background-color: transparent; 
+    color: #FFC107; /* Color del texto Dorado */
+    font-weight: 700;
+    /* Subrayado con borde inferior */
+    border-bottom: 2px solid #FFC107; 
+    padding-bottom: 10px; 
+}
+
+.tab-button:hover:not(.active) {
+    background-color: #f0f0f0;
+}
+
+/* VISIBILIDAD DE LAS VISTAS DE LISTA */
+#products-list-views .products-grid {
+    display: none;
+}
+#products-list-views .products-grid.active-view {
+    display: grid;
+}
+
+/* --- GRID DE TARJETAS (Formato Lista) --- */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px; 
+}
+
+/* ESTILO: Formato de lista simple y horizontal (IMAGEN | INFO | PRECIO/STATUS) */
+.product-list-item {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex; 
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: 1px solid #f0f0f0; 
+}
+.product-list-item:hover {
+    background-color: #f7f7f7;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-list-item.inactive {
+    opacity: 0.7; 
+    border-left: 5px solid #6c757d;
+}
+
+.product-image-container {
+    flex-shrink: 0; 
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-list-item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.product-info-minimal {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Título */
+.product-info-minimal .product-name-title {
+    font-size: 1.0em; 
+    font-weight: 700;
+    margin: 0;
+    color: #343a40;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ID y Categoría */
+.product-info-minimal .product-id,
+.product-info-minimal .product-category {
+    font-size: 0.8em; 
+    color: #6c757d;
+    margin: 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Contenedor de Precio y Estado (Alineado a la derecha) */
+.product-status-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    justify-content: space-between;
+    flex-shrink: 0;
+    margin-left: 15px;
+    height: 60px; 
+}
+
+/* Estilo de Badge (Pastilla) */
+.status-badge {
+    font-size: 0.65em; 
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px; 
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.active-badge {
+    background-color: #d4edda; 
+    color: #155724; 
+}
+
+.inactive-badge {
+    background-color: #f8d7da; 
+    color: #721c24; 
+}
+
+
+.product-price-minimal {
+    margin-top: auto; 
+    font-weight: bold;
+}
+
+/* Precio */
+.product-price-minimal .price {
+    color: #dc3545; 
+    font-size: 1.0em; 
+}
+
+/* --- ESTILOS DE PAGINACIÓN --- */
+.pagination-area {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.pagination-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.pagination-content button {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    background-color: #ffffff;
+    border-radius: 4px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.pagination-content button:hover:not(:disabled):not(.active) {
+    background-color: #f0f0f0;
+}
+
+.pagination-content button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination-content button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-left: 15px;
+    white-space: nowrap;
+}
+
+
+/* --- Responsive para Móviles (Max-width: 767px) --- */
+@media (max-width: 767px) {
+    /* Lista de productos */
+    .products-grid {
+        grid-template-columns: 1fr; 
+    }
+    
+    .pagination-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .pagination-info {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}

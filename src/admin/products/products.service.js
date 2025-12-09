@@ -1,6 +1,6 @@
 // src/admin/products.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../../config/supabaseClient.js'; 
 
 const ProductsAdminService = {
     

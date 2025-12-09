@@ -1,34 +1,53 @@
 // src/admin/profile/profile.js
 
-import { ProfileAdminService } from './profile.service.js'; // RUTA CORREGIDA
+import { initBottomNav } from '../modules/bottom-nav/bottom-nav.js';
+import { getSession, initAuthForm } from '../auth/auth.js'; 
+import { ProfileAdminService } from './profile.service.js';
+
+const ADMIN_CONTENT_ID = 'app-content';
+const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container';
+const CURRENT_VIEW = 'profile';
+
 
 /**
- * Inicializa la vista del perfil.
- * @param {string} containerId - ID del contenedor donde inyectar el HTML.
+ * Inicializa la vista del perfil (Full Page).
  */
-export async function initProfileView(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+export async function initProfilePage() {
+    const session = await getSession();
+    const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
+    const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
 
-    // RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/admin.html)
-    const PROFILE_HTML_PATH = './profile/profile.html'; 
+    if (!session) {
+        // No logueado: Cargar formulario de login
+        initAuthForm(ADMIN_CONTENT_ID, () => {
+            // Callback al iniciar sesión exitosamente
+            window.location.href = './profile.html'; 
+        });
 
+        if (navContainer) navContainer.style.display = 'none';
+        return;
+    }
+
+    // Logueado: Cargar contenido y navegación
     try {
-        const response = await fetch(PROFILE_HTML_PATH);
-        if (!response.ok) {
-            throw new Error(`Error al obtener HTML de perfil. Status: ${response.status}`);
-        }
-        const html = await response.text();
-        container.innerHTML = html;
-
+        // Asumiendo que el HTML del perfil ya está en el DOM (en profile.html)
+        
         // 1. Adjuntar listener de Cerrar Sesión
         document.getElementById('profile-logout-btn').addEventListener('click', () => {
-             // Ya no necesita el confirm aquí, ya que el servicio lo hace internamente o se asume la acción
              ProfileAdminService.handleLogout();
         });
 
+        // 2. Inicializar la barra de navegación inferior
+        initBottomNav(CURRENT_VIEW);
+        
+        // 3. Asegurar que el nav sea visible
+        if (navContainer) navContainer.style.display = 'block';
+
     } catch (error) {
         console.error("Error al inicializar el panel de perfil:", error);
-        container.innerHTML = `<p class="error-msg">Error al cargar la interfaz de perfil.</p>`;
+        contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz de perfil.</p>`;
     }
 }
+
+// Inicializar al cargar el DOM
+document.addEventListener('DOMContentLoaded', initProfilePage);

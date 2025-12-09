@@ -3,11 +3,17 @@
 const NAV_CONTAINER_ID = 'admin-nav-container';
 const BOTTOM_NAV_HTML_PATH = './modules/bottom-nav/bottom-nav.html';
 
+// Mapeo de vistas a rutas de archivos HTML
+const VIEW_ROUTES = {
+    'products': '../list-products/list-products.html', // Usamos list-products como entrada
+    'profile': '../profile/profile.html'
+};
+
 /**
  * Inicializa la barra de navegación inferior.
- * @param {function} onNavClick - Función de callback para manejar el cambio de vista (ej: admin.js's router).
+ * @param {string} currentViewName - Nombre de la vista actual ('products' o 'profile').
  */
-export async function initBottomNav(onNavClick) {
+export async function initBottomNav(currentViewName) {
     const container = document.getElementById(NAV_CONTAINER_ID);
     if (!container) return;
 
@@ -20,7 +26,7 @@ export async function initBottomNav(onNavClick) {
         const html = await response.text();
         container.innerHTML = html;
 
-        // 2. Adjuntar listener de delegación para la navegación
+        // 2. Adjuntar listener de delegación para la navegación (HARD JUMP)
         const nav = document.getElementById('admin-bottom-nav');
         nav.addEventListener('click', (e) => {
             const listItem = e.target.closest('li[data-view]');
@@ -29,13 +35,14 @@ export async function initBottomNav(onNavClick) {
             e.preventDefault();
             const targetView = listItem.dataset.view;
             
-            // 3. Resalta la vista activa y llama al router
-            setActiveView(targetView);
-            onNavClick(targetView); 
+            // 3. Navega a la nueva página
+            if (VIEW_ROUTES[targetView]) {
+                window.location.href = VIEW_ROUTES[targetView];
+            }
         });
 
-        // 4. Seleccionar vista inicial
-        setActiveView('products');
+        // 4. Seleccionar vista inicial (solo para resaltar)
+        setActiveView(currentViewName);
 
     } catch (error) {
         console.error("Error al cargar la barra de navegación inferior:", error);
