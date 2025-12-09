@@ -1,7 +1,7 @@
 // src/admin/profile/profile.js
 
 import { initBottomNav } from '../modules/bottom-nav/bottom-nav.js';
-import { getSession, initAuthForm } from '../auth/auth.js'; 
+import { getSession } from '../auth/auth.js'; 
 import { ProfileAdminService } from './profile.service.js';
 
 // Rutas de navegación
@@ -22,33 +22,27 @@ export async function initProfilePage() {
     const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
 
     if (!session) {
-        // Si no hay sesión, al login
-        initAuthForm(ADMIN_CONTENT_ID, () => {
-            window.location.href = './profile.html'; 
-        });
-        if (navContainer) navContainer.style.display = 'none';
+        // CORRECCIÓN: REDIRECCIÓN COMPLETA AL LOGIN
+        // Usamos path relativo desde: src/admin/profile/
+        window.location.href = '../auth/auth.html'; 
         return;
     }
 
     // Si hay sesión, cargar datos
     try {
-        // 1. Mostrar email del usuario logueado
         const emailDisplay = document.getElementById('profile-email-display');
         if (emailDisplay && session.user) {
             emailDisplay.textContent = session.user.email;
         }
 
-        // 2. Listener de Cerrar Sesión
         const logoutBtn = document.getElementById('profile-logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                // Pequeño feedback visual
                 logoutBtn.textContent = 'Cerrando...';
                 ProfileAdminService.handleLogout();
             });
         }
 
-        // 3. Inicializar navegación inferior
         initBottomNav(CURRENT_VIEW, '../modules/bottom-nav/bottom-nav.html', PROFILE_VIEW_ROUTES);
         
         if (navContainer) navContainer.style.display = 'block';
@@ -58,5 +52,4 @@ export async function initProfilePage() {
     }
 }
 
-// Inicializar al cargar el DOM
 document.addEventListener('DOMContentLoaded', initProfilePage);
