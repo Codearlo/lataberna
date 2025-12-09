@@ -22,27 +22,31 @@ export async function initProfilePage() {
     const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
 
     if (!session) {
-        // CORRECCIÓN: REDIRECCIÓN COMPLETA AL LOGIN
-        // Usamos path relativo desde: src/admin/profile/
+        // --- CORRECCIÓN CRÍTICA ---
+        // En lugar de inyectar el formulario, redirigimos TOTALMENTE a la página de login.
         window.location.href = '../auth/auth.html'; 
-        return;
+        return; 
     }
 
     // Si hay sesión, cargar datos
     try {
+        // 1. Mostrar email del usuario logueado
         const emailDisplay = document.getElementById('profile-email-display');
         if (emailDisplay && session.user) {
             emailDisplay.textContent = session.user.email;
         }
 
+        // 2. Listener de Cerrar Sesión
         const logoutBtn = document.getElementById('profile-logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
+                // Feedback visual
                 logoutBtn.textContent = 'Cerrando...';
                 ProfileAdminService.handleLogout();
             });
         }
 
+        // 3. Inicializar navegación inferior
         initBottomNav(CURRENT_VIEW, '../modules/bottom-nav/bottom-nav.html', PROFILE_VIEW_ROUTES);
         
         if (navContainer) navContainer.style.display = 'block';
@@ -52,4 +56,5 @@ export async function initProfilePage() {
     }
 }
 
+// Inicializar al cargar el DOM
 document.addEventListener('DOMContentLoaded', initProfilePage);

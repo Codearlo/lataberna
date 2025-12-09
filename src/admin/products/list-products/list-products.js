@@ -1,15 +1,14 @@
 // src/admin/products/list-products/list-products.js
 
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
-import { getSession } from '../../auth/auth.js'; // Ya no importamos initAuthForm
+import { getSession } from '../../auth/auth.js'; 
 import { getFilteredProductsPaged } from './list-products.service.js';
 
 // --- Configuración de Paginación y Estado ---
 const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
-let currentFilter = 'active'; // 'active' | 'all' 
+let currentFilter = 'active'; 
 let currentSearchTerm = '';
-let isSearchActive = false;
 let totalProducts = 0;
 
 // **RUTAS DE NAVEGACIÓN**
@@ -28,17 +27,15 @@ const PAGINATION_CONTAINER_ID = 'pagination-container';
  * Inicializa la página de gestión de productos.
  */
 export async function initListProductsPage() {
-    if (window.listProductsInitialized) {
-        return;
-    }
+    if (window.listProductsInitialized) return;
     window.listProductsInitialized = true;
     
     const session = await getSession();
     const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
 
     if (!session) {
-        // CORRECCIÓN: REDIRECCIÓN COMPLETA AL LOGIN
-        // Usamos path relativo desde: src/admin/products/list-products/
+        // --- CORRECCIÓN CRÍTICA ---
+        // Redirección REAL a la página de autenticación
         window.location.href = '../../auth/auth.html';
         return;
     }
@@ -51,12 +48,13 @@ export async function initListProductsPage() {
         
     } catch (error) {
         console.error("Error al inicializar la lista de productos:", error);
-        contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz de productos.</p>`;
+        if(contentContainer) contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz.</p>`;
     }
 }
 
 
 function attachEventListeners() {
+    // Buscador
     const searchInput = document.getElementById('product-search-input');
     let searchTimeout;
     if (searchInput) {
@@ -64,12 +62,13 @@ function attachEventListeners() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentSearchTerm = searchInput.value.trim();
-                currentPage = 1;
+                currentPage = 1; 
                 loadProducts();
             }, 300);
         });
     }
 
+    // Tabs
     const tabsContainer = document.getElementById('product-view-tabs');
     if (tabsContainer) {
         tabsContainer.addEventListener('click', (e) => {
@@ -86,6 +85,7 @@ function attachEventListeners() {
         });
     }
     
+    // Paginación
     const paginationContainer = document.getElementById(PAGINATION_CONTAINER_ID);
     if (paginationContainer) {
         paginationContainer.addEventListener('click', (e) => {
@@ -99,6 +99,7 @@ function attachEventListeners() {
         });
     }
 
+    // Click en tarjeta (Editar)
     const productListViews = document.getElementById('products-list-views');
     if (productListViews) {
         productListViews.addEventListener('click', (e) => {
@@ -130,9 +131,6 @@ function updateActiveView(filter) {
     if (allMsg) allMsg.style.display = 'none';
 }
 
-
-// --- Lógica de Carga y Renderizado ---
-
 async function loadProducts() {
     const activeListId = currentFilter === 'all' ? ALL_PRODUCTS_GRID_ID : ACTIVE_PRODUCTS_GRID_ID;
     const listContainer = document.getElementById(activeListId);
@@ -144,7 +142,6 @@ async function loadProducts() {
     if (mainContainer) mainContainer.classList.add('is-searching');
     
     listContainer.innerHTML = `<div class="u-flex-center" style="padding:40px"><div class="spin" style="width:24px;height:24px;border:2px solid #FFC107;border-top-color:transparent;border-radius:50%"></div></div>`;
-    
     if (emptyMsgElement) emptyMsgElement.style.display = 'none'; 
 
     try {
@@ -159,9 +156,7 @@ async function loadProducts() {
 
         if (products.length === 0) {
             listContainer.innerHTML = ''; 
-            if (emptyMsgElement) {
-                emptyMsgElement.style.display = 'block';
-            }
+            if (emptyMsgElement) emptyMsgElement.style.display = 'block';
         } else {
             listContainer.innerHTML = '';
             products.forEach(product => {
@@ -174,7 +169,7 @@ async function loadProducts() {
 
     } catch (error) {
         console.error("Error al cargar productos:", error);
-        listContainer.innerHTML = `<p class="error-msg" style="text-align:center;">Error al cargar la lista de productos: ${error.message}</p>`;
+        listContainer.innerHTML = `<p class="error-msg">Error: ${error.message}</p>`;
     } finally {
         if (mainContainer) mainContainer.classList.remove('is-searching');
     }
@@ -213,13 +208,11 @@ function renderProductCard(product) {
                 </div>
             </div>
         </div>
-        
         <div class="product-card-right">
             <div class="product-price">${priceFormatted}</div>
             <span class="stock-badge ${stockClass}">${stockText}</span>
         </div>
     `;
-
     return card;
 }
 
@@ -240,15 +233,8 @@ function renderPagination() {
 
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
-
-    if (currentPage - 2 < 1) {
-        endPage = Math.min(totalPages, 5);
-    }
-    if (currentPage + 2 > totalPages) {
-        startPage = Math.max(1, totalPages - 4);
-    }
-
-    // Asegurar límites válidos
+    if (currentPage - 2 < 1) endPage = Math.min(totalPages, 5);
+    if (currentPage + 2 > totalPages) startPage = Math.max(1, totalPages - 4);
     startPage = Math.max(1, startPage);
     endPage = Math.min(totalPages, endPage);
 
@@ -262,9 +248,7 @@ function renderPagination() {
     
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalProducts);
-
     paginationHTML += `</div><p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalProducts} productos</p>`;
-    
     paginationArea.innerHTML = paginationHTML;
 }
 
