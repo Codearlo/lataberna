@@ -12,40 +12,34 @@
     <link rel="stylesheet" href="../../modules/bottom-nav/bottom-nav.css">
 </head>
 <body>
-    <main id="app-content">
-        <div id="products-list-view-container">
-            <div class="admin-panel-header">
-                <h3>Gestión de Productos</h3>
-            </div>
+    <main id="app-content" class="mobile-main-content">
+        <div class="page-header">
+            <h2 class="page-title">Inventario</h2>
+            
+            <div id="product-view-tabs" class="filter-tabs">
+                <button class="tab-btn active" data-filter="active">Activos</button>
+                <button class="tab-btn" data-filter="all">Todos</button>
+                </div>
+        </div>
 
-            <div class="admin-panel-list admin-card">
-                <div class="list-header-top">
-                    <input type="text" id="product-search-input" placeholder="Buscar por Nombre o Categoría..." aria-label="Buscador de productos">
-                </div>
-
-                <div class="add-product-container">
-                    <a href="../add-product/add-product.html" id="open-create-page-btn" class="primary-btn full-width-btn">➕ Agregar Nuevo Producto</a>
-                </div>
-                
-                <div id="product-view-tabs" class="tabs-container">
-                    <button class="tab-button active" data-filter="active">Productos Activos</button>
-                    <button class="tab-button" data-filter="all">Todos los Productos</button>
-                </div>
-                
-                <div id="products-list-views">
-                    <div id="active-products-list" class="products-grid active-view">
-                        </div>
-                    <div id="all-products-list" class="products-grid">
-                        </div>
-                </div>
-                
-                <div id="pagination-container" class="pagination-area"></div>
-
-                <div id="active-empty-msg" class="empty-list-msg" style="display: none;">No hay productos activos que coincidan con la búsqueda.</div>
-                <div id="all-empty-msg" class="empty-list-msg" style="display: none;">No hay productos que coincidan con la búsqueda.</div>
-                
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="product-search-input" placeholder="Buscar por nombre, marca o SKU..." class="search-input" autocomplete="off">
             </div>
         </div>
+        
+        <div id="products-list-views" class="products-list">
+            <div id="active-products-list" class="products-grid active-view"></div>
+            <div id="all-products-list" class="products-grid"></div>
+        </div>
+        
+        <div id="pagination-container" class="pagination-area"></div>
+        
+        <div id="active-empty-msg" class="empty-list-msg" style="display: none;">No hay productos activos que coincidan con la búsqueda.</div>
+        <div id="all-empty-msg" class="empty-list-msg" style="display: none;">No hay productos que coincidan con la búsqueda.</div>
+
+        <div style="height: 100px;"></div>
     </main>
     
     <div id="admin-nav-container"></div>

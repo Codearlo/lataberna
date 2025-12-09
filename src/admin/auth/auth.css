@@ -6,6 +6,8 @@
     align-items: center;
     /* Usamos el 100% de la altura menos el footer (que ya no tiene margen si no está logueado) */
     min-height: calc(100vh - 60px); 
+    /* Fondo limpio para que se mezcle con el body si es blanco */
+    background-color: var(--background-color, #f8f9fa); 
 }
 
 .auth-card {
@@ -53,14 +55,15 @@
 #login-btn {
     width: 100%;
     padding: 12px;
-    background-color: #007bff; /* Color primario de admin */
-    color: white;
+    /* CAMBIO CLAVE: Botón de login con el color dorado */
+    background-color: #FFC107; 
+    color: #343a40; 
     font-size: 1em;
     margin-top: 15px;
 }
 
 #login-btn:hover {
-    background-color: #0056b3;
+    background-color: #e0a800; /* Dorado más oscuro */
 }
 
 .error-msg {

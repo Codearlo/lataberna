@@ -2,12 +2,13 @@
 
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
 import { getSession, initAuthForm } from '../../auth/auth.js'; 
-import { getFilteredProductsPaged } from './list-products.service.js'; // NUEVO SERVICIO
+import { getFilteredProductsPaged } from './list-products.service.js'; // SERVICIO EXISTENTE
 
 // --- Configuración de Paginación y Estado ---
 const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
-let currentFilter = 'active'; // 'active' | 'all'
+// Mantenemos solo los filtros soportados por el servicio
+let currentFilter = 'active'; // 'active' | 'all' 
 let currentSearchTerm = '';
 let isSearchActive = false;
 let totalProducts = 0;
@@ -22,7 +23,7 @@ const ADMIN_CONTENT_ID = 'app-content';
 const PRODUCTS_LIST_CONTAINER_ID = '#products-list-views';
 const ACTIVE_PRODUCTS_GRID_ID = 'active-products-list';
 const ALL_PRODUCTS_GRID_ID = 'all-products-list';
-const PAGINATION_CONTAINER_ID = 'pagination-container';
+const PAGINATION_CONTAINER_ID = 'pagination-container'; 
 
 
 /**
@@ -45,8 +46,6 @@ export async function initListProductsPage() {
         attachEventListeners();
         
         // 2. Inicializar la navegación inferior
-        // RUTA CORREGIDA: Usamos dos puntos de subida para evitar la interpretación errónea del servidor/navegador.
-        // La ruta final es `src/admin/modules/bottom-nav/bottom-nav.html`
         initBottomNav('products', '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
         
         // 3. Cargar datos iniciales (Productos activos en la primera página)
@@ -75,11 +74,11 @@ function attachEventListeners() {
     // 2. Tabs de Filtrado
     const tabsContainer = document.getElementById('product-view-tabs');
     tabsContainer.addEventListener('click', (e) => {
-        const button = e.target.closest('.tab-button');
+        const button = e.target.closest('.tab-btn'); 
         if (!button) return;
 
         // Actualizar estado de las tabs
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); 
         button.classList.add('active');
         
         // Actualizar el estado de la vista
@@ -103,9 +102,10 @@ function attachEventListeners() {
     // 4. Delegación para el ítem de la lista (Redirigir a Edición)
     const productListViews = document.getElementById('products-list-views');
     productListViews.addEventListener('click', (e) => {
-        const listItem = e.target.closest('.product-list-item');
+        const listItem = e.target.closest('.product-card'); 
         if (listItem) {
             const productId = listItem.dataset.id;
+            // Redirigir a la vista de edición existente
             window.location.href = `../edit-product/edit-product.html?id=${productId}`;
         }
     });
@@ -113,7 +113,7 @@ function attachEventListeners() {
 
 /**
  * Muestra el contenedor de la lista de productos correcto.
- * @param {string} filter - 'active' o 'all'
+ * @param {string} filter - 'active' o 'all' 
  */
 function updateActiveView(filter) {
     const activeGrid = document.getElementById(ACTIVE_PRODUCTS_GRID_ID);
@@ -122,11 +122,15 @@ function updateActiveView(filter) {
     activeGrid.classList.remove('active-view');
     allGrid.classList.remove('active-view');
 
-    if (filter === 'active') {
-        activeGrid.classList.add('active-view');
-    } else {
+    if (filter === 'all') {
         allGrid.classList.add('active-view');
+    } else {
+        activeGrid.classList.add('active-view');
     }
+    
+    // Ocultar mensajes de lista vacía
+    document.getElementById(`active-empty-msg`)?.style.display = 'none';
+    document.getElementById(`all-empty-msg`)?.style.display = 'none';
 }
 
 
@@ -134,17 +138,18 @@ function updateActiveView(filter) {
 
 async function loadProducts() {
     const listContainer = document.querySelector(PRODUCTS_LIST_CONTAINER_ID).querySelector(`.products-grid.active-view`);
-    const emptyMsgElement = document.getElementById(`${currentFilter}-empty-msg`);
+    const emptyMsgElement = document.getElementById(`active-empty-msg`); 
     
     // Indicador de búsqueda/carga
-    const panel = document.querySelector('.admin-panel-list.admin-card');
-    panel.classList.add('is-searching');
+    const mainContainer = document.getElementById('app-content');
+    mainContainer.classList.add('is-searching');
     
-    listContainer.innerHTML = '';
+    // Mostrar spinner de carga de la muestra del usuario
+    listContainer.innerHTML = `<div class="u-flex-center" style="padding:40px"><div class="spin" style="width:24px;height:24px;border:2px solid #FFC107;border-top-color:transparent;border-radius:50%"></div></div>`;
     emptyMsgElement.style.display = 'none';
 
     try {
-        // Usar la función de servicio local
+        // Usamos currentFilter directamente ('active' o 'all')
         const { products, totalCount } = await getFilteredProductsPaged({
             searchTerm: currentSearchTerm,
             filterBy: currentFilter,
@@ -155,10 +160,11 @@ async function loadProducts() {
         totalProducts = totalCount;
 
         if (products.length === 0) {
-            emptyMsgElement.style.display = 'block';
+            listContainer.innerHTML = `<div style="text-align:center; padding:60px 20px; color:#52525b; font-size:0.9rem">No se encontraron productos</div>`;
         } else {
+            listContainer.innerHTML = '';
             products.forEach(product => {
-                listContainer.appendChild(renderProductListItem(product));
+                listContainer.appendChild(renderProductCard(product));
             });
         }
         
@@ -168,39 +174,59 @@ async function loadProducts() {
         console.error("Error al cargar productos:", error);
         listContainer.innerHTML = `<p class="error-msg" style="text-align:center;">Error al cargar la lista de productos: ${error.message}</p>`;
     } finally {
-        panel.classList.remove('is-searching');
+        mainContainer.classList.remove('is-searching');
     }
 }
 
 
 /**
- * Genera el HTML para un ítem de la lista de productos.
- * @param {object} product - Objeto de producto.
+ * Genera el HTML para la nueva tarjeta de producto.
+ * @param {object} product - Objeto de producto (del servicio existente).
  */
-function renderProductListItem(product) {
-    const item = document.createElement('div');
-    item.classList.add('product-list-item');
-    item.classList.add(product.is_active ? 'active-item' : 'inactive');
-    item.dataset.id = product.id;
+function renderProductCard(product) {
+    const card = document.createElement('a');
+    card.classList.add('product-card');
+    card.dataset.id = product.id;
+    card.href = `../edit-product/edit-product.html?id=${product.id}`;
 
-    const statusText = product.is_active ? 'Activo' : 'Inactivo';
-    const statusClass = product.is_active ? 'active-badge' : 'inactive-badge';
+    const priceFormatted = `S/ ${product.price.toFixed(2)}`;
     
-    item.innerHTML = `
-        <div class="product-image-container">
-            <img src="${product.image_url}" alt="${product.name} imagen">
+    // Adaptación del Badge: Usamos is_active
+    let stockClass = 'stock-none';
+    let stockText = 'Agotado';
+    if (product.is_active) {
+        stockClass = 'stock-high';
+        stockText = 'Activo';
+    }
+
+    // La imagen es la URL del producto
+    const imgHtml = product.image_url 
+        ? `<img src="${product.image_url}" alt="${product.name}" class="product-thumb">`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`;
+
+
+    card.innerHTML = `
+        <div class="product-card-left">
+            <div class="product-icon-box">
+                ${imgHtml}
+            </div>
+            <div class="product-details">
+                <h4 class="product-name">${product.name}</h4>
+                <div class="product-meta">
+                    <span>${product.category || 'Categoría'}</span>
+                    <span style="opacity:0.3">•</span>
+                    <span>ID: ${product.id}</span>
+                </div>
+            </div>
         </div>
-        <div class="product-info-minimal">
-            <h4 class="product-name-title">${product.name}</h4>
-            <p class="product-category">${product.category}</p>
-        </div>
-        <div class="product-status-price-container">
-            <span class="status-badge ${statusClass}">${statusText}</span>
-            <p class="product-price-minimal"><span class="price">S/ ${product.price.toFixed(2)}</span></p>
+        
+        <div class="product-card-right">
+            <div class="product-price">${priceFormatted}</div>
+            <span class="stock-badge ${stockClass}">${stockText}</span>
         </div>
     `;
 
-    return item;
+    return card;
 }
 
 /**
@@ -217,8 +243,9 @@ function renderPagination() {
 
     let paginationHTML = '<div class="pagination-content">';
     
-    // Botón Anterior
-    paginationHTML += `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&laquo; Anterior</button>`;
+    // Corrección de sintaxis: Usamos una variable separada para el atributo disabled
+    const prevDisabled = currentPage === 1 ? 'disabled' : '';
+    paginationHTML += `<button data-page="${currentPage - 1}" ${prevDisabled}>&laquo; Anterior</button>`;
 
     // Botones de página (Mostrar hasta 5 páginas centradas)
     let startPage = Math.max(1, currentPage - 2);
@@ -236,8 +263,9 @@ function renderPagination() {
         paginationHTML += `<button data-page="${i}" class="${activeClass}">${i}</button>`;
     }
     
-    // Botón Siguiente
-    paginationHTML += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente &raquo;o</button>`;
+    // Corrección de sintaxis: Usamos una variable separada para el atributo disabled
+    const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+    paginationHTML += `<button data-page="${currentPage + 1}" ${nextDisabled}>Siguiente &raquo;</button>`;
     
     // Información de productos
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;

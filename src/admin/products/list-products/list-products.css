@@ -1,318 +1,232 @@
-/* src/admin/list-products/list-products.css */
+/* src/admin/products/list-products/list-products.css */
 
-/* --- Estilos Generales de Admin --- */
-#products-subview-container {
-    background-color: #ffffff; 
-    padding: 30px;
-    color: #343a40; 
-    padding-bottom: 30px; 
-}
+/* Variables de color de La Taberna:
+   --primary-color: #000000;
+   --background-color: #ffffff;
+   Dorado: #FFC107
+   Gris Claro (Borde): #e9ecef
+   Gris Oscuro (Texto): #343a40
+   Gris Muted: #6c757d
+*/
 
-
-.admin-panel-header h3 {
-    font-size: 2em;
-    color: #343a40;
-    margin-bottom: 20px;
-}
-
-.admin-card {
-    /* Fondo BLANCO para la tarjeta principal (similar a la imagen de ejemplo) */
-    background-color: #ffffff; 
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    margin-bottom: 30px;
-}
-
-/* --- ESTILO PARA BÚSQUEDA RÁPIDA (FEEDBACK VISUAL SUTIL) --- */
-.admin-panel-list.admin-card.is-searching {
-    opacity: 0.7; 
-    pointer-events: none; 
-    transition: opacity 0.05s ease-out; 
-}
-/* --- FIN ESTILO --- */
-
-
-/* --- Lista de Productos, Buscador y Botón de Agregar --- */
-.list-header-top {
-    margin-bottom: 10px;
-}
-
-#product-search-input {
-    width: 100%; /* Ocupa todo el ancho */
-    padding: 12px;
-    border: 1px solid #ced4da;
-    border-radius: 8px; /* Más redondeado */
-    font-size: 1em;
-    box-sizing: border-box;
-}
-
-.add-product-container {
-    margin-bottom: 20px;
-}
-
-.primary-btn.full-width-btn {
-    width: 100%;
-    /* Estilo del botón principal de AGREGAR: Dorado/Negro */
-    background-color: #FFC107; 
-    color: #343a40;
-    font-size: 1.1em;
-    padding: 12px;
-    border-radius: 8px;
-    transition: background-color 0.2s;
-    font-weight: bold;
-}
-.primary-btn.full-width-btn:hover {
-    background-color: #e0a800; /* Dorado más oscuro */
-}
-
-
-/* --- TAB STYLES (DORADO) --- */
-.tabs-container {
-    display: flex;
-    gap: 0;
-    margin-bottom: 20px;
-    padding-bottom: 5px;
-    overflow-x: auto; 
-    /* Borde inferior suave para separación, similar al ejemplo de la imagen */
-    border-bottom: 1px solid #e9ecef;
-}
-
-.tab-button {
-    background-color: transparent;
-    color: #6c757d;
-    border: none;
-    padding: 8px 15px;
-    font-weight: 600;
-    border-radius: 0; 
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap; 
-}
-
-/* Estilo activo: Dorado */
-.tab-button.active {
-    background-color: transparent; 
-    color: #FFC107; /* Color del texto Dorado */
-    font-weight: 700;
-    /* Subrayado con borde inferior dorado (más grueso y visible) */
-    border-bottom: 3px solid #FFC107; 
-    padding-bottom: 5px; /* Ajustamos padding para compensar el borde más grueso */
-}
-
-.tab-button:hover:not(.active) {
-    background-color: #f7f7f7; /* Fondo muy claro al pasar el mouse */
-}
-
-/* VISIBILIDAD DE LAS VISTAS DE LISTA */
-#products-list-views .products-grid {
-    display: none;
-}
-#products-list-views .products-grid.active-view {
-    display: grid;
-}
-
-/* --- GRID DE TARJETAS (Formato Lista) --- */
-.products-grid {
-    display: flex; /* Cambiado a flex para un listado vertical simple */
-    flex-direction: column;
-    gap: 10px; /* Reducimos el espacio entre ítems para un aspecto más de lista */
-}
-
-/* ESTILO: Formato de lista simple y horizontal (IMAGEN | INFO | PRECIO/STATUS) */
-.product-list-item {
-    background-color: #f8f9fa; /* Fondo ligeramente gris para los ítems */
-    border-radius: 8px; /* Ligeramente menos redondeado */
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); /* Sombra más sutil */
-    display: flex; 
-    align-items: center;
-    padding: 12px 15px;
-    cursor: pointer;
-    transition: background-color 0.2s, border-left 0.2s;
-    border: 1px solid #e9ecef; /* Borde más claro */
-}
-.product-list-item:hover {
-    background-color: #ffffff; /* Blanco al pasar el mouse */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.product-list-item.inactive {
-    opacity: 0.8; 
-    border-left: 5px solid #6c757d; /* Gris para inactivo */
-}
-
-.product-list-item.active-item {
-    border-left: 5px solid #FFC107; /* Dorado para activo (opcional, si se quiere más énfasis) */
-}
-
-
-.product-image-container {
-    flex-shrink: 0; 
-    width: 50px; /* Reducido un poco */
-    height: 65px; /* Aumentado un poco para mejor visualización de botellas */
-    margin-right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.product-list-item img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: block;
-}
-
-.product-info-minimal {
-    flex-grow: 1; 
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-/* Título */
-.product-info-minimal .product-name-title {
-    font-size: 1.1em; /* Un poco más grande */
-    font-weight: 700;
-    margin: 0;
-    color: #343a40;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* ID y Categoría */
-.product-info-minimal .product-id,
-.product-info-minimal .product-category {
-    font-size: 0.8em; 
-    color: #888; /* Gris más claro para subtítulos */
-    margin: 2px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Contenedor de Precio y Estado (Alineado a la derecha) */
-.product-status-price-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end; 
-    justify-content: center;
-    flex-shrink: 0;
-    margin-left: 15px;
-    height: 60px; 
-}
-
-/* Estilo de Badge (Pastilla) */
-.status-badge {
-    font-size: 0.7em; /* Ligeramente más grande */
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 15px; /* Más redondo */
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-}
-
-.active-badge {
-    background-color: #d4edda; /* Verde claro */
-    color: #155724; /* Verde oscuro */
-}
-
-.inactive-badge {
-    background-color: #e9ecef; /* Gris muy claro */
-    color: #6c757d; /* Gris oscuro */
-}
-
-
-.product-price-minimal {
-    margin-top: auto; 
-    font-weight: bold;
-}
-
-/* Precio */
-.product-price-minimal .price {
-    color: #343a40; /* Precio oscuro */
-    font-size: 1.1em; 
-}
-
-/* --- ESTILOS DE PAGINACIÓN --- */
-.pagination-area {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #e9ecef;
-    text-align: center;
-}
-
-.pagination-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
-}
-
-.pagination-content button {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    background-color: #ffffff;
-    border-radius: 4px;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-
-.pagination-content button:hover:not(:disabled):not(.active) {
-    background-color: #f0f0f0;
-}
-
-.pagination-content button.active {
-    background-color: #FFC107; /* Dorado */
+body {
+    background-color: #ffffff; /* Fondo BLANCO */
     color: #343a40; /* Texto oscuro */
-    border-color: #FFC107;
+    font-family: var(--font-family, sans-serif);
+    padding-bottom: 90px;
 }
 
-.pagination-content button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+.mobile-main-content {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Ajuste para usar el max-width del layout general */
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
 }
 
-.pagination-info {
-    font-size: 0.9em;
-    color: #6c757d;
-    margin-left: 15px;
+/* --- HEADER --- */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #343a40; /* Texto oscuro */
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+/* --- FILTROS (TABS) --- */
+.filter-tabs {
+    display: flex;
+    background-color: #f8f9fa; /* Gris muy claro/fondo sutil */
+    border: 1px solid #e9ecef;
+    border-radius: 8px; 
+    padding: 4px;
+    /* Nuevo ajuste para que ocupe menos espacio horizontal, ya que solo hay 2 botones */
+    max-width: 300px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #6c757d; /* Gris Muted */
+    padding: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.tab-btn.active {
+    background-color: #fffbe8; /* Dorado muy pálido */
+    color: #FFC107; /* Dorado */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* --- BUSCADOR --- */
+.search-container { margin-bottom: 4px; }
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff; /* Fondo blanco */
+    border: 1px solid #ced4da; /* Borde estándar */
+    border-radius: 8px;
+    padding: 0 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.search-input-wrapper svg {
+    flex-shrink: 0;
+}
+
+.search-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #343a40; /* Texto oscuro */
+    padding: 14px 10px;
+    font-size: 0.95rem;
+    outline: none;
+    font-family: inherit;
+}
+
+/* --- LISTA DE PRODUCTOS --- */
+.products-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Tarjeta unificada (Product Card) */
+.product-card {
+    background-color: #ffffff; /* Fondo Blanco */
+    border: 1px solid #e9ecef; /* Borde muy sutil */
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.product-card:active {
+    background-color: #f8f9fa; /* Fondo gris claro al presionar */
+    border-color: #FFC107; /* Borde Dorado al presionar */
+}
+
+/* Lado Izquierdo (Imagen + Textos) */
+.product-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0; 
+}
+
+/* Caja de Imagen/Icono */
+.product-icon-box {
+    width: 42px;
+    height: 42px;
+    background: rgba(255, 193, 7, 0.1); /* Dorado muy pálido */
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFC107; /* Dorado */
+    flex-shrink: 0;
+    overflow: hidden; 
+}
+
+.product-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Textos */
+.product-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.product-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #343a40; /* Texto oscuro */
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.product-meta {
+    font-size: 0.75rem;
+    color: #888; /* Gris medio para subtítulos */
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Lado Derecho (Precio + Badge) */
+.product-card-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.product-price {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #343a40; /* Texto oscuro */
+}
+
+/* Badges de Stock (Alineados a Dorado/Gris) */
+.stock-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
     white-space: nowrap;
 }
 
+/* Adaptando colores de stock a la paleta blanco/dorado/rojo/verde */
+.stock-high { color: #155724; background: #d4edda; } /* Verde claro */
+.stock-medium { color: #856404; background: #fff3cd; } /* Dorado muy pálido */
+.stock-low { color: #721c24; background: #f8d7da; } /* Rojo pálido */
+.stock-none { color: #6c757d; background: #e9ecef; } /* Gris */
 
-/* --- Responsive para Móviles (Max-width: 767px) --- */
-@media (max-width: 767px) {
-    /* Lista de productos */
-    .products-grid {
-        /* No usamos grid-template-columns: 1fr; porque la hemos cambiado a flex-direction: column */
-    }
-    
-    .product-list-item {
-        padding: 10px 12px;
-    }
-    
-    .product-image-container {
-        width: 45px;
-        height: 60px;
-        margin-right: 10px;
-    }
-    
-    .product-info-minimal .product-name-title {
-        font-size: 1.0em; 
-    }
-    
-    .pagination-content {
-        flex-direction: row;
-        gap: 5px;
-    }
-    .pagination-info {
-        margin-left: 0;
-        margin-top: 5px;
-        width: 100%;
-    }
+/* Utilidades */
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.u-flex-center { display: flex; justify-content: center; align-items: center; width: 100%; }
+
+/* Clases de compatibilidad */
+.products-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.products-grid.active-view {
+    display: flex;
 }
