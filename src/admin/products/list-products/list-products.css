@@ -223,10 +223,10 @@ body {
 
 /* Clases de compatibilidad */
 .products-grid {
-    display: flex;
+    display: none; /* FIX CLAVE: Ocultar por defecto para evitar duplicación visual */
     flex-direction: column;
     gap: 12px;
 }
 .products-grid.active-view {
-    display: flex;
+    display: flex; /* FIX CLAVE: Solo mostrar cuando esté activo */
 }
