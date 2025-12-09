@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="../../auth/auth.css">
     <link rel="stylesheet" href="./edit-product.css">
     <link rel="stylesheet" href="../../../public/modules/store/toast-notification/toast.css">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 </head>
 <body>
     
@@ -124,7 +126,24 @@
         </footer>
     </form>
     
+    <div id="crop-modal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="modal-content crop-modal-content">
+            <h4 style="margin-bottom: 15px;">✂️ Recortar Imagen</h4>
+            
+            <div class="crop-image-container">
+                <img id="image-to-crop" src="" alt="Imagen para recortar">
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="btn-cancel-crop" class="btn-cancel">Cancelar</button>
+                <button type="button" id="btn-confirm-crop" class="btn-confirm-delete" style="background-color: #28a745; color: white;">Recortar & Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script type="module" src="./edit-product.js"></script> 
 </body>
 </html>

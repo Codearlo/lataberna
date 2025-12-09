@@ -16,6 +16,10 @@ let categoriesList = [];
 let productId = null;
 let currentProduct = null;
 
+// Variables para el recorte
+let processedImageFile = null; // Guardará la imagen recortada (WebP) si se cambia
+let cropper = null; 
+
 // --- Funciones de Control del Modal de Eliminación ---
 window.openDeleteModal = openDeleteModal; 
 window.closeDeleteModal = closeDeleteModal; 
@@ -65,9 +69,9 @@ function attachEventListeners() {
     const form = document.getElementById('product-form');
     if (form) form.addEventListener('submit', handleFormSubmit);
     
-    // Preview de imagen
+    // Preview de imagen (Ahora dispara el proceso de recorte)
     const imgInput = document.getElementById('image_file');
-    if (imgInput) imgInput.addEventListener('change', handleImagePreview);
+    if (imgInput) imgInput.addEventListener('change', handleImageSelection);
     
     // Click en la caja de imagen dispara el input
     const imageBox = document.getElementById('image-preview-box');
@@ -82,8 +86,12 @@ function attachEventListeners() {
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
     document.getElementById('delete-product-btn').addEventListener('click', openDeleteModal);
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
+    
+    // Botones del Modal de Recorte
+    document.getElementById('btn-confirm-crop').addEventListener('click', cropAndSave);
+    document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
 
-    // --- LÓGICA DEL BUSCADOR DE CATEGORÍAS (Igual a add-product) ---
+    // --- LÓGICA DEL BUSCADOR DE CATEGORÍAS ---
     const dropdownContainer = document.getElementById('category-dropdown');
     const searchInput = document.getElementById('category_search');
     
@@ -129,19 +137,114 @@ async function loadProductData(id) {
     document.getElementById('is_active').checked = product.is_active;
     document.getElementById('current_image_url').value = product.image_url || '';
     
-    // Llenar Categoría (Custom Dropdown Logic)
+    // Llenar Categoría
     document.getElementById('category_id').value = product.categoria_id;
-    // Asumimos que el servicio devuelve 'category' con el nombre
     document.getElementById('category_search').value = product.category || ''; 
 
-    // Mostrar preview inicial
-    handleImagePreview(null, product.image_url);
+    // Mostrar imagen actual (desde URL)
+    renderImagePreview(product.image_url);
     
     // Actualizar texto del switch
     const statusText = document.getElementById('status-text');
     if(statusText) {
         statusText.textContent = product.is_active ? 'Producto Activo' : 'Producto Inactivo';
         statusText.style.color = product.is_active ? '#28a745' : '#dc3545';
+    }
+}
+
+// Función auxiliar para renderizar el preview
+function renderImagePreview(url) {
+    const previewContainer = document.getElementById('image-preview');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    
+    previewContainer.innerHTML = '';
+    
+    if (url) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'Preview';
+        // Estilos inline para asegurar que se vea bien
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        previewContainer.appendChild(img);
+        
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+    } else {
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
+    }
+}
+
+// --- GESTIÓN DE IMAGEN Y CROPPER (Recorte) ---
+
+function handleImageSelection(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        // 1. Poner la imagen en el modal
+        const imageElement = document.getElementById('image-to-crop');
+        imageElement.src = event.target.result;
+        
+        // 2. Mostrar el modal
+        const modal = document.getElementById('crop-modal');
+        modal.classList.add('visible');
+
+        // 3. Destruir cropper previo si existe e iniciar uno nuevo
+        if (cropper) {
+            cropper.destroy();
+        }
+        
+        cropper = new Cropper(imageElement, {
+            aspectRatio: 1, // CUADRADO PERFECTO
+            viewMode: 1,
+            autoCropArea: 0.8,
+            movable: true,
+            zoomable: true,
+            scalable: false
+        });
+    };
+    reader.readAsDataURL(file);
+    
+    e.target.value = ''; // Limpiar input para permitir re-selección
+}
+
+function cropAndSave() {
+    if (!cropper) return;
+
+    // 1. Obtener el canvas recortado
+    const canvas = cropper.getCroppedCanvas({
+        width: 800,
+        height: 800
+    });
+
+    // 2. Convertir a WebP
+    canvas.toBlob((blob) => {
+        if (!blob) {
+            showToast("❌ Error al recortar imagen");
+            return;
+        }
+
+        // Crear archivo en memoria para enviar luego
+        processedImageFile = new File([blob], "edit_image.webp", { type: 'image/webp' });
+
+        // 3. Mostrar preview en el formulario
+        const previewUrl = URL.createObjectURL(processedImageFile);
+        renderImagePreview(previewUrl);
+
+        showToast("✂️ Nueva imagen lista para actualizar!");
+        closeCropModal();
+
+    }, 'image/webp', 0.85); // Calidad 85%
+}
+
+function closeCropModal() {
+    const modal = document.getElementById('crop-modal');
+    modal.classList.remove('visible');
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
     }
 }
 
@@ -156,7 +259,6 @@ async function handleFormSubmit(e) {
     const categoriaId = parseInt(document.getElementById('category_id').value);
     const isActive = document.getElementById('is_active').checked;
     
-    const imageInput = document.getElementById('image_file');
     const currentImageUrl = document.getElementById('current_image_url').value;
     
     if (!categoriaId) {
@@ -171,10 +273,12 @@ async function handleFormSubmit(e) {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Actualizando...';
 
-        if (imageInput.files[0]) {
-            imageUrl = await uploadImage(imageInput.files[0]);
+        // Si hay una nueva imagen procesada por el usuario
+        if (processedImageFile) {
+            // Subir nueva imagen
+            imageUrl = await uploadImage(processedImageFile);
             
-            // Si cambió la imagen, borramos la vieja si existe
+            // Borrar la vieja si es diferente y existe
             if (currentImageUrl && currentImageUrl !== imageUrl) {
                 await deleteImage(currentImageUrl);
             }
@@ -211,7 +315,6 @@ async function confirmDelete() {
         deleteBtn.disabled = true;
         deleteBtn.textContent = 'Eliminando...';
         
-        // Eliminar imagen primero
         if (currentProduct.image_url) {
             await deleteImage(currentProduct.image_url);
         }
@@ -232,12 +335,11 @@ async function confirmDelete() {
     }
 }
 
-// --- Funciones de Utilidad (Categorías e Imagen) ---
+// --- Funciones de Utilidad (Categorías) ---
 
 async function loadCategories() {
     try {
         categoriesList = await getCategories();
-        // Inicializamos el dropdown (vacio o completo)
         renderCategoriesCustomDropdown(categoriesList);
     } catch (error) {
         console.error("Error al cargar categorías:", error);
@@ -275,28 +377,6 @@ function renderCategoriesCustomDropdown(listToRender) {
         
         optionsList.appendChild(li);
     });
-}
-
-function handleImagePreview(e, url = null) {
-    const previewContainer = document.getElementById('image-preview');
-    const uploadPlaceholder = document.getElementById('upload-placeholder');
-    
-    previewContainer.innerHTML = '';
-    
-    const file = e ? e.target.files[0] : null;
-    const imageUrl = url || (file ? URL.createObjectURL(file) : null);
-    
-    if (imageUrl) {
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = 'Preview';
-        previewContainer.appendChild(img);
-        
-        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
-        if (file) img.onload = () => URL.revokeObjectURL(img.src);
-    } else {
-        if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
-    }
 }
 
 async function handleCreateCategory() {
