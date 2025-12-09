@@ -1,6 +1,5 @@
-// src/admin/add-product/add-product.js
+// src/admin/products/add-product/add-product.js
 
-// Ruta corregida para importar las funciones del nuevo servicio local
 import { 
     getCategories, 
     createCategory, 
@@ -10,21 +9,27 @@ import {
 
 let categoriesList = [];
 
-/**
- * Inicializa la página de agregar producto.
- */
+// --- ESTA FUNCIÓN INICIALIZA TODO ---
 export async function initAddProduct(containerId) {
+    console.log("Iniciando Add Product..."); // DEBUG: Verificar que arranca
     const container = document.getElementById(containerId);
-    if (!container) return;
     
-    // 1. Cargar datos estáticos
-    await loadCategories();
+    // Aunque el contenedor sea todo el body o main, necesitamos asegurar que los elementos existan
     
-    // 2. Adjuntar listeners
-    attachEventListeners();
-    
-    // 3. Inicializar el switch de estado
-    setupSwitch();
+    try {
+        // 1. Cargar datos estáticos (Categorías)
+        console.log("Cargando categorías..."); // DEBUG
+        await loadCategories();
+        
+        // 2. Adjuntar listeners a los botones y forms
+        attachEventListeners();
+        
+        // 3. Inicializar el switch de estado visual
+        setupSwitch();
+        
+    } catch (error) {
+        console.error("Error en la inicialización:", error);
+    }
 }
 
 function attachEventListeners() {
@@ -33,40 +38,54 @@ function attachEventListeners() {
         form.addEventListener('submit', handleFormSubmit);
     }
     
-    // El listener de imagen debe ser adjuntado al input file (que está en hidden-file-input)
-    document.getElementById('image_file').addEventListener('change', handleImagePreview);
-    document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
+    // Listener para la imagen
+    const imgInput = document.getElementById('image_file');
+    if (imgInput) imgInput.addEventListener('change', handleImagePreview);
+
+    // Listener para crear categoría
+    const createCatBtn = document.getElementById('create-category-btn');
+    if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
     
-    // Manejar el click en la tarjeta de categoría para abrir el select (en móviles)
+    // Manejar el click en la tarjeta de categoría para abrir el select (UX Móvil)
     const categoryCard = document.querySelector('.custom-select-container');
     if (categoryCard) {
         categoryCard.addEventListener('click', () => {
-            // Abrir el select nativo
-            document.getElementById('category_id').focus();
+            const select = document.getElementById('category_id');
+            if(select) select.focus(); // Intenta abrir o enfocar
         });
     }
     
-    // Listener para actualizar el input visible al seleccionar una opción
-    document.getElementById('category_id').addEventListener('change', (e) => {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        // Aseguramos que el input visible muestre el nombre de la categoría
-        document.getElementById('category_display').value = selectedOption.value ? selectedOption.textContent : 'Categoría';
-    });
+    // Listener para actualizar el input visible al seleccionar una opción del select
+    const categorySelect = document.getElementById('category_id');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const displayInput = document.getElementById('category_display');
+            if(displayInput) {
+                displayInput.value = selectedOption.value ? selectedOption.textContent : 'Categoría';
+            }
+        });
+    }
 }
 
 // --- Lógica del Formulario ---
 
 async function handleFormSubmit(e) {
     e.preventDefault();
+    console.log("Enviando formulario...");
     
-    const form = e.target;
-    // No se necesita FormData para obtener los valores ya que usamos IDs
-    
-    const name = document.getElementById('name').value;
-    const price = parseFloat(document.getElementById('price').value);
-    const categoriaId = parseInt(document.getElementById('category_id').value);
-    const imageFile = document.getElementById('image_file').files[0];
-    const isActive = document.getElementById('is_active').checked;
+    // Obtenemos los valores
+    const nameInput = document.getElementById('name');
+    const priceInput = document.getElementById('price');
+    const catInput = document.getElementById('category_id');
+    const imgInput = document.getElementById('image_file');
+    const activeInput = document.getElementById('is_active');
+
+    const name = nameInput.value;
+    const price = parseFloat(priceInput.value);
+    const categoriaId = parseInt(catInput.value);
+    const imageFile = imgInput.files[0];
+    const isActive = activeInput.checked;
     
     if (!categoriaId) {
         alert("Por favor, selecciona una categoría existente.");
@@ -76,16 +95,17 @@ async function handleFormSubmit(e) {
     let imageUrl = ''; 
 
     try {
-        document.getElementById('save-product-btn').disabled = true;
-        document.getElementById('save-product-btn').textContent = 'Guardando...';
+        const saveBtn = document.getElementById('save-product-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
 
         if (imageFile) {
-            // Usar la función de servicio local
+            console.log("Subiendo imagen...");
             imageUrl = await uploadImage(imageFile);
         } else {
             alert("Debe seleccionar una imagen para el producto.");
-            document.getElementById('save-product-btn').disabled = false;
-            document.getElementById('save-product-btn').textContent = 'Guardar Producto';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Guardar Producto';
             return;
         }
         
@@ -97,29 +117,31 @@ async function handleFormSubmit(e) {
             image_url: imageUrl,
         };
 
-        // Usar la función de servicio local
+        console.log("Guardando producto en BD:", productData);
         const result = await createProduct(productData);
         alert(`Producto ${result.name} agregado!`);
         
-        // Redirigir a la lista después de la creación exitosa
+        // Redirigir a la lista
         window.location.href = '../list-products/list-products.html'; 
 
     } catch (error) {
         console.error("Error al guardar producto:", error);
         alert(`Error al guardar: ${error.message}`);
     } finally {
-        document.getElementById('save-product-btn').disabled = false;
-        document.getElementById('save-product-btn').textContent = 'Guardar Producto';
+        const saveBtn = document.getElementById('save-product-btn');
+        if(saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Guardar Producto';
+        }
     }
 }
-
 
 // --- Funciones de Utilidad y Categorías ---
 
 async function loadCategories() {
     try {
-        // Usar la función de servicio local
         categoriesList = await getCategories();
+        console.log("Categorías cargadas:", categoriesList); // DEBUG
         renderCategoriesSelect();
     } catch (error) {
         console.error("Error al cargar categorías:", error);
@@ -129,7 +151,10 @@ async function loadCategories() {
 function renderCategoriesSelect() {
     const select = document.getElementById('category_id');
     const displayInput = document.getElementById('category_display');
-    select.innerHTML = '<option value="">Categoría</option>'; 
+    
+    if (!select) return;
+
+    select.innerHTML = '<option value="">-- Seleccionar --</option>'; 
     
     categoriesList.forEach(category => {
         const option = document.createElement('option');
@@ -138,21 +163,18 @@ function renderCategoriesSelect() {
         select.appendChild(option);
     });
     
-    // 1. Resetear el valor seleccionado del select si es necesario
     select.value = "";
-    
-    // 2. Inicializar el placeholder del input visible
-    displayInput.value = displayInput.placeholder || 'Categoría';
+    if (displayInput) displayInput.value = ""; 
 }
 
 function handleImagePreview(e) {
     const previewContainer = document.getElementById('image-preview');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    
     previewContainer.innerHTML = '';
     
     const file = e ? e.target.files[0] : null;
     const imageUrl = file ? URL.createObjectURL(file) : null;
-    
-    const uploadPlaceholder = document.getElementById('upload-placeholder');
     
     if (imageUrl) {
         const img = document.createElement('img');
@@ -160,24 +182,18 @@ function handleImagePreview(e) {
         img.alt = 'Preview';
         previewContainer.appendChild(img);
         
-        // Ocultar el placeholder cuando hay una imagen
-        if (uploadPlaceholder) {
-            uploadPlaceholder.style.display = 'none';
-        }
-
-        if (file) {
-            img.onload = () => URL.revokeObjectURL(img.src);
-        }
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        
+        // Liberar memoria
+        if (file) img.onload = () => URL.revokeObjectURL(img.src);
     } else {
-        // Mostrar el placeholder si se borra la imagen o es nula
-        if (uploadPlaceholder) {
-            uploadPlaceholder.style.display = 'flex';
-        }
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
     }
 }
 
 async function handleCreateCategory() {
-    const newCategoryName = document.getElementById('new_category_name').value.trim();
+    const newCatInput = document.getElementById('new_category_name');
+    const newCategoryName = newCatInput.value.trim();
     
     if (!newCategoryName) {
         alert("Por favor, introduce el nombre de la nueva categoría.");
@@ -185,28 +201,35 @@ async function handleCreateCategory() {
     }
 
     try {
-        document.getElementById('create-category-btn').disabled = true;
-        document.getElementById('create-category-btn').textContent = 'Creando...';
+        const createBtn = document.getElementById('create-category-btn');
+        createBtn.disabled = true;
+        createBtn.textContent = '...';
         
-        // Usar la función de servicio local
         const newCategory = await createCategory(newCategoryName);
         
-        alert(`Categoría "${newCategory.nombre}" creada con éxito.`);
+        alert(`Categoría "${newCategory.nombre}" creada.`);
         
         categoriesList.push(newCategory);
         renderCategoriesSelect();
         
-        document.getElementById('category_id').value = newCategory.id;
-        // Actualizar el input visible para reflejar la categoría recién creada
-        document.getElementById('category_display').value = newCategory.nombre;
-        document.getElementById('new_category_name').value = '';
+        // Autoseleccionar la nueva categoría
+        const select = document.getElementById('category_id');
+        const displayInput = document.getElementById('category_display');
+        
+        if(select) select.value = newCategory.id;
+        if(displayInput) displayInput.value = newCategory.nombre;
+        
+        newCatInput.value = '';
 
     } catch (error) {
         console.error("Error al crear categoría:", error);
-        alert(`Error al crear categoría: ${error.message}`);
+        alert(`Error: ${error.message}`);
     } finally {
-        document.getElementById('create-category-btn').disabled = false;
-        document.getElementById('create-category-btn').textContent = 'Crear';
+        const createBtn = document.getElementById('create-category-btn');
+        if(createBtn) {
+            createBtn.disabled = false;
+            createBtn.textContent = 'Crear';
+        }
     }
 }
 
@@ -219,8 +242,16 @@ function setupSwitch() {
             txt.textContent = sw.checked ? 'Producto Activo' : 'Producto Inactivo';
             txt.style.color = sw.checked ? '#28a745' : '#dc3545'; 
         };
-
         updateStatusText(); 
         sw.addEventListener('change', updateStatusText);
     }
 }
+
+// =========================================================
+// ¡AQUÍ ESTÁ LA SOLUCIÓN!
+// Ejecutamos la función al cargar el DOM.
+// =========================================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Pasamos el ID del contenedor principal si es necesario, o simplemente iniciamos
+    initAddProduct('app-content');
+});

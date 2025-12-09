@@ -1,5 +1,6 @@
 // src/admin/products/add-product/add-product.service.js
 
+// RUTA CORREGIDA: Sube 4 niveles (add-product/products/admin/src) y baja a config/
 import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
 /**
