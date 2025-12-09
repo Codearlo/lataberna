@@ -1,77 +1,130 @@
 /* src/admin/auth/auth.css */
 
-#auth-panel {
+/* Contenedor Principal (Fondo Blanco total) */
+#auth-wrapper {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* Usamos el 100% de la altura menos el footer (que ya no tiene margen si no está logueado) */
-    min-height: calc(100vh - 60px); 
-    /* Fondo limpio para que se mezcle con el body si es blanco */
-    background-color: var(--background-color, #f8f9fa); 
+    min-height: 100vh;
+    background-color: #ffffff; /* Fondo blanco puro */
+    font-family: var(--font-family, sans-serif);
+    padding: 20px;
 }
 
+/* Tarjeta de Login (Sin estilo de tarjeta, solo contenedor de layout) */
 .auth-card {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: transparent; /* Sin fondo */
+    padding: 20px 0; /* Padding reducido */
+    border-radius: 0; /* Sin bordes redondeados */
+    box-shadow: none; /* Sin sombra (efecto flotante eliminado) */
     width: 100%;
-    max-width: 350px;
+    max-width: 400px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
 }
 
-.auth-card h3 {
-    color: #000;
+/* Icono Superior */
+.auth-icon {
     margin-bottom: 20px;
+    color: #FFC107; /* Dorado */
+}
+.auth-icon svg {
+    width: 50px; /* Un poco más grande para destacar en el fondo limpio */
+    height: 50px;
 }
 
-.auth-card p {
-    color: #6c757d;
-    margin-bottom: 25px;
-    font-size: 0.9em;
+/* Título */
+.auth-card h3 {
+    color: #212529;
+    margin-bottom: 40px;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
+/* Estilos del Formulario */
 .auth-form .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 25px; /* Más espacio entre inputs */
     text-align: left;
 }
 
 .auth-form label {
     display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #495057;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #343a40;
+    font-size: 0.95rem;
+    margin-left: 5px;
 }
 
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
     width: 100%;
+    padding: 16px 20px; /* Inputs más grandes y cómodos */
+    background-color: #f8f9fa; /* Gris muy suave para diferenciar del fondo blanco */
+    border: 2px solid #e9ecef; /* Borde sutil pero visible */
+    border-radius: 12px;
+    font-size: 1.05rem;
+    color: #495057;
+    outline: none;
+    transition: all 0.2s;
     box-sizing: border-box;
 }
 
+.auth-form input:focus {
+    background-color: #ffffff;
+    border-color: #FFC107; /* Dorado al enfocar */
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.15);
+}
+
+/* Botón Principal (Login) */
 #login-btn {
     width: 100%;
-    padding: 12px;
-    /* CAMBIO CLAVE: Botón de login con el color dorado */
-    background-color: #FFC107; 
-    color: #343a40; 
-    font-size: 1em;
-    margin-top: 15px;
+    padding: 16px;
+    background-color: #FFC107; /* Dorado */
+    color: #212529; /* Texto oscuro */
+    font-size: 1.1rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 10px;
 }
 
 #login-btn:hover {
-    background-color: #e0a800; /* Dorado más oscuro */
+    background-color: #e0a800;
+}
+#login-btn:active {
+    transform: scale(0.98);
+}
+#login-btn:disabled {
+    background-color: #ffeeb0;
+    cursor: not-allowed;
 }
 
+/* Mensaje de Error */
 .error-msg {
     color: #dc3545;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    padding: 10px;
-    border-radius: 4px;
-    margin-top: 15px;
-    font-size: 0.9em;
+    background-color: #fff5f5;
+    border: 1px solid #ffc9c9;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 20px;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 0; /* Aprovechar todo el ancho en móviles */
+    }
+    .auth-card h3 {
+        font-size: 1.8rem;
+    }
 }

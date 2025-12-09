@@ -1,10 +1,10 @@
 // src/admin/auth/auth.js
 
-// RUTA A CONFIG: Subir de auth/ a admin/, luego a src/, luego bajar a config/
 import { supabase } from '../../config/supabaseClient.js'; 
 
-// RUTA DE FETCH: Es relativa al archivo HTML base (src/admin/auth/auth.html)
-const LOGIN_FORM_HTML_PATH = './auth.html'; 
+// FIX: Usamos una RUTA ABSOLUTA (/src/...) para que el fetch funcione 
+// sin importar desde qué carpeta se llame a este script (Productos, Perfil, etc.)
+const LOGIN_FORM_HTML_PATH = '/src/admin/auth/auth.html'; 
 
 /**
  * Carga el formulario de login y adjunta el listener de submit.
@@ -17,7 +17,6 @@ export async function initAuthForm(containerId, onAuthSuccess) {
     try {
         const response = await fetch(LOGIN_FORM_HTML_PATH);
         if (!response.ok) {
-            // Se lanza un error específico si la carga falla
             throw new Error(`Error al obtener HTML. Status: ${response.status} URL: ${response.url}`);
         }
         const html = await response.text();
@@ -29,7 +28,11 @@ export async function initAuthForm(containerId, onAuthSuccess) {
         
     } catch (error) {
         console.error("Error al cargar el formulario de autenticación:", error);
-        container.innerHTML = `<p class="error-msg">Error al cargar la interfaz de login. Revise la consola para detalles de la URL fallida.</p>`;
+        container.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #dc3545;">
+                <p>Error crítico al cargar el login.</p>
+                <small>${error.message}</small>
+            </div>`;
     }
 }
 
@@ -46,23 +49,29 @@ async function handleLoginSubmit(e, onAuthSuccess) {
 
     errorMsgElement.style.display = 'none';
     loginBtn.disabled = true;
+    loginBtn.textContent = "Verificando...";
 
     try {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
-            throw new Error(error.message);
+            throw new Error("Credenciales incorrectas o error de conexión.");
         }
 
-        // Si la autenticación es exitosa
-        // REDIRECCIÓN A LA NUEVA PÁGINA DE PRODUCTOS
-        window.location.href = '../list-products/list-products.html'; 
+        // FIX: Si se pasó una función de éxito (ej. desde Perfil), la ejecutamos.
+        // Si no, redirigimos a la lista de productos por defecto.
+        if (typeof onAuthSuccess === 'function') {
+            onAuthSuccess();
+        } else {
+            // Usamos ruta absoluta también aquí para evitar errores de redirección
+            window.location.href = '/src/admin/products/list-products/list-products.html'; 
+        }
 
     } catch (error) {
-        errorMsgElement.textContent = `Error: ${error.message}`;
+        errorMsgElement.textContent = error.message;
         errorMsgElement.style.display = 'block';
-    } finally {
         loginBtn.disabled = false;
+        loginBtn.textContent = "Iniciar Sesión";
     }
 }
 
@@ -79,6 +88,6 @@ export async function getSession() {
  */
 export async function logout() {
     await supabase.auth.signOut();
-    // Redirigir a la página de login
-    window.location.href = './auth.html'; 
+    // Redirigir a la página de login (usamos ruta absoluta para asegurar)
+    window.location.href = '/src/admin/auth/auth.html'; // O recargar la página actual para que salga el login
 }
