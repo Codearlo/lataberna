@@ -52,6 +52,25 @@ body {
     flex-grow: 1;
 }
 
+/* --- ESTILO NUEVO: BOTÓN VER EN TIENDA --- */
+.view-store-header-btn {
+    color: #343a40;
+    width: 40px; /* Igual que el hueco que había antes */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border-radius: 50%; /* Redondito */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.view-store-header-btn:hover {
+    background-color: #f8f9fa;
+    color: #FFC107; /* Dorado al pasar el mouse */
+}
+
+/* --- CONTENIDO PRINCIPAL --- */
 .mobile-main-content {
     flex: 1;
     overflow-y: auto;
@@ -186,7 +205,7 @@ body {
 .icon-green { background: rgba(0, 128, 0, 0.15); color: #28a745; }
 .icon-orange { background: rgba(255, 165, 0, 0.15); color: #e0a800; }
 .icon-grey { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
-.icon-red { background: rgba(220, 53, 69, 0.15); color: #dc3545; } /* Nuevo para eliminar */
+.icon-red { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
 .clean-input {
     flex: 1;
