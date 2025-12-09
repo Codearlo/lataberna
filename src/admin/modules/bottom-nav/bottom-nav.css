@@ -6,39 +6,46 @@
     --nav-bg: #ffffff; /* Fondo Blanco para la barra */
     --nav-icon-color: #6c757d; /* Gris para inactivo */
     --nav-active-bg: #fffbe8; /* Fondo muy claro para activo (tono dorado pálido) */
-    --nav-main-btn-color: #FFC107; /* Dorado para el botón principal */
+    --nav-main-btn-color: #FFC107; /* Dorado para el botón principal (Mantenido por si acaso) */
+    --nav-shadow-color: rgba(255, 193, 7, 0.4); 
 }
 
 #admin-bottom-nav {
     /* Hacemos la barra flotante (bottom: 20px) y le damos esquinas redondeadas */
     position: fixed;
-    bottom: 20px; /* Separado del borde inferior */
+    bottom: 20px; 
     left: 50%;
     transform: translateX(-50%);
-    width: 90%; /* Más estrecho para efecto flotante */
+    width: 90%; 
     max-width: 400px;
     
     background-color: var(--nav-bg); 
     border-radius: 20px; /* Esquinas redondeadas */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 1000;
+    
+    overflow: hidden; /* FIX: Evita que la pastilla de la vista activa se desborde por abajo */
 }
 
 #admin-bottom-nav ul {
+    height: 70px; 
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: center; 
     list-style: none;
     padding: 0;
     margin: 0;
-    height: 70px; /* Altura de barra cómoda */
 }
 
 #admin-bottom-nav li {
-    flex-grow: 1;
+    flex-grow: 1; /* CLAVE: Asegura que ambos <li> ocupen el 50% exacto */
     text-align: center;
     position: relative;
-    padding: 5px 0;
+    padding: 5px 0; 
+    height: 100%; 
+    display: flex; 
+    align-items: center;
+    justify-content: center;
 }
 
 #admin-bottom-nav a {
@@ -50,14 +57,16 @@
     color: var(--nav-icon-color); 
     transition: color 0.3s;
     padding: 5px 0;
-    height: 100%;
+    height: 100%; 
+    width: 100%; 
 }
 
 /* Estilo del ítem ACTIVO (Efecto pastilla) */
 #admin-bottom-nav li.active {
     background-color: var(--nav-active-bg); 
     border-radius: 10px;
-    margin: 5px; /* Margen para separar la pastilla dentro del nav */
+    margin: 5px; 
+    box-shadow: 0 0 10px 0 rgba(255, 193, 7, 0.3); /* Sombra suave para destacar */
 }
 
 #admin-bottom-nav li.active a {
@@ -76,88 +85,37 @@
     text-transform: capitalize; 
 }
 
-/* --- ESTILO DEL BOTÓN CENTRAL FLOTANTE (+) --- */
-#admin-bottom-nav .bottom-nav-item--main {
-    /* El botón principal debe ser más grande y estar centrado visualmente */
-    margin-top: -30px; /* Desplazar hacia arriba para que sobresalga */
-    flex-grow: 0; /* No crece */
-    position: relative;
-    z-index: 1001; /* Asegura que esté por encima de otros ítems del nav */
-}
+/* --- SECCIÓN ELIMINADA: Lógica del botón central/FAB (.bottom-nav-item--main) --- */
 
-#admin-bottom-nav .bottom-nav-item--main a {
-    background-color: var(--nav-main-btn-color); /* Dorado */
-    color: #343a40; /* Texto oscuro */
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-#admin-bottom-nav .bottom-nav-item--main a:hover {
-    background-color: #e0a800; /* Dorado más oscuro */
-}
-
-#admin-bottom-nav .bottom-nav-item--main a svg {
-    width: 30px;
-    height: 30px;
-    stroke-width: 3;
-    margin-bottom: 0;
-}
-
-#admin-bottom-nav .bottom-nav-item--main span {
-    display: none; /* Ocultar el texto debajo del botón principal */
-}
-
-/* Espacio en el footer para evitar que el contenido quede detrás de la barra */
+/* Espacio en el footer */
 #main-footer {
-    /* La barra empieza en 20px desde abajo y tiene 70px de alto, 
-       así que el contenido debe parar por lo menos 90px desde abajo. */
     margin-bottom: 90px; 
     padding-bottom: 10px; 
 }
 
-/* --- AJUSTES RESPONSIVOS CORREGIDOS (Para Móviles) --- */
+/* --- AJUSTES RESPONSIVOS --- */
 @media (max-width: 500px) {
     #admin-bottom-nav {
         width: 95%;
-        bottom: 10px; /* Más cerca del borde para no ocupar tanto espacio */
-        max-width: 100%; /* Permitimos que ocupe todo el ancho si es necesario */
-        border-radius: 15px; /* Ligeramente menos redondeado */
+        bottom: 10px; 
+        border-radius: 15px; 
     }
     
     #admin-bottom-nav ul {
-        height: 60px; /* Hacemos la barra un poco más compacta */
+        height: 60px; 
     }
     
     #admin-bottom-nav .icon {
-        width: 24px; /* Un poco más pequeño para encajar */
+        width: 24px; 
         height: 24px;
     }
     
     #admin-bottom-nav span {
-        font-size: 0.65em; /* Reducimos el tamaño de la fuente */
+        font-size: 0.65em; 
     }
     
-    /* Ajuste del botón central en móvil */
-    #admin-bottom-nav .bottom-nav-item--main {
-        margin-top: -25px; 
-    }
-    #admin-bottom-nav .bottom-nav-item--main a {
-        width: 50px;
-        height: 50px;
-    }
-    #admin-bottom-nav .bottom-nav-item--main a svg {
-        width: 26px;
-        height: 26px;
-    }
+    /* No hay ajustes para el FAB, ya que fue eliminado. */
     
-    /* Aseguramos que el pie de página tenga suficiente espacio */
     #main-footer {
         margin-bottom: 80px; 
     }
