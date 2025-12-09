@@ -1,70 +1,89 @@
-<div class="admin-panel-header">
-    <h3>Agregar Nuevo Producto</h3>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Taberna - Agregar Producto</title>
 
-<div class="admin-card product-form-container">
-    <form id="product-form" class="product-form">
-        <input type="hidden" id="product-id">
-        <input type="hidden" id="current_image_url" name="current_image_url">
-        
-        <div class="form-grid">
-            <div class="form-column">
-                <div class="form-group">
-                    <label for="name">Nombre:</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="price">Precio (S/):</label>
-                    <input type="number" id="price" name="price" step="0.01" required>
-                </div>
-
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="is_active" name="is_active" checked>
-                    <label for="is_active">Activo para venta</label>
-                </div>
-                
-                <div class="form-group">
-                    <label for="category_id">Categoría Existente:</label>
-                    <select id="category_id" name="categoria_id" required>
-                        <option value="">-- Seleccione una Categoría --</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="new-category-group">
-                    <label for="new_category_name">O Crear Nueva Categoría:</label>
-                    <div class="input-with-button">
-                        <input type="text" id="new_category_name" placeholder="Escribe el nombre de la nueva categoría">
-                        <button type="button" id="create-category-btn" class="secondary-btn">Crear y Seleccionar</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-column">
-                <div class="form-group">
-                    <label>Imagen del Producto:</label>
-                    
-                    <div class="image-upload-container">
-                        <input type="file" id="image_file" accept="image/*" name="image_file" class="hidden-file-input" required>
-                        
-                        <label for="image_file" class="image-upload-area">
-                            <span class="upload-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                            </span>
-                            <span class="upload-text">Haz clic o arrastra para subir una imagen</span>
-                        </label>
-                        
-                    </div>
-
-                    <div id="image-preview" class="image-preview"></div>
-                    <p class="image-tip">Sube una imagen cuadrada para mejores resultados.</p>
-                </div>
-            </div>
+    <link rel="stylesheet" href="../../../public/main.css"> 
+    <link rel="stylesheet" href="../../auth/auth.css">
+    <link rel="stylesheet" href="./add-product.css">
+</head>
+<body>
+    <main id="app-content">
+        <div class="admin-panel-header">
+            <h3>Agregar Nuevo Producto</h3>
         </div>
 
-        <div class="form-actions">
-            <a href="?view=products&action=list" class="secondary-btn">Cancelar y Volver</a>
-            <button type="submit" id="save-product-btn">Guardar Producto</button>
+        <div class="admin-card product-form-container">
+            <form id="product-form" class="product-form">
+                <input type="hidden" id="product-id">
+                <input type="hidden" id="current_image_url" name="current_image_url">
+                
+                <div class="form-grid">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="name">Nombre:</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="price">Precio (S/):</label>
+                            <input type="number" id="price" name="price" step="0.01" required>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="is_active" name="is_active" checked>
+                            <label for="is_active">Activo para venta</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category_id">Categoría Existente:</label>
+                            <select id="category_id" name="categoria_id" required>
+                                <option value="">-- Seleccione una Categoría --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="new-category-group">
+                            <label for="new_category_name">O Crear Nueva Categoría:</label>
+                            <div class="input-with-button">
+                                <input type="text" id="new_category_name" placeholder="Escribe el nombre de la nueva categoría">
+                                <button type="button" id="create-category-btn" class="secondary-btn">Crear y Seleccionar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label>Imagen del Producto:</label>
+                            
+                            <div class="image-upload-container">
+                                <input type="file" id="image_file" accept="image/*" name="image_file" class="hidden-file-input" required>
+                                
+                                <label for="image_file" class="image-upload-area">
+                                    <span class="upload-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    </span>
+                                    <span class="upload-text">Haz clic o arrastra para subir una imagen</span>
+                                </label>
+                                
+                            </div>
+
+                            <div id="image-preview" class="image-preview"></div>
+                            <p class="image-tip">Sube una imagen cuadrada para mejores resultados.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="?view=products&action=list" class="secondary-btn">Cancelar y Volver</a>
+                    <button type="submit" id="save-product-btn">Guardar Producto</button>
+                </div>
+            </form>
         </div>
-    </form>
-</div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module" src="./add-product.js"></script> 
+</body>
+</html>
