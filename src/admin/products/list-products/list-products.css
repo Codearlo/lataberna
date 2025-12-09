@@ -16,7 +16,8 @@
 }
 
 .admin-card {
-    background-color: #f8f9fa; 
+    /* Fondo BLANCO para la tarjeta principal (similar a la imagen de ejemplo) */
+    background-color: #ffffff; 
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
@@ -73,6 +74,8 @@
     margin-bottom: 20px;
     padding-bottom: 5px;
     overflow-x: auto; 
+    /* Borde inferior suave para separación, similar al ejemplo de la imagen */
+    border-bottom: 1px solid #e9ecef;
 }
 
 .tab-button {
@@ -92,13 +95,13 @@
     background-color: transparent; 
     color: #FFC107; /* Color del texto Dorado */
     font-weight: 700;
-    /* Subrayado con borde inferior */
-    border-bottom: 2px solid #FFC107; 
-    padding-bottom: 10px; 
+    /* Subrayado con borde inferior dorado (más grueso y visible) */
+    border-bottom: 3px solid #FFC107; 
+    padding-bottom: 5px; /* Ajustamos padding para compensar el borde más grueso */
 }
 
 .tab-button:hover:not(.active) {
-    background-color: #f0f0f0;
+    background-color: #f7f7f7; /* Fondo muy claro al pasar el mouse */
 }
 
 /* VISIBILIDAD DE LAS VISTAS DE LISTA */
@@ -111,37 +114,42 @@
 
 /* --- GRID DE TARJETAS (Formato Lista) --- */
 .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px; 
+    display: flex; /* Cambiado a flex para un listado vertical simple */
+    flex-direction: column;
+    gap: 10px; /* Reducimos el espacio entre ítems para un aspecto más de lista */
 }
 
 /* ESTILO: Formato de lista simple y horizontal (IMAGEN | INFO | PRECIO/STATUS) */
 .product-list-item {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: #f8f9fa; /* Fondo ligeramente gris para los ítems */
+    border-radius: 8px; /* Ligeramente menos redondeado */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); /* Sombra más sutil */
     display: flex; 
     align-items: center;
-    padding: 10px 15px;
+    padding: 12px 15px;
     cursor: pointer;
-    transition: background-color 0.2s;
-    border: 1px solid #f0f0f0; 
+    transition: background-color 0.2s, border-left 0.2s;
+    border: 1px solid #e9ecef; /* Borde más claro */
 }
 .product-list-item:hover {
-    background-color: #f7f7f7;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff; /* Blanco al pasar el mouse */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .product-list-item.inactive {
-    opacity: 0.7; 
-    border-left: 5px solid #6c757d;
+    opacity: 0.8; 
+    border-left: 5px solid #6c757d; /* Gris para inactivo */
 }
+
+.product-list-item.active-item {
+    border-left: 5px solid #FFC107; /* Dorado para activo (opcional, si se quiere más énfasis) */
+}
+
 
 .product-image-container {
     flex-shrink: 0; 
-    width: 60px;
-    height: 60px;
+    width: 50px; /* Reducido un poco */
+    height: 65px; /* Aumentado un poco para mejor visualización de botellas */
     margin-right: 15px;
     display: flex;
     align-items: center;
@@ -164,7 +172,7 @@
 
 /* Título */
 .product-info-minimal .product-name-title {
-    font-size: 1.0em; 
+    font-size: 1.1em; /* Un poco más grande */
     font-weight: 700;
     margin: 0;
     color: #343a40;
@@ -177,7 +185,7 @@
 .product-info-minimal .product-id,
 .product-info-minimal .product-category {
     font-size: 0.8em; 
-    color: #6c757d;
+    color: #888; /* Gris más claro para subtítulos */
     margin: 2px 0;
     white-space: nowrap;
     overflow: hidden;
@@ -189,7 +197,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end; 
-    justify-content: space-between;
+    justify-content: center;
     flex-shrink: 0;
     margin-left: 15px;
     height: 60px; 
@@ -197,23 +205,23 @@
 
 /* Estilo de Badge (Pastilla) */
 .status-badge {
-    font-size: 0.65em; 
+    font-size: 0.7em; /* Ligeramente más grande */
     font-weight: 700;
     padding: 3px 8px;
-    border-radius: 12px; 
+    border-radius: 15px; /* Más redondo */
     margin-bottom: 5px;
     text-transform: uppercase;
     transition: all 0.2s;
 }
 
 .active-badge {
-    background-color: #d4edda; 
-    color: #155724; 
+    background-color: #d4edda; /* Verde claro */
+    color: #155724; /* Verde oscuro */
 }
 
 .inactive-badge {
-    background-color: #f8d7da; 
-    color: #721c24; 
+    background-color: #e9ecef; /* Gris muy claro */
+    color: #6c757d; /* Gris oscuro */
 }
 
 
@@ -224,8 +232,8 @@
 
 /* Precio */
 .product-price-minimal .price {
-    color: #dc3545; 
-    font-size: 1.0em; 
+    color: #343a40; /* Precio oscuro */
+    font-size: 1.1em; 
 }
 
 /* --- ESTILOS DE PAGINACIÓN --- */
@@ -259,9 +267,9 @@
 }
 
 .pagination-content button.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+    background-color: #FFC107; /* Dorado */
+    color: #343a40; /* Texto oscuro */
+    border-color: #FFC107;
 }
 
 .pagination-content button:disabled {
@@ -281,15 +289,30 @@
 @media (max-width: 767px) {
     /* Lista de productos */
     .products-grid {
-        grid-template-columns: 1fr; 
+        /* No usamos grid-template-columns: 1fr; porque la hemos cambiado a flex-direction: column */
+    }
+    
+    .product-list-item {
+        padding: 10px 12px;
+    }
+    
+    .product-image-container {
+        width: 45px;
+        height: 60px;
+        margin-right: 10px;
+    }
+    
+    .product-info-minimal .product-name-title {
+        font-size: 1.0em; 
     }
     
     .pagination-content {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: row;
+        gap: 5px;
     }
     .pagination-info {
         margin-left: 0;
         margin-top: 5px;
+        width: 100%;
     }
 }

@@ -1,373 +1,318 @@
-// src/admin/products/list-products/list-products.js
+/* src/admin/list-products/list-products.css */
 
-import { ProductsAdminService } from '../products.service.js';
-import { getSession, initAuthForm } from '../../auth/auth.js';
-import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
-
-// **NUEVAS RUTAS DE NAVEGACIÓN PARA ESTA PÁGINA (DOS NIVELES)**
-const PRODUCTS_VIEW_ROUTES = {
-    // Para ir a sí misma (Products), se mantiene la ruta actual (./)
-    'products': './list-products.html',
-    // Para ir a Profile, se suben dos niveles (a 'admin/') y se baja a 'profile/'
-    'profile': '../../profile/profile.html' 
-};
-
-// Variables de estado (DEBEN MANTENERSE AQUÍ)
-let productsList = [];
-let categoriesList = []; 
-let currentFilter = 'active'; // El filtro inicial de la pestaña
-
-// Variables de estado para la paginación
-let currentPage = 1;
-const PRODUCTS_PER_PAGE = 10;
-let totalProductsCount = 0;
-let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
-
-const ADMIN_CONTENT_ID = 'app-content';
-const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container';
-const CURRENT_VIEW = 'products';
-
-let searchTimeout = null; 
-const DEBOUNCE_DELAY = 50; 
-
-
-/**
- * Inicializa la vista de listado de productos (Full Page).
- */
-export async function initListProductsPage() {
-    const session = await getSession();
-    const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
-    const navContainer = document.getElementById(ADMIN_NAV_CONTAINER_ID);
-
-    if (!session) {
-        // No logueado: Cargar formulario de login
-        // La URL de login debe ser relativa a la página actual, subiendo un nivel.
-        const authPath = '../../auth/auth.html'; 
-        
-        // El contenido del formulario de login se carga en el contenedor principal
-        const response = await fetch(authPath);
-        if (response.ok) {
-            const html = await response.text();
-            contentContainer.innerHTML = html;
-            // Inicializamos la lógica de Auth
-            initAuthForm(ADMIN_CONTENT_ID, () => {
-                 // Callback al iniciar sesión exitosamente
-                 window.location.href = './list-products.html'; 
-            });
-        }
-
-        if (navContainer) navContainer.style.display = 'none';
-        return;
-    }
-
-    // Logueado: Cargar contenido y navegación
-    try {
-        
-        // 1. Inicializar la barra de navegación y los listeners DE INMEDIATO
-        // Esto desbloquea el renderizado de la UI y los eventos (búsqueda, tabs)
-        attachEventListeners(); 
-        initBottomNav(CURRENT_VIEW, '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
-        if (navContainer) navContainer.style.display = 'block';
-
-        // 2. Ejecutar la carga de datos PESADOS de forma ASÍNCRONA
-        // Esto ocurre mientras el usuario ve la barra de navegación y el esqueleto de la página.
-        await loadCategories();
-        await loadProducts(); // Esta función renderiza la lista una vez que los datos llegan.
-        
-    } catch (error) {
-        console.error("Error al inicializar el panel de listado de productos:", error);
-        contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz de listado. Revise la consola para detalles.</p>`;
-    }
+/* --- Estilos Generales de Admin --- */
+#products-subview-container {
+    background-color: #ffffff; 
+    padding: 30px;
+    color: #343a40; 
+    padding-bottom: 30px; 
 }
 
 
-function attachEventListeners() {
-    // Evento de búsqueda dinámica (DEBOUNCE)
-    document.getElementById('product-search-input').addEventListener('input', (e) => {
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-        searchTimeout = setTimeout(() => {
-            handleDynamicSearch();
-        }, DEBOUNCE_DELAY);
-        
-        // APLICAMOS CLASE DE CARGA INMEDIATAMENTE para feedback visual
-        const listCard = document.querySelector('.admin-panel-list.admin-card');
-        if (listCard) {
-            listCard.classList.add('is-searching');
-        }
-    });
-
-    // Delegación de eventos para las listas de tarjetas (AHORA NAVEGA A LA PÁGINA DE EDICIÓN)
-    document.getElementById('products-list-views').addEventListener('click', handleListActions);
-    
-    // Evento para el cambio de pestañas
-    document.getElementById('product-view-tabs').addEventListener('click', handleTabSwitch);
-    
-    // DELEGACIÓN DE EVENTOS PARA PAGINACIÓN
-    document.getElementById('pagination-container').addEventListener('click', handlePaginationClick);
+.admin-panel-header h3 {
+    font-size: 2em;
+    color: #343a40;
+    margin-bottom: 20px;
 }
 
-/**
- * Dispara la búsqueda dinámica (al escribir, con debounce).
- */
-function handleDynamicSearch() {
-    const searchTerm = document.getElementById('product-search-input').value.trim();
-    
-    if (searchTerm === currentSearchTerm) {
-        const listCard = document.querySelector('.admin-panel-list.admin-card');
-        if (listCard) {
-            listCard.classList.remove('is-searching');
-        }
-        return;
+.admin-card {
+    /* Fondo BLANCO para la tarjeta principal (similar a la imagen de ejemplo) */
+    background-color: #ffffff; 
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+/* --- ESTILO PARA BÚSQUEDA RÁPIDA (FEEDBACK VISUAL SUTIL) --- */
+.admin-panel-list.admin-card.is-searching {
+    opacity: 0.7; 
+    pointer-events: none; 
+    transition: opacity 0.05s ease-out; 
+}
+/* --- FIN ESTILO --- */
+
+
+/* --- Lista de Productos, Buscador y Botón de Agregar --- */
+.list-header-top {
+    margin-bottom: 10px;
+}
+
+#product-search-input {
+    width: 100%; /* Ocupa todo el ancho */
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 8px; /* Más redondeado */
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.add-product-container {
+    margin-bottom: 20px;
+}
+
+.primary-btn.full-width-btn {
+    width: 100%;
+    /* Estilo del botón principal de AGREGAR: Dorado/Negro */
+    background-color: #FFC107; 
+    color: #343a40;
+    font-size: 1.1em;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+}
+.primary-btn.full-width-btn:hover {
+    background-color: #e0a800; /* Dorado más oscuro */
+}
+
+
+/* --- TAB STYLES (DORADO) --- */
+.tabs-container {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    overflow-x: auto; 
+    /* Borde inferior suave para separación, similar al ejemplo de la imagen */
+    border-bottom: 1px solid #e9ecef;
+}
+
+.tab-button {
+    background-color: transparent;
+    color: #6c757d;
+    border: none;
+    padding: 8px 15px;
+    font-weight: 600;
+    border-radius: 0; 
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap; 
+}
+
+/* Estilo activo: Dorado */
+.tab-button.active {
+    background-color: transparent; 
+    color: #FFC107; /* Color del texto Dorado */
+    font-weight: 700;
+    /* Subrayado con borde inferior dorado (más grueso y visible) */
+    border-bottom: 3px solid #FFC107; 
+    padding-bottom: 5px; /* Ajustamos padding para compensar el borde más grueso */
+}
+
+.tab-button:hover:not(.active) {
+    background-color: #f7f7f7; /* Fondo muy claro al pasar el mouse */
+}
+
+/* VISIBILIDAD DE LAS VISTAS DE LISTA */
+#products-list-views .products-grid {
+    display: none;
+}
+#products-list-views .products-grid.active-view {
+    display: grid;
+}
+
+/* --- GRID DE TARJETAS (Formato Lista) --- */
+.products-grid {
+    display: flex; /* Cambiado a flex para un listado vertical simple */
+    flex-direction: column;
+    gap: 10px; /* Reducimos el espacio entre ítems para un aspecto más de lista */
+}
+
+/* ESTILO: Formato de lista simple y horizontal (IMAGEN | INFO | PRECIO/STATUS) */
+.product-list-item {
+    background-color: #f8f9fa; /* Fondo ligeramente gris para los ítems */
+    border-radius: 8px; /* Ligeramente menos redondeado */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); /* Sombra más sutil */
+    display: flex; 
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-left 0.2s;
+    border: 1px solid #e9ecef; /* Borde más claro */
+}
+.product-list-item:hover {
+    background-color: #ffffff; /* Blanco al pasar el mouse */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.product-list-item.inactive {
+    opacity: 0.8; 
+    border-left: 5px solid #6c757d; /* Gris para inactivo */
+}
+
+.product-list-item.active-item {
+    border-left: 5px solid #FFC107; /* Dorado para activo (opcional, si se quiere más énfasis) */
+}
+
+
+.product-image-container {
+    flex-shrink: 0; 
+    width: 50px; /* Reducido un poco */
+    height: 65px; /* Aumentado un poco para mejor visualización de botellas */
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-list-item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.product-info-minimal {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Título */
+.product-info-minimal .product-name-title {
+    font-size: 1.1em; /* Un poco más grande */
+    font-weight: 700;
+    margin: 0;
+    color: #343a40;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ID y Categoría */
+.product-info-minimal .product-id,
+.product-info-minimal .product-category {
+    font-size: 0.8em; 
+    color: #888; /* Gris más claro para subtítulos */
+    margin: 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Contenedor de Precio y Estado (Alineado a la derecha) */
+.product-status-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 15px;
+    height: 60px; 
+}
+
+/* Estilo de Badge (Pastilla) */
+.status-badge {
+    font-size: 0.7em; /* Ligeramente más grande */
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 15px; /* Más redondo */
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.active-badge {
+    background-color: #d4edda; /* Verde claro */
+    color: #155724; /* Verde oscuro */
+}
+
+.inactive-badge {
+    background-color: #e9ecef; /* Gris muy claro */
+    color: #6c757d; /* Gris oscuro */
+}
+
+
+.product-price-minimal {
+    margin-top: auto; 
+    font-weight: bold;
+}
+
+/* Precio */
+.product-price-minimal .price {
+    color: #343a40; /* Precio oscuro */
+    font-size: 1.1em; 
+}
+
+/* --- ESTILOS DE PAGINACIÓN --- */
+.pagination-area {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.pagination-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.pagination-content button {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    background-color: #ffffff;
+    border-radius: 4px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.pagination-content button:hover:not(:disabled):not(.active) {
+    background-color: #f0f0f0;
+}
+
+.pagination-content button.active {
+    background-color: #FFC107; /* Dorado */
+    color: #343a40; /* Texto oscuro */
+    border-color: #FFC107;
+}
+
+.pagination-content button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-left: 15px;
+    white-space: nowrap;
+}
+
+
+/* --- Responsive para Móviles (Max-width: 767px) --- */
+@media (max-width: 767px) {
+    /* Lista de productos */
+    .products-grid {
+        /* No usamos grid-template-columns: 1fr; porque la hemos cambiado a flex-direction: column */
     }
     
-    currentSearchTerm = searchTerm;
-    currentPage = 1; 
-    loadProducts();
-}
-
-/**
- * Maneja el clic en los botones de paginación.
- */
-function handlePaginationClick(e) {
-    const target = e.target;
-    let newPage = currentPage;
-
-    if (target.id === 'prev-page-btn') {
-        newPage = Math.max(1, currentPage - 1);
-    } else if (target.id === 'next-page-btn') {
-        const totalPages = Math.ceil(totalProductsCount / PRODUCTS_PER_PAGE);
-        newPage = Math.min(totalPages, currentPage + 1);
-    } else if (target.dataset.page) {
-        newPage = parseInt(target.dataset.page);
-    }
-
-    if (newPage !== currentPage) {
-        currentPage = newPage;
-        const listCard = document.querySelector('.admin-panel-list.admin-card');
-        if (listCard) {
-            listCard.classList.add('is-searching');
-        }
-        loadProducts(); 
-    }
-}
-
-
-/**
- * Maneja el clic en las pestañas (Tabs) de la lista de productos.
- */
-function handleTabSwitch(e) {
-    const target = e.target;
-    if (!target.classList.contains('tab-button')) return;
-
-    const newFilter = target.dataset.filter;
-    
-    // 1. Actualizar el estado del botón activo
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    target.classList.add('active');
-    
-    if (newFilter !== currentFilter) {
-        currentFilter = newFilter;
-        
-        // 2. Ocultar todos los contenedores de vista y mostrar el nuevo
-        document.querySelectorAll('.products-grid').forEach(view => view.classList.remove('active-view'));
-        
-        // Mostrar el contenedor de la vista activa (active o all)
-        const viewContainerId = `${newFilter}-products-list`;
-        document.getElementById(viewContainerId).classList.add('active-view');
-
-        // 3. Simplemente manejamos la visibilidad de los mensajes de vacío
-        renderProductsTable(); 
-    }
-}
-
-/**
- * Maneja el clic en una tarjeta de producto para abrir la página de edición.
- */
-function handleListActions(e) {
-    const target = e.target;
-    const card = target.closest('.product-list-item');
-    if (!card) return;
-    
-    const productId = card.dataset.id;
-    
-    // NAVEGACIÓN A PÁGINA DE EDICIÓN
-    window.location.href = `../edit-product/edit-product.html?id=${productId}`;
-}
-
-// --- Lógica de la Lista y Paginación (Cargada desde el servicio) ---
-
-/**
- * Carga los productos filtrados y paginados desde la base de datos.
- */
-async function loadProducts() {
-    const activeViewContainer = document.getElementById('active-products-list');
-    const allViewContainer = document.getElementById('all-products-list');
-    const paginationContainer = document.getElementById('pagination-container');
-    const listCard = document.querySelector('.admin-panel-list.admin-card'); 
-
-    try {
-        const result = await ProductsAdminService.getFilteredProductsPaged({
-            searchTerm: currentSearchTerm,
-            itemsPerPage: PRODUCTS_PER_PAGE,
-            pageNumber: currentPage
-        });
-        
-        productsList.splice(0, productsList.length, ...result.products); 
-        totalProductsCount = result.totalCount;
-        
-        createAndHydrateLists(); 
-        renderPagination();
-        renderProductsTable(); 
-
-    } catch (error) {
-        console.error("Error al cargar productos:", error);
-        
-        const errorHtml = '<p class="error-msg" style="text-align:center;">Error al cargar los productos. Revise la consola.</p>';
-        activeViewContainer.innerHTML = errorHtml;
-        allViewContainer.innerHTML = errorHtml;
-        paginationContainer.innerHTML = '';
-
-    } finally {
-        if (listCard) {
-            listCard.classList.remove('is-searching');
-        }
-    }
-}
-
-async function loadCategories() {
-    try {
-        const newCategories = await ProductsAdminService.getCategories();
-        categoriesList.splice(0, categoriesList.length, ...newCategories); // Actualiza categoriesList
-    } catch (error) {
-        console.error("Error al cargar categorías:", error);
-    }
-}
-
-/**
- * Crea las tarjetas DOM para los productos de la página actual.
- * Utiliza DocumentFragment para evitar el "flicker".
- */
-function createAndHydrateLists() {
-    const activeListView = document.getElementById('active-products-list');
-    const allListView = document.getElementById('all-products-list');
-    
-    const activeFragment = document.createDocumentFragment();
-    const allFragment = document.createDocumentFragment();
-
-    productsList.forEach(product => {
-        const card = createProductCard(product); 
-        
-        allFragment.appendChild(card); 
-        
-        if (product.is_active) {
-            activeFragment.appendChild(card.cloneNode(true));
-        }
-    });
-
-    activeListView.innerHTML = '';
-    activeListView.appendChild(activeFragment);
-    
-    allListView.innerHTML = '';
-    allListView.appendChild(allFragment);
-}
-
-/**
- * Renderiza la interfaz de paginación.
- */
-function renderPagination() {
-    const paginationContainer = document.getElementById('pagination-container');
-    const totalPages = Math.ceil(totalProductsCount / PRODUCTS_PER_PAGE);
-    
-    paginationContainer.innerHTML = ''; 
-
-    if (totalProductsCount === 0 || totalPages === 1) {
-        return;
+    .product-list-item {
+        padding: 10px 12px;
     }
     
-    const paginationContent = document.createElement('div');
-    paginationContent.classList.add('pagination-content');
-    
-    const prevBtn = `<button id="prev-page-btn" class="secondary-btn" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button>`;
-    const nextBtn = `<button id="next-page-btn" class="secondary-btn" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
-    
-    let pageNumbers = '';
-    const maxButtons = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-    let endPage = Math.min(totalPages, currentPage + Math.floor(maxButtons / 2));
-
-    if (endPage - startPage + 1 < maxButtons) {
-        if (currentPage <= Math.floor(maxButtons / 2)) {
-            endPage = Math.min(totalPages, maxButtons);
-        } else if (currentPage > totalPages - Math.floor(maxButtons / 2)) {
-            startPage = Math.max(1, totalPages - maxButtons + 1);
-        }
+    .product-image-container {
+        width: 45px;
+        height: 60px;
+        margin-right: 10px;
     }
-
-
-    for (let i = startPage; i <= endPage; i++) {
-        const isActive = i === currentPage ? 'active' : '';
-        pageNumbers += `<button class="page-number-btn ${isActive}" data-page="${i}">${i}</button>`;
+    
+    .product-info-minimal .product-name-title {
+        font-size: 1.0em; 
     }
-
-    paginationContent.innerHTML = `
-        ${prevBtn}
-        ${pageNumbers}
-        ${nextBtn}
-        <span class="pagination-info">Página ${currentPage} de ${totalPages} (${totalProductsCount} productos)</span>
-    `;
-
-    paginationContainer.appendChild(paginationContent);
-}
-
-function renderProductsTable() {
-    const activeViewContainerId = currentFilter === 'active' ? 'active-products-list' : 'all-products-list';
-    const activeViewContainer = document.getElementById(activeViewContainerId);
     
-    const matchesFound = activeViewContainer.children.length;
-
-    const emptyMsgId = currentFilter === 'active' ? 'active-empty-msg' : 'all-empty-msg';
-    const otherEmptyMsgId = currentFilter === 'active' ? 'all-empty-msg' : 'active-empty-msg';
-    
-    document.getElementById(emptyMsgId).style.display = (matchesFound === 0) ? 'block' : 'none';
-    document.getElementById(otherEmptyMsgId).style.display = 'none'; 
-}
-
-
-function createProductCard(product) {
-    const card = document.createElement('div');
-    card.classList.add('product-list-item'); 
-    if (!product.is_active) {
-        card.classList.add('inactive');
+    .pagination-content {
+        flex-direction: row;
+        gap: 5px;
     }
-    card.dataset.id = product.id; 
-    
-    const imageUrl = product.image_url || 'https://via.placeholder.com/60x60?text=No+Img';
-    const categoryName = product.category_name || 'Sin Categoría';
-    const isActive = product.is_active;
-
-    card.innerHTML = `
-        <div class="product-image-container">
-            <img src="${imageUrl}" alt="${product.name}" loading="lazy">
-        </div>
-        <div class="product-info-minimal">
-            <h5 class="product-name-title">${product.name}</h5>
-            <p class="product-id">ID: ${product.id}</p>
-            <p class="product-category">Categoría: ${categoryName}</p>
-        </div>
-        <div class="product-status-price-container">
-             <span class="status-badge ${isActive ? 'active-badge' : 'inactive-badge'}">
-                ${isActive ? 'ACTIVO' : 'INACTIVO'}
-            </span>
-            <div class="product-price-minimal">
-                <span class="price">S/ ${product.price.toFixed(2)}</span>
-            </div>
-        </div>
-    `;
-
-    return card;
+    .pagination-info {
+        margin-left: 0;
+        margin-top: 5px;
+        width: 100%;
+    }
 }
-
-// Función de inicialización debe ser llamada al cargar el DOM
-document.addEventListener('DOMContentLoaded', initListProductsPage);
