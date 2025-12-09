@@ -9,12 +9,14 @@
 
 /* Variables de diseño */
 :root {
-    --primary-color: #000000; /* Negro (Para encabezado, footer, texto en fondo blanco) */
-    --secondary-color: #0d0d0d; /* Negro Muy Oscuro (Para la barra de navegación) */
+    --primary-color: #000000; /* Negro */
+    --secondary-color: #0d0d0d; /* Negro Muy Oscuro */
     --text-color: #333333; /* Gris oscuro para texto general */
     --background-color: #ffffff; /* Fondo BLANCO */
     --card-bg: #ffffff; /* Fondo de tarjetas BLANCO */
-    --font-family: sans-serif;
+    
+    /* CAMBIO: Actualizamos la fuente global */
+    --font-family: "Josefin Sans", sans-serif;
 }
 
 body {
@@ -35,17 +37,16 @@ button {
     border-radius: 4px;
     font-weight: bold;
     transition: background-color 0.3s;
+    font-family: var(--font-family); /* Aseguramos que los botones hereden la fuente */
 }
 
-/* --- NUEVO: Contenedor de Banners Superiores --- */
+/* --- Contenedor de Banners Superiores --- */
 #top-banners {
     width: 100%;
-    /* Altura de ejemplo. Esta debería ser ajustada en CSS específicos para banners, 
-       o en JS para carruseles, pero damos una base visual. */
     height: 350px; 
-    background-color: #e0e0e0; /* Fondo gris claro temporal */
+    background-color: #e0e0e0; 
     overflow: hidden;
-    margin-bottom: 30px; /* Separación del contenido principal */
+    margin-bottom: 30px; 
 }
 
 /* Contenido Principal */
@@ -61,7 +62,7 @@ button {
 #main-footer {
     text-align: center;
     padding: 15px 20px;
-    background-color: var(--primary-color); /* Negro */
+    background-color: var(--primary-color); 
     color: #fff;
     font-size: 0.9em;
 }
