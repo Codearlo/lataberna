@@ -46,7 +46,8 @@ export async function initProfilePage() {
         });
 
         // 2. Inicializar la barra de navegación inferior
-        // Le pasamos la ruta de un solo nivel para el fetch y el objeto de rutas de navegación
+        // RUTA CORREGIDA: Usamos dos puntos de subida para asegurar la carga del HTML.
+        // La ruta final es `src/admin/modules/bottom-nav/bottom-nav.html`
         initBottomNav(CURRENT_VIEW, '../modules/bottom-nav/bottom-nav.html', PROFILE_VIEW_ROUTES);
         
         // 3. Asegurar que el nav sea visible

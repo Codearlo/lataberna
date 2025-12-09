@@ -1,6 +1,6 @@
 // src/admin/products/add-product/add-product.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../../../../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
 /**
  * Sube un archivo de imagen al bucket de Supabase Storage.

@@ -45,7 +45,9 @@ export async function initListProductsPage() {
         attachEventListeners();
         
         // 2. Inicializar la navegación inferior
-        initBottomNav('products', '../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES);
+        // RUTA CORREGIDA: Usamos dos puntos de subida para evitar la interpretación errónea del servidor/navegador.
+        // La ruta final es `src/admin/modules/bottom-nav/bottom-nav.html`
+        initBottomNav('products', '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
         
         // 3. Cargar datos iniciales (Productos activos en la primera página)
         await loadProducts();
@@ -235,7 +237,7 @@ function renderPagination() {
     }
     
     // Botón Siguiente
-    paginationHTML += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente &raquo;</button>`;
+    paginationHTML += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente &raquo;o</button>`;
     
     // Información de productos
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;

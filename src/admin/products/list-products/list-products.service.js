@@ -1,6 +1,6 @@
 // src/admin/products/list-products/list-products.service.js
 
-import { supabase } from '../../../../config/supabaseClient.js'; 
+import { supabase } from '../../../config/supabaseClient.js'; 
 
 const TABLE_NAME = 'products';
 const SELECT_QUERY = 'id, name, price, is_active, image_url, categoria:categorias(nombre)';

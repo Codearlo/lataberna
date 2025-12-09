@@ -1,6 +1,6 @@
 // src/admin/products/edit-product/edit-product.service.js
 
-import { supabase, PRODUCTS_BUCKET } from '../../../../config/supabaseClient.js'; 
+import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
 // Importar funciones compartidas para reusabilidad
 import { getCategories, createCategory, uploadImage } from '../add-product/add-product.service.js';
