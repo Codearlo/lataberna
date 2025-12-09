@@ -3,19 +3,21 @@
 import { getCategories, createCategory, deleteCategory, getCategoryProductCount } from './categories.service.js';
 import { initToastNotification, showToast } from '../../public/modules/store/toast-notification/toast.js';
 
+// --- CONSTANTES ---
+// Icono SVG limpio (estilos controlados por CSS .folder-icon)
+const FOLDER_ICON_SVG = `<svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+
 let selectedCategories = new Set();
-let allCategoriesData = []; // Guardamos TODAS las categorías aquí para filtrar localmente
+let allCategoriesData = []; 
 
 async function initManageCategories() {
     initToastNotification();
-    await fetchCategories(); // Carga inicial
+    await fetchCategories(); 
 
-    // Referencias DOM
     const searchInput = document.getElementById('search-input');
     const openCreateBtn = document.getElementById('open-create-modal-btn');
     const deleteSelectedBtn = document.getElementById('delete-selected-btn');
 
-    // 1. Buscador en tiempo real
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         const filtered = allCategoriesData.filter(cat => 
@@ -24,10 +26,7 @@ async function initManageCategories() {
         renderCategoriesList(filtered);
     });
 
-    // 2. Abrir Modal Crear
     openCreateBtn.addEventListener('click', openCreateModal);
-
-    // 3. Eliminar Seleccionados
     deleteSelectedBtn.addEventListener('click', handleBulkDelete);
 }
 
@@ -38,7 +37,6 @@ async function fetchCategories() {
     
     try {
         allCategoriesData = await getCategories();
-        // Renderizamos la lista completa inicialmente
         renderCategoriesList(allCategoriesData);
     } catch (error) {
         console.error(error);
@@ -58,14 +56,14 @@ function renderCategoriesList(listToRender) {
     listToRender.forEach(cat => {
         const card = document.createElement('div');
         card.className = 'category-card';
-        // Si ya estaba seleccionada, mantenemos el estilo
         if (selectedCategories.has(cat.id)) {
             card.classList.add('selected');
         }
         
+        // Ahora usamos el SVG constante limpio
         card.innerHTML = `
             <span class="category-name">
-                <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                ${FOLDER_ICON_SVG}
                 ${cat.nombre}
             </span>
             <div class="custom-checkbox">
@@ -110,16 +108,14 @@ function openCreateModal() {
     const btnCancel = document.getElementById('btn-cancel-create');
     const btnConfirm = document.getElementById('btn-confirm-create');
 
-    input.value = ''; // Limpiar input anterior
+    input.value = ''; 
     modal.classList.add('visible');
-    input.focus(); // Enfocar input automáticamente
+    input.focus();
 
-    // Handlers para botones
     const close = () => {
         modal.classList.remove('visible');
         btnCancel.removeEventListener('click', close);
         btnConfirm.removeEventListener('click', save);
-        // Remover listener de Enter
         input.removeEventListener('keypress', handleEnter);
     };
 
@@ -137,10 +133,8 @@ function openCreateModal() {
             await createCategory(name);
             showToast(`✅ Categoría creada.`);
             
-            close(); // Cerrar modal
-            await fetchCategories(); // Recargar lista
-            
-            // Limpiar buscador si había algo
+            close(); 
+            await fetchCategories();
             document.getElementById('search-input').value = '';
 
         } catch (error) {
@@ -151,7 +145,6 @@ function openCreateModal() {
         }
     };
 
-    // Permitir guardar con Enter
     const handleEnter = (e) => {
         if (e.key === 'Enter') save();
     };
@@ -180,7 +173,7 @@ async function handleBulkDelete() {
         // 1. Clasificar
         for (const id of idsToDelete) {
             const category = allCategoriesData.find(c => c.id === id);
-            if (!category) continue; // Por seguridad
+            if (!category) continue; 
 
             const count = await getCategoryProductCount(id);
             
@@ -219,8 +212,7 @@ async function handleBulkDelete() {
 
         if (deletedCount > 0) {
             showToast(`✅ ${deletedCount} eliminadas.`);
-            selectedCategories.clear();
-            updateSelectionUI();
+            selectedCategories.clear(); 
         }
 
     } catch (error) {
@@ -229,19 +221,18 @@ async function handleBulkDelete() {
     } finally {
         if (btn) {
             btn.innerHTML = originalHTML;
-            btn.disabled = false;
         }
         await fetchCategories();
-        // Si el usuario tenía algo escrito en el buscador, lo reaplicamos visualmente
+        updateSelectionUI();
         const searchTerm = document.getElementById('search-input').value;
         if (searchTerm) {
-             // Disparar evento manualmente para refiltrar
              document.getElementById('search-input').dispatchEvent(new Event('input'));
         }
     }
 }
 
-// Modales Promesas
+// --- MODALES DINÁMICOS ---
+
 function showConflictModal(categoryName, count) {
     return new Promise((resolve) => {
         const modal = document.getElementById('conflict-modal-container');
@@ -250,7 +241,7 @@ function showConflictModal(categoryName, count) {
         const btnSkip = document.getElementById('btn-skip-conflict');
         const btnContinue = document.getElementById('btn-continue-conflict');
 
-        nameEl.textContent = categoryName;
+        nameEl.innerHTML = `${FOLDER_ICON_SVG} ${categoryName}`;
         countEl.textContent = count;
         modal.classList.add('visible');
 
@@ -274,7 +265,12 @@ function showBatchConfirmModal(namesList) {
         const btnCancel = document.getElementById('btn-cancel-batch');
         const btnConfirm = document.getElementById('btn-confirm-batch');
 
-        listEl.innerHTML = namesList.map(name => `<li>${name}</li>`).join('');
+        listEl.innerHTML = namesList.map(name => `
+            <li>
+                ${FOLDER_ICON_SVG} ${name}
+            </li>
+        `).join('');
+        
         modal.classList.add('visible');
 
         const cleanup = () => {

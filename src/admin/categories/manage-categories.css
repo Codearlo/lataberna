@@ -136,13 +136,16 @@ body {
     font-size: 1rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    /* Quitamos gap aquí porque el icono ya tiene margin-right */
 }
 
+/* ESTILO DEL ICONO DE CARPETA (Unificado) */
 .folder-icon {
     color: #FFC107;
     width: 20px;
     height: 20px;
+    margin-right: 8px; /* Espacio uniforme */
+    vertical-align: middle;
 }
 
 .custom-checkbox {
@@ -261,14 +264,31 @@ body {
     text-align: center;
 }
 
+/* Estilo del título del modal y su icono */
 .modal-content h4 {
     margin-top: 0;
-    color: #dc3545;
+    color: #dc3545; /* Rojo por defecto (Delete) */
     margin-bottom: 10px;
     font-size: 1.2rem;
+    
+    /* Flex para alinear icono y texto perfectamente al centro */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* NUEVO: Lista dentro del modal */
+/* Icono en el título del modal un poco más grande */
+.modal-content h4 .folder-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Sobrescribimos el color rojo solo para el modal de Crear Categoría */
+#create-modal-container h4 {
+    color: #343a40; /* Negro normal */
+}
+
+/* Lista dentro del modal */
 .modal-list {
     list-style: none;
     padding: 0;
@@ -286,6 +306,8 @@ body {
     border-bottom: 1px solid #e9ecef;
     font-size: 0.95em;
     color: #343a40;
+    display: flex;
+    align-items: center; /* Alinear icono en la lista */
 }
 .modal-list li:last-child {
     border-bottom: none;
