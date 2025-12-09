@@ -11,6 +11,36 @@
 </head>
 <body>
     
+    <div id="conflict-modal-container" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="modal-content delete-modal">
+            <h4>⚠️ Conflicto Detectado</h4>
+            <p>La categoría <strong id="conflict-cat-name"></strong> tiene <strong id="conflict-prod-count"></strong> productos.</p>
+            <p style="font-size: 0.9em; color: #6c757d; margin-bottom: 20px;">
+                Esta categoría no está vacía. ¿Qué deseas hacer?
+            </p>
+            <div class="modal-actions">
+                <button id="btn-skip-conflict" class="btn-cancel">Omitir</button>
+                <button id="btn-continue-conflict" class="btn-confirm-delete">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="batch-confirm-modal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="modal-content delete-modal">
+            <h4>🗑️ Confirmar Eliminación</h4>
+            <p>Las siguientes categorías están vacías. ¿Estás seguro de borrarlas?</p>
+            
+            <ul id="batch-cat-list" class="modal-list"></ul>
+
+            <div class="modal-actions">
+                <button id="btn-cancel-batch" class="btn-cancel">Cancelar</button>
+                <button id="btn-confirm-batch" class="btn-confirm-delete">Borrar Todo</button>
+            </div>
+        </div>
+    </div>
+
     <header class="page-header-bar">
         <button type="button" class="back-btn" onclick="history.back()" aria-label="Volver">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
@@ -22,16 +52,22 @@
         
         <div class="search-create-container">
             <div class="search-input-wrapper">
-                <input type="text" id="category-search-input" class="search-input" placeholder="Buscar o crear categoría..." autocomplete="off">
+                <input type="text" id="new-category-input" class="search-input" placeholder="Nombre nueva categoría..." autocomplete="off">
             </div>
             <button id="add-category-btn" class="add-btn" aria-label="Crear Categoría">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
         </div>
+        
+        <div class="list-instructions" style="font-size: 0.85em; color: #6c757d; margin-bottom: 10px;">
+            Toca una categoría para seleccionarla.
+        </div>
 
         <div id="categories-list-container" class="category-list">
             <div class="empty-state">Cargando...</div>
         </div>
+        
+        <div style="height: 60px;"></div>
 
     </main>
 
