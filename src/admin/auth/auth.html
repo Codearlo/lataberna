@@ -41,13 +41,13 @@
     <script type="module">
         import { handleLoginSubmit, getSession } from './auth.js';
 
-        // 1. Si ya estamos logueados, nos vamos directo al admin
+        // 1. Verificar sesión: Si ya estás logueado, te envía a productos
         const session = await getSession();
         if (session) {
             window.location.href = '../products/list-products/list-products.html';
         }
 
-        // 2. Si no, esperamos a que el usuario haga submit
+        // 2. Conectar el formulario
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => handleLoginSubmit(e));

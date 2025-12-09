@@ -1,6 +1,7 @@
 // src/admin/products/list-products/list-products.js
 
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
+// CORRECCIÓN: Solo importamos getSession
 import { getSession } from '../../auth/auth.js'; 
 import { getFilteredProductsPaged } from './list-products.service.js';
 
@@ -35,7 +36,7 @@ export async function initListProductsPage() {
 
     if (!session) {
         // --- CORRECCIÓN CRÍTICA ---
-        // Redirección REAL a la página de autenticación
+        // Redirección REAL a la página de autenticación si no hay sesión
         window.location.href = '../../auth/auth.html';
         return;
     }

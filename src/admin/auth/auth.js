@@ -2,9 +2,6 @@
 
 import { supabase } from '../../config/supabaseClient.js'; 
 
-// Ya no usamos rutas para inyección HTML
-// const LOGIN_FORM_HTML_PATH = ... (ELIMINADO)
-
 /**
  * Maneja el envío del formulario de login.
  * Esta función es llamada por el script dentro de auth.html
@@ -35,7 +32,7 @@ export async function handleLoginSubmit(e, onAuthSuccess) {
             onAuthSuccess();
         } else {
             // Redirigir a la lista de productos
-            // Usamos ruta absoluta desde la raíz del servidor para evitar problemas
+            // Usamos ruta absoluta desde la raíz para evitar errores
             window.location.href = '/src/admin/products/list-products/list-products.html'; 
         }
 
@@ -64,6 +61,6 @@ export async function getSession() {
  */
 export async function logout() {
     await supabase.auth.signOut();
-    // Redirigir a auth.html
+    // Redirigir a auth.html usando ruta absoluta
     window.location.href = '/src/admin/auth/auth.html'; 
 }

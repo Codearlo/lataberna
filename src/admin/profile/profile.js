@@ -1,6 +1,7 @@
 // src/admin/profile/profile.js
 
 import { initBottomNav } from '../modules/bottom-nav/bottom-nav.js';
+// CORRECCIÓN: Solo importamos getSession, YA NO initAuthForm
 import { getSession } from '../auth/auth.js'; 
 import { ProfileAdminService } from './profile.service.js';
 
@@ -23,7 +24,8 @@ export async function initProfilePage() {
 
     if (!session) {
         // --- CORRECCIÓN CRÍTICA ---
-        // En lugar de inyectar el formulario, redirigimos TOTALMENTE a la página de login.
+        // Si no hay sesión, REDIRIGIMOS (navegamos) a la página de login.
+        // No inyectamos nada.
         window.location.href = '../auth/auth.html'; 
         return; 
     }
@@ -40,7 +42,6 @@ export async function initProfilePage() {
         const logoutBtn = document.getElementById('profile-logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                // Feedback visual
                 logoutBtn.textContent = 'Cerrando...';
                 ProfileAdminService.handleLogout();
             });
