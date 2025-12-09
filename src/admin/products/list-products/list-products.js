@@ -30,6 +30,13 @@ const PAGINATION_CONTAINER_ID = 'pagination-container';
  * Inicializa la página de gestión de productos.
  */
 export async function initListProductsPage() {
+    // FIX DEFINITIVO: Usa un flag global para asegurar que la inicialización
+    // solo corra una vez, incluso si el script se carga dos veces.
+    if (window.listProductsInitialized) {
+        return;
+    }
+    window.listProductsInitialized = true;
+    
     const session = await getSession();
     const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
 
@@ -128,7 +135,7 @@ function updateActiveView(filter) {
         activeGrid.classList.add('active-view');
     }
     
-    // FIX SINTAXIS: Reemplazar el optional chaining con verificación 'if'
+    // Uso de verificación if
     const activeMsg = document.getElementById(`active-empty-msg`);
     if (activeMsg) activeMsg.style.display = 'none';
     const allMsg = document.getElementById(`all-empty-msg`);
@@ -154,17 +161,18 @@ async function loadProducts() {
     // Mostrar spinner de carga de la muestra del usuario
     listContainer.innerHTML = `<div class="u-flex-center" style="padding:40px"><div class="spin" style="width:24px;height:24px;border:2px solid #FFC107;border-top-color:transparent;border-radius:50%"></div></div>`;
     
-    // Mantenemos la verificación 'if' para asegurar compatibilidad
     if (emptyMsgElement) emptyMsgElement.style.display = 'none'; 
 
     try {
-        // Usamos currentFilter directamente ('active' o 'all')
+        // 1. Fetch de productos
         const { products, totalCount } = await getFilteredProductsPaged({
             searchTerm: currentSearchTerm,
             filterBy: currentFilter,
             itemsPerPage: ITEMS_PER_PAGE,
             pageNumber: currentPage
         });
+        
+        // La deduplicación se eliminó aquí. Si la bandera funciona, no se necesita.
         
         totalProducts = totalCount;
 
@@ -175,7 +183,7 @@ async function loadProducts() {
                 emptyMsgElement.style.display = 'block';
             }
         } else {
-            // Renderizar productos
+            // 2. Renderizar productos
             listContainer.innerHTML = '';
             products.forEach(product => {
                 listContainer.appendChild(renderProductCard(product));
@@ -292,5 +300,5 @@ function renderPagination() {
 }
 
 
-// Iniciar al cargar el DOM
-document.addEventListener('DOMContentLoaded', initListProductsPage);
+// FIX: Se elimina el listener de DOMContentLoaded para evitar doble ejecución
+initListProductsPage();
