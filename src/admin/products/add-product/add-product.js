@@ -6,7 +6,7 @@ import {
     createCategory, 
     uploadImage, 
     createProduct 
-} from './add-product.service.js'; 
+} from './add-product.services.js'; 
 
 let categoriesList = [];
 
