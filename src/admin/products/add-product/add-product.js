@@ -10,8 +10,8 @@ import {
 import { initToastNotification, showToast } from '../../../public/modules/store/toast-notification/toast.js';
 
 let categoriesList = [];
-let processedImageFile = null; // Guardará el archivo .webp final
-let cropper = null; // Instancia de CropperJS
+let processedImageFile = null; 
+let cropper = null; 
 
 export async function initAddProduct(containerId) {
     console.log("Iniciando Add Product..."); 
@@ -30,11 +30,9 @@ function attachEventListeners() {
     const form = document.getElementById('product-form');
     if (form) form.addEventListener('submit', handleFormSubmit);
     
-    // Al seleccionar archivo -> Abrir Modal de Recorte
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
 
-    // Clic en la caja dispara el input file
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) {
         imageBox.addEventListener('click', (e) => {
@@ -46,11 +44,9 @@ function attachEventListeners() {
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
     
-    // Botones del Modal de Recorte
     document.getElementById('btn-confirm-crop').addEventListener('click', cropAndSave);
     document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
 
-    // Buscador Categorías
     setupCategorySearch();
 }
 
@@ -80,7 +76,7 @@ function setupCategorySearch() {
     }
 }
 
-// --- GESTIÓN DE IMAGEN Y CROPPER ---
+// --- GESTIÓN DE IMAGEN, CROPPER Y FONDO BLANCO ---
 
 function handleImageSelection(e) {
     const file = e.target.files[0];
@@ -88,31 +84,30 @@ function handleImageSelection(e) {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-        // 1. Poner la imagen en el modal
         const imageElement = document.getElementById('image-to-crop');
         imageElement.src = event.target.result;
         
-        // 2. Mostrar el modal
+        // Resetear checkbox de fondo
+        document.getElementById('remove-bg-check').checked = false;
+
         const modal = document.getElementById('crop-modal');
         modal.classList.add('visible');
 
-        // 3. Destruir cropper previo si existe e iniciar uno nuevo
         if (cropper) {
             cropper.destroy();
         }
         
         cropper = new Cropper(imageElement, {
-            aspectRatio: 1, // CUADRADO PERFECTO
-            viewMode: 1,    // Restringir recorte dentro de la imagen
+            aspectRatio: 1, 
+            viewMode: 1,    
             autoCropArea: 0.8,
             movable: true,
             zoomable: true,
-            scalable: false
+            scalable: false,
+            background: false // Importante para ver transparencia si la hubiera
         });
     };
     reader.readAsDataURL(file);
-    
-    // Limpiar el input para permitir seleccionar la misma imagen si se cancela
     e.target.value = ''; 
 }
 
@@ -120,22 +115,34 @@ function cropAndSave() {
     if (!cropper) return;
 
     // 1. Obtener el canvas recortado
-    const canvas = cropper.getCroppedCanvas({
-        width: 800,  // Redimensionar a un tamaño razonable para web
-        height: 800
+    let canvas = cropper.getCroppedCanvas({
+        width: 800, 
+        height: 800,
+        fillColor: '#fff' // Por defecto llenar con blanco si hay huecos
     });
 
-    // 2. Convertir a WebP
+    // 2. Verificar si se pidió quitar el fondo
+    const removeBg = document.getElementById('remove-bg-check').checked;
+    
+    if (removeBg) {
+        // Si vamos a quitar el fondo, regeneramos el canvas SIN fillColor para tener base transparente
+        canvas = cropper.getCroppedCanvas({
+            width: 800, 
+            height: 800
+        });
+        // Aplicar el filtro de eliminación de blanco
+        canvas = removeWhiteBackground(canvas);
+    }
+
+    // 3. Convertir a WebP
     canvas.toBlob((blob) => {
         if (!blob) {
-            showToast("❌ Error al recortar imagen");
+            showToast("❌ Error al procesar imagen");
             return;
         }
 
-        // Crear archivo para enviar
         processedImageFile = new File([blob], "imagen_producto.webp", { type: 'image/webp' });
 
-        // 3. Mostrar preview en el formulario
         const previewContainer = document.getElementById('image-preview');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
         const previewUrl = URL.createObjectURL(processedImageFile);
@@ -146,14 +153,46 @@ function cropAndSave() {
         img.style.width = '100%';
         img.style.height = '100%';
         img.style.objectFit = 'contain';
+        // Añadir un fondo de cuadrícula gris suave para ver la transparencia
+        img.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
+        img.style.backgroundSize = '20px 20px';
+        img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+        
         previewContainer.appendChild(img);
 
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
 
-        showToast("✂️ Imagen recortada lista!");
+        const msg = removeBg ? "✂️ Recortado y fondo eliminado!" : "✂️ Imagen recortada lista!";
+        showToast(msg);
         closeCropModal();
 
-    }, 'image/webp', 0.85); // Calidad WebP 85%
+    }, 'image/webp', 0.85); 
+}
+
+/**
+ * Recorre los píxeles del canvas y vuelve transparentes los que son blancos o casi blancos.
+ */
+function removeWhiteBackground(originalCanvas) {
+    const ctx = originalCanvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
+    const data = imageData.data;
+    
+    // Umbral de "blancura" (0-255). 230 es bastante permisivo.
+    const threshold = 230; 
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        // Si los tres canales son muy altos, es blanco (o gris muy claro)
+        if (r > threshold && g > threshold && b > threshold) {
+            data[i + 3] = 0; // Alpha a 0 (Totalmente transparente)
+        }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    return originalCanvas;
 }
 
 function closeCropModal() {
@@ -190,7 +229,6 @@ async function handleFormSubmit(e) {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Subiendo...';
 
-        // Subir la imagen procesada
         const imageUrl = await uploadImage(processedImageFile);
         
         const productData = {

@@ -103,7 +103,7 @@
             <div class="input-card switch-card">
                 <div class="switch-label-group">
                     <div class="input-icon-wrapper icon-grey">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
                     </div>
                     <span class="switch-text" id="status-text">Producto Activo</span>
                 </div>
@@ -129,15 +129,22 @@
     <div id="crop-modal" class="modal-container">
         <div class="modal-overlay"></div>
         <div class="modal-content crop-modal-content">
-            <h4 style="margin-bottom: 15px;">✂️ Recortar Imagen</h4>
+            <h4 style="margin-bottom: 10px;">✂️ Recortar Imagen</h4>
             
             <div class="crop-image-container">
                 <img id="image-to-crop" src="" alt="Imagen para recortar">
             </div>
+            
+             <div class="magic-wand-option" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                <label for="remove-bg-check" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em; font-weight: 600; color: #343a40;">
+                    <input type="checkbox" id="remove-bg-check" style="width: 18px; height: 18px; accent-color: #FFC107;">
+                    🪄 Quitar fondo blanco
+                </label>
+            </div>
 
             <div class="modal-actions">
                 <button type="button" id="btn-cancel-crop" class="btn-cancel">Cancelar</button>
-                <button type="button" id="btn-confirm-crop" class="btn-confirm-delete" style="background-color: #28a745; color: white;">Recortar & Guardar</button>
+                <button type="button" id="btn-confirm-crop" class="btn-confirm-delete" style="background-color: #28a745; color: white;">Confirmar</button>
             </div>
         </div>
     </div>

@@ -17,7 +17,7 @@ let productId = null;
 let currentProduct = null;
 
 // Variables para el recorte
-let processedImageFile = null; // Guardará la imagen recortada (WebP) si se cambia
+let processedImageFile = null; 
 let cropper = null; 
 
 // --- Funciones de Control del Modal de Eliminación ---
@@ -45,7 +45,6 @@ export async function initEditProduct(containerId) {
     productId = getProductIdFromUrl();
     const container = document.getElementById(containerId);
     
-    // Inicializar Toast
     initToastNotification();
 
     if (!productId) {
@@ -54,10 +53,10 @@ export async function initEditProduct(containerId) {
     }
     
     try {
-        await loadCategories(); // Carga las categorías para el buscador
-        await loadProductData(parseInt(productId)); // Carga datos y rellena inputs
+        await loadCategories(); 
+        await loadProductData(parseInt(productId)); 
         attachEventListeners();
-        setupSwitch(); // Configura el texto del switch
+        setupSwitch(); 
         
     } catch (error) {
         console.error("Error al inicializar la edición:", error);
@@ -69,11 +68,9 @@ function attachEventListeners() {
     const form = document.getElementById('product-form');
     if (form) form.addEventListener('submit', handleFormSubmit);
     
-    // Preview de imagen (Ahora dispara el proceso de recorte)
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
     
-    // Click en la caja de imagen dispara el input
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) {
         imageBox.addEventListener('click', (e) => {
@@ -82,16 +79,13 @@ function attachEventListeners() {
         });
     }
 
-    // Botones de acción
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
     document.getElementById('delete-product-btn').addEventListener('click', openDeleteModal);
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
     
-    // Botones del Modal de Recorte
     document.getElementById('btn-confirm-crop').addEventListener('click', cropAndSave);
     document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
 
-    // --- LÓGICA DEL BUSCADOR DE CATEGORÍAS ---
     const dropdownContainer = document.getElementById('category-dropdown');
     const searchInput = document.getElementById('category_search');
     
@@ -119,8 +113,6 @@ function attachEventListeners() {
     }
 }
 
-// --- Lógica de Carga y Llenado ---
-
 async function loadProductData(id) {
     const product = await getProductById(id);
 
@@ -130,21 +122,17 @@ async function loadProductData(id) {
     
     currentProduct = product;
     
-    // Llenar inputs
     document.getElementById('product-id').value = product.id;
     document.getElementById('name').value = product.name;
     document.getElementById('price').value = product.price;
     document.getElementById('is_active').checked = product.is_active;
     document.getElementById('current_image_url').value = product.image_url || '';
     
-    // Llenar Categoría
     document.getElementById('category_id').value = product.categoria_id;
     document.getElementById('category_search').value = product.category || ''; 
 
-    // Mostrar imagen actual (desde URL)
     renderImagePreview(product.image_url);
     
-    // Actualizar texto del switch
     const statusText = document.getElementById('status-text');
     if(statusText) {
         statusText.textContent = product.is_active ? 'Producto Activo' : 'Producto Inactivo';
@@ -152,7 +140,6 @@ async function loadProductData(id) {
     }
 }
 
-// Función auxiliar para renderizar el preview
 function renderImagePreview(url) {
     const previewContainer = document.getElementById('image-preview');
     const uploadPlaceholder = document.getElementById('upload-placeholder');
@@ -163,10 +150,14 @@ function renderImagePreview(url) {
         const img = document.createElement('img');
         img.src = url;
         img.alt = 'Preview';
-        // Estilos inline para asegurar que se vea bien
         img.style.width = '100%';
         img.style.height = '100%';
         img.style.objectFit = 'contain';
+        // Fondo de cuadrícula para ver transparencia
+        img.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
+        img.style.backgroundSize = '20px 20px';
+        img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+
         previewContainer.appendChild(img);
         
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
@@ -175,7 +166,7 @@ function renderImagePreview(url) {
     }
 }
 
-// --- GESTIÓN DE IMAGEN Y CROPPER (Recorte) ---
+// --- GESTIÓN DE IMAGEN, CROPPER Y FONDO BLANCO ---
 
 function handleImageSelection(e) {
     const file = e.target.files[0];
@@ -183,60 +174,94 @@ function handleImageSelection(e) {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-        // 1. Poner la imagen en el modal
         const imageElement = document.getElementById('image-to-crop');
         imageElement.src = event.target.result;
         
-        // 2. Mostrar el modal
+        document.getElementById('remove-bg-check').checked = false;
+
         const modal = document.getElementById('crop-modal');
         modal.classList.add('visible');
 
-        // 3. Destruir cropper previo si existe e iniciar uno nuevo
         if (cropper) {
             cropper.destroy();
         }
         
         cropper = new Cropper(imageElement, {
-            aspectRatio: 1, // CUADRADO PERFECTO
+            aspectRatio: 1, 
             viewMode: 1,
             autoCropArea: 0.8,
             movable: true,
             zoomable: true,
-            scalable: false
+            scalable: false,
+            background: false 
         });
     };
     reader.readAsDataURL(file);
-    
-    e.target.value = ''; // Limpiar input para permitir re-selección
+    e.target.value = ''; 
 }
 
 function cropAndSave() {
     if (!cropper) return;
 
-    // 1. Obtener el canvas recortado
-    const canvas = cropper.getCroppedCanvas({
+    // 1. Obtener el canvas
+    let canvas = cropper.getCroppedCanvas({
         width: 800,
-        height: 800
+        height: 800,
+        fillColor: '#fff' // Default blanco
     });
 
-    // 2. Convertir a WebP
+    // 2. Verificar eliminación de fondo
+    const removeBg = document.getElementById('remove-bg-check').checked;
+    
+    if (removeBg) {
+        // Regenerar sin fondo base
+        canvas = cropper.getCroppedCanvas({
+            width: 800, 
+            height: 800
+        });
+        canvas = removeWhiteBackground(canvas);
+    }
+
+    // 3. Convertir a WebP
     canvas.toBlob((blob) => {
         if (!blob) {
             showToast("❌ Error al recortar imagen");
             return;
         }
 
-        // Crear archivo en memoria para enviar luego
         processedImageFile = new File([blob], "edit_image.webp", { type: 'image/webp' });
 
-        // 3. Mostrar preview en el formulario
         const previewUrl = URL.createObjectURL(processedImageFile);
         renderImagePreview(previewUrl);
 
-        showToast("✂️ Nueva imagen lista para actualizar!");
+        const msg = removeBg ? "✂️ Recortado y fondo eliminado!" : "✂️ Imagen lista!";
+        showToast(msg);
         closeCropModal();
 
-    }, 'image/webp', 0.85); // Calidad 85%
+    }, 'image/webp', 0.85); 
+}
+
+/**
+ * Función que hace transparente lo blanco
+ */
+function removeWhiteBackground(originalCanvas) {
+    const ctx = originalCanvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
+    const data = imageData.data;
+    const threshold = 230; 
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        if (r > threshold && g > threshold && b > threshold) {
+            data[i + 3] = 0; 
+        }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    return originalCanvas;
 }
 
 function closeCropModal() {
@@ -273,12 +298,10 @@ async function handleFormSubmit(e) {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Actualizando...';
 
-        // Si hay una nueva imagen procesada por el usuario
+        // Si hay una nueva imagen procesada
         if (processedImageFile) {
-            // Subir nueva imagen
             imageUrl = await uploadImage(processedImageFile);
             
-            // Borrar la vieja si es diferente y existe
             if (currentImageUrl && currentImageUrl !== imageUrl) {
                 await deleteImage(currentImageUrl);
             }
@@ -334,8 +357,6 @@ async function confirmDelete() {
         closeDeleteModal();
     }
 }
-
-// --- Funciones de Utilidad (Categorías) ---
 
 async function loadCategories() {
     try {
