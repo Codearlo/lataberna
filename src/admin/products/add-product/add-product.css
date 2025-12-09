@@ -1,11 +1,5 @@
 /* src/admin/products/add-product/add-product.css */
 
-/* Variables de color de La Taberna:
-   Dorado: #FFC107
-   Gris Oscuro (Texto): #343a40
-   Gris Muted: #6c757d
-*/
-
 /* --- ESTILOS BASE --- */
 body {
     background-color: #ffffff;
@@ -18,7 +12,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Oculta las etiquetas de formulario antiguas */
 .product-form .form-group label {
     display: none !important;
 }
@@ -30,7 +23,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 15px 20px;
-    background-color: var(--primary-color, #000000); /* Negro */
+    background-color: var(--primary-color, #000000); 
     color: #fff;
     z-index: 100;
     position: sticky;
@@ -108,7 +101,7 @@ body {
 }
 
 .image-preview-box:hover {
-    background-color: #fff3cd50; /* Dorado muy claro transparente */
+    background-color: #fff3cd50; 
     border-color: #FFC107;
 }
 
@@ -173,12 +166,12 @@ body {
     transition: border-color 0.2s, box-shadow 0.2s;
     position: relative;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    overflow: visible; /* IMPORTANTE para el dropdown */
+    overflow: visible; 
 }
 
 .input-card:focus-within, .input-card.active-dropdown {
     border-color: #FFC107;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1); /* Resplandor dorado suave */
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1); 
 }
 
 .input-icon-wrapper {
@@ -210,10 +203,10 @@ body {
 }
 .clean-input::placeholder { color: #6c757d; }
 
-/* --- CUSTOM DROPDOWN (ESTILO BLANCO/CLEAN) --- */
+/* --- CUSTOM DROPDOWN --- */
 
 .custom-dropdown-container {
-    cursor: pointer;
+    cursor: text; /* Cambiamos el cursor para indicar escritura */
     z-index: 50; 
 }
 
@@ -222,18 +215,23 @@ body {
     display: flex;
     align-items: center;
     height: 100%;
-    color: #343a40;
-    font-size: 1rem;
-    font-weight: 500;
+    position: relative;
 }
 
-#dropdown-text {
+/* ESTILO DEL INPUT BUSCADOR */
+.dropdown-search-input {
     width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #343a40;
+    font-family: inherit;
+    outline: none;
+    padding: 0;
 }
-#dropdown-text.placeholder {
+
+.dropdown-search-input::placeholder {
     color: #6c757d;
     font-weight: normal;
 }
@@ -243,24 +241,23 @@ body {
     color: #6c757d;
     flex-shrink: 0;
     transition: transform 0.3s;
+    pointer-events: none; /* Dejamos que el clic pase al contenedor */
 }
 
 .active-dropdown .chevron-down {
     transform: rotate(180deg);
 }
 
-/* La lista desplegable flotante (BLANCA) */
 .dropdown-options {
     position: absolute;
     top: calc(100% + 8px); 
     left: 0;
     width: 100%;
     
-    /* ESTILO CLEAN */
-    background-color: #ffffff; /* Fondo Blanco */
-    border: 1px solid #e9ecef; /* Borde gris suave */
+    background-color: #ffffff; 
+    border: 1px solid #e9ecef;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* Sombra suave y elegante */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
     
     list-style: none;
     padding: 6px; 
@@ -276,7 +273,6 @@ body {
     animation: dropdownSlideIn 0.2s ease forwards;
 }
 
-/* Borde dorado si el dropdown está activo */
 .active-dropdown .dropdown-options {
     display: block;
     border-color: #FFC107;
@@ -289,7 +285,7 @@ body {
 
 .dropdown-item {
     padding: 12px 16px;
-    color: #343a40; /* Texto oscuro */
+    color: #343a40; 
     font-size: 0.95rem;
     font-weight: 500;
     border-radius: 8px;
@@ -303,12 +299,12 @@ body {
 }
 
 .dropdown-item:hover {
-    background-color: #fff9db; /* Fondo amarillo muy pálido */
-    color: #d9a406; /* Dorado oscuro para buen contraste */
+    background-color: #fff9db; 
+    color: #d9a406; 
     font-weight: 600;
 }
 
-/* Scrollbar personalizado para fondo blanco */
+/* Scrollbar */
 .dropdown-options::-webkit-scrollbar {
     width: 6px;
 }
@@ -317,17 +313,17 @@ body {
     border-radius: 0 12px 12px 0;
 }
 .dropdown-options::-webkit-scrollbar-thumb {
-    background: #ced4da; /* Gris */
+    background: #ced4da;
     border-radius: 3px;
 }
 .dropdown-options::-webkit-scrollbar-thumb:hover {
-    background: #FFC107; /* Dorado al hover */
+    background: #FFC107;
 }
 
 /* --- FIN DROPDOWN --- */
 
 
-/* Input de Crear Categoría */
+/* Input Crear Categoría */
 .input-with-button-card {
     height: auto;
     padding: 8px 12px;
@@ -350,22 +346,19 @@ body {
     background-color: #e0a800;
 }
 
-/* --- SWITCH (Estado) --- */
+/* --- SWITCH --- */
 .switch-card {
     justify-content: space-between;
 }
-
 .switch-label-group {
     display: flex;
     align-items: center;
     gap: 12px;
 }
-
 .switch-text {
     font-weight: 600;
     font-size: 0.95rem;
 }
-
 .switch {
     position: relative;
     display: inline-block;
@@ -373,9 +366,7 @@ body {
     height: 28px;
     flex-shrink: 0;
 }
-
 .switch input { opacity: 0; width: 0; height: 0; }
-
 .slider {
     position: absolute;
     cursor: pointer;
@@ -384,7 +375,6 @@ body {
     transition: .4s;
     border-radius: 34px;
 }
-
 .slider:before {
     position: absolute;
     content: "";
@@ -397,11 +387,9 @@ body {
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-
 input:checked + .slider {
     background-color: #28a745;
 }
-
 input:checked + .slider:before {
     transform: translateX(22px);
 }
@@ -438,7 +426,6 @@ input:checked + .slider:before {
     color: #343a40;
     box-shadow: 0 4px 15px rgba(255, 193, 7, 0.25);
 }
-
 .action-btn--primary:hover {
     background-color: #e0a800;
 }

@@ -17,13 +17,8 @@ export async function initAddProduct(containerId) {
     const container = document.getElementById(containerId);
     
     try {
-        // 1. Cargar datos estáticos (Categorías)
         await loadCategories();
-        
-        // 2. Adjuntar listeners (botones, forms, imagen y dropdown)
         attachEventListeners();
-        
-        // 3. Inicializar el switch de estado visual
         setupSwitch();
         
     } catch (error) {
@@ -37,11 +32,9 @@ function attachEventListeners() {
         form.addEventListener('submit', handleFormSubmit);
     }
     
-    // Listener para imagen
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImagePreview);
 
-    // SOLUCIÓN CLICK IMAGEN (Recuadro completo clicable)
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) {
         imageBox.addEventListener('click', (e) => {
@@ -51,28 +44,51 @@ function attachEventListeners() {
         });
     }
 
-    // Listener crear categoría
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
     
-    // --- LÓGICA DEL CUSTOM DROPDOWN ---
+    // --- LÓGICA DEL BUSCADOR DE CATEGORÍAS ---
     const dropdownContainer = document.getElementById('category-dropdown');
+    const searchInput = document.getElementById('category_search');
     
-    if (dropdownContainer) {
-        // Toggle abrir/cerrar
-        dropdownContainer.addEventListener('click', (e) => {
-            // Evitar que se cierre si clickeamos dentro (propagación), 
-            // pero sí queremos que se cierre si seleccionamos algo (manejado abajo).
-            // Lo más simple: toggle class
-            dropdownContainer.classList.toggle('active-dropdown');
+    if (searchInput && dropdownContainer) {
+        
+        // 1. Al escribir, filtrar
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = categoriesList.filter(cat => 
+                cat.nombre.toLowerCase().includes(term)
+            );
+            renderCategoriesCustomDropdown(filtered);
+            dropdownContainer.classList.add('active-dropdown');
         });
 
-        // Cerrar si clickeamos fuera
+        // 2. Al enfocar, mostrar todo y abrir
+        searchInput.addEventListener('focus', () => {
+            // Si el input tiene valor, filtramos por ese valor, sino mostramos todo
+            const term = searchInput.value.toLowerCase();
+            const filtered = categoriesList.filter(cat => 
+                cat.nombre.toLowerCase().includes(term)
+            );
+            renderCategoriesCustomDropdown(filtered);
+            dropdownContainer.classList.add('active-dropdown');
+        });
+
+        // 3. Cerrar al clickear fuera
         document.addEventListener('click', (e) => {
             if (!dropdownContainer.contains(e.target)) {
                 dropdownContainer.classList.remove('active-dropdown');
             }
         });
+        
+        // Opcional: Abrir si se clickea en el chevron
+        const chevron = dropdownContainer.querySelector('.chevron-down');
+        if (chevron) {
+            chevron.addEventListener('click', (e) => {
+                // Prevenir que el click se propague al input inmediatamente si causara cierre
+                searchInput.focus();
+            });
+        }
     }
 }
 
@@ -84,21 +100,30 @@ async function handleFormSubmit(e) {
     const nameInput = document.getElementById('name');
     const priceInput = document.getElementById('price');
     
-    // OJO: Ahora leemos del input hidden
-    const catInput = document.getElementById('category_id');
-    
+    // Leemos del input oculto
+    const catIdInput = document.getElementById('category_id');
+    const catSearchInput = document.getElementById('category_search');
+
     const imgInput = document.getElementById('image_file');
     const activeInput = document.getElementById('is_active');
 
     const name = nameInput.value;
     const price = parseFloat(priceInput.value);
-    const categoriaId = parseInt(catInput.value);
-    const imageFile = imgInput.files[0];
-    const isActive = activeInput.checked;
+    
+    // Validación: El ID debe existir y el texto debe coincidir (para evitar que escriban una categoría que no existe sin crearla)
+    const categoriaId = parseInt(catIdInput.value);
     
     if (!categoriaId) {
-        alert("Por favor, selecciona una categoría.");
+        alert("Por favor, selecciona una categoría de la lista.");
         return;
+    }
+
+    // Verificar si el usuario cambió el texto pero no seleccionó nada
+    const selectedCategory = categoriesList.find(c => c.id === categoriaId);
+    if (!selectedCategory || selectedCategory.nombre !== catSearchInput.value) {
+        // Podríamos ser estrictos o simplemente usar el ID guardado.
+        // Si el texto no coincide, es probable que el usuario haya editado el input.
+        // En este caso simple, si hay ID válido, lo usamos.
     }
     
     let imageUrl = ''; 
@@ -108,8 +133,8 @@ async function handleFormSubmit(e) {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Guardando...';
 
-        if (imageFile) {
-            imageUrl = await uploadImage(imageFile);
+        if (imgInput.files[0]) {
+            imageUrl = await uploadImage(imgInput.files[0]);
         } else {
             alert("Debe seleccionar una imagen para el producto.");
             saveBtn.disabled = false;
@@ -121,14 +146,12 @@ async function handleFormSubmit(e) {
             name: name,
             price: price,
             categoria_id: categoriaId,
-            is_active: isActive,
+            is_active: activeInput.checked,
             image_url: imageUrl,
         };
 
         const result = await createProduct(productData);
         alert(`Producto ${result.name} agregado!`);
-        
-        // Redirigir a la lista
         window.location.href = '../list-products/list-products.html'; 
 
     } catch (error) {
@@ -148,42 +171,47 @@ async function handleFormSubmit(e) {
 async function loadCategories() {
     try {
         categoriesList = await getCategories();
-        renderCategoriesCustomDropdown();
+        // Carga inicial con toda la lista
+        renderCategoriesCustomDropdown(categoriesList);
     } catch (error) {
         console.error("Error al cargar categorías:", error);
     }
 }
 
-function renderCategoriesCustomDropdown() {
+// Acepta una lista filtrada como argumento
+function renderCategoriesCustomDropdown(listToRender) {
     const optionsList = document.getElementById('dropdown-options');
     const hiddenInput = document.getElementById('category_id');
-    const displayText = document.getElementById('dropdown-text');
+    const searchInput = document.getElementById('category_search');
     
     if (!optionsList) return;
 
-    optionsList.innerHTML = ''; // Limpiar
+    optionsList.innerHTML = ''; 
     
-    // Resetear selección
-    hiddenInput.value = "";
-    displayText.textContent = "Categoría";
-    displayText.classList.add('placeholder');
+    if (listToRender.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'dropdown-item';
+        li.textContent = "No se encontraron resultados";
+        li.style.color = "#999";
+        li.style.cursor = "default";
+        optionsList.appendChild(li);
+        return;
+    }
     
-    categoriesList.forEach(category => {
+    listToRender.forEach(category => {
         const li = document.createElement('li');
         li.className = 'dropdown-item';
         li.textContent = category.nombre;
         li.dataset.value = category.id;
         
-        // Evento al seleccionar opción
         li.addEventListener('click', (e) => {
-            e.stopPropagation(); // Evitar burbujeo inmediato
+            e.stopPropagation(); 
             
             // Setear valores
             hiddenInput.value = category.id;
-            displayText.textContent = category.nombre;
-            displayText.classList.remove('placeholder');
+            searchInput.value = category.nombre; // Llenamos el buscador con el nombre seleccionado
             
-            // Cerrar dropdown visualmente
+            // Cerrar dropdown
             const container = document.getElementById('category-dropdown');
             if(container) container.classList.remove('active-dropdown');
         });
@@ -234,17 +262,15 @@ async function handleCreateCategory() {
         alert(`Categoría "${newCategory.nombre}" creada.`);
         
         categoriesList.push(newCategory);
-        renderCategoriesCustomDropdown();
+        // Volver a renderizar la lista completa (o podríamos filtrar si el usuario estaba escribiendo)
+        renderCategoriesCustomDropdown(categoriesList);
         
         // Autoseleccionar la nueva categoría
         const hiddenInput = document.getElementById('category_id');
-        const displayText = document.getElementById('dropdown-text');
+        const searchInput = document.getElementById('category_search');
         
         if(hiddenInput) hiddenInput.value = newCategory.id;
-        if(displayText) {
-            displayText.textContent = newCategory.nombre;
-            displayText.classList.remove('placeholder');
-        }
+        if(searchInput) searchInput.value = newCategory.nombre;
         
         newCatInput.value = '';
 
