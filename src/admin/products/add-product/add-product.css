@@ -23,8 +23,9 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 15px 20px;
-    background-color: var(--primary-color, #000000); 
-    color: #fff;
+    background-color: #ffffff;
+    color: #343a40;
+    border-bottom: 1px solid #e9ecef;
     z-index: 100;
     position: sticky;
     top: 0;
@@ -33,7 +34,7 @@ body {
 .back-btn {
     background: transparent;
     border: none;
-    color: #fff;
+    color: #343a40; 
     padding: 0;
     width: 24px;
     height: 24px;
@@ -206,7 +207,7 @@ body {
 /* --- CUSTOM DROPDOWN --- */
 
 .custom-dropdown-container {
-    cursor: text; /* Cambiamos el cursor para indicar escritura */
+    cursor: text; 
     z-index: 50; 
 }
 
@@ -218,7 +219,6 @@ body {
     position: relative;
 }
 
-/* ESTILO DEL INPUT BUSCADOR */
 .dropdown-search-input {
     width: 100%;
     border: none;
@@ -241,21 +241,26 @@ body {
     color: #6c757d;
     flex-shrink: 0;
     transition: transform 0.3s;
-    pointer-events: none; /* Dejamos que el clic pase al contenedor */
+    pointer-events: none; 
 }
 
 .active-dropdown .chevron-down {
     transform: rotate(180deg);
 }
 
+/* --- AQUI ESTÁ EL CAMBIO DE COLOR DE FONDO --- */
 .dropdown-options {
     position: absolute;
     top: calc(100% + 8px); 
     left: 0;
     width: 100%;
     
-    background-color: #ffffff; 
-    border: 1px solid #e9ecef;
+    /* Fondo AMARILLO SUAVE (Crema) */
+    background-color: #fffbef; 
+    
+    /* Borde dorado */
+    border: 1px solid #ffe082; 
+    
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
     
@@ -275,7 +280,8 @@ body {
 
 .active-dropdown .dropdown-options {
     display: block;
-    border-color: #FFC107;
+    /* Resaltar borde cuando está abierto */
+    border-color: #FFC107; 
 }
 
 @keyframes dropdownSlideIn {
@@ -285,7 +291,7 @@ body {
 
 .dropdown-item {
     padding: 12px 16px;
-    color: #343a40; 
+    color: #495057; /* Texto gris oscuro */
     font-size: 0.95rem;
     font-weight: 500;
     border-radius: 8px;
@@ -299,21 +305,22 @@ body {
 }
 
 .dropdown-item:hover {
-    background-color: #fff9db; 
-    color: #d9a406; 
+    /* Fondo dorado más intenso al pasar el mouse */
+    background-color: #ffe69c; 
+    color: #212529; /* Texto casi negro para contraste */
     font-weight: 600;
 }
 
-/* Scrollbar */
+/* Scrollbar personalizado que combine */
 .dropdown-options::-webkit-scrollbar {
     width: 6px;
 }
 .dropdown-options::-webkit-scrollbar-track {
-    background: #f8f9fa;
+    background: #fffbef; /* Mismo fondo amarillo suave */
     border-radius: 0 12px 12px 0;
 }
 .dropdown-options::-webkit-scrollbar-thumb {
-    background: #ced4da;
+    background: #ffe082; /* Dorado suave */
     border-radius: 3px;
 }
 .dropdown-options::-webkit-scrollbar-thumb:hover {

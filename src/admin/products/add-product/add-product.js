@@ -7,6 +7,9 @@ import {
     createProduct 
 } from './add-product.services.js'; 
 
+// IMPORTANTE: Importamos el módulo de notificación flotante (Toast)
+import { initToastNotification, showToast } from '../../../public/modules/store/toast-notification/toast.js';
+
 let categoriesList = [];
 
 /**
@@ -14,8 +17,10 @@ let categoriesList = [];
  */
 export async function initAddProduct(containerId) {
     console.log("Iniciando Add Product..."); 
-    const container = document.getElementById(containerId);
     
+    // Inicializar el sistema de notificaciones
+    initToastNotification();
+
     try {
         await loadCategories();
         attachEventListeners();
@@ -53,7 +58,6 @@ function attachEventListeners() {
     
     if (searchInput && dropdownContainer) {
         
-        // 1. Al escribir, filtrar
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = categoriesList.filter(cat => 
@@ -63,9 +67,7 @@ function attachEventListeners() {
             dropdownContainer.classList.add('active-dropdown');
         });
 
-        // 2. Al enfocar, mostrar todo y abrir
         searchInput.addEventListener('focus', () => {
-            // Si el input tiene valor, filtramos por ese valor, sino mostramos todo
             const term = searchInput.value.toLowerCase();
             const filtered = categoriesList.filter(cat => 
                 cat.nombre.toLowerCase().includes(term)
@@ -74,18 +76,15 @@ function attachEventListeners() {
             dropdownContainer.classList.add('active-dropdown');
         });
 
-        // 3. Cerrar al clickear fuera
         document.addEventListener('click', (e) => {
             if (!dropdownContainer.contains(e.target)) {
                 dropdownContainer.classList.remove('active-dropdown');
             }
         });
         
-        // Opcional: Abrir si se clickea en el chevron
         const chevron = dropdownContainer.querySelector('.chevron-down');
         if (chevron) {
             chevron.addEventListener('click', (e) => {
-                // Prevenir que el click se propague al input inmediatamente si causara cierre
                 searchInput.focus();
             });
         }
@@ -100,32 +99,21 @@ async function handleFormSubmit(e) {
     const nameInput = document.getElementById('name');
     const priceInput = document.getElementById('price');
     
-    // Leemos del input oculto
     const catIdInput = document.getElementById('category_id');
-    const catSearchInput = document.getElementById('category_search');
-
     const imgInput = document.getElementById('image_file');
     const activeInput = document.getElementById('is_active');
 
     const name = nameInput.value;
     const price = parseFloat(priceInput.value);
     
-    // Validación: El ID debe existir y el texto debe coincidir (para evitar que escriban una categoría que no existe sin crearla)
     const categoriaId = parseInt(catIdInput.value);
     
     if (!categoriaId) {
-        alert("Por favor, selecciona una categoría de la lista.");
+        // Usamos Toast para errores también
+        showToast("⚠️ Por favor, selecciona una categoría.");
         return;
     }
 
-    // Verificar si el usuario cambió el texto pero no seleccionó nada
-    const selectedCategory = categoriesList.find(c => c.id === categoriaId);
-    if (!selectedCategory || selectedCategory.nombre !== catSearchInput.value) {
-        // Podríamos ser estrictos o simplemente usar el ID guardado.
-        // Si el texto no coincide, es probable que el usuario haya editado el input.
-        // En este caso simple, si hay ID válido, lo usamos.
-    }
-    
     let imageUrl = ''; 
 
     try {
@@ -136,7 +124,7 @@ async function handleFormSubmit(e) {
         if (imgInput.files[0]) {
             imageUrl = await uploadImage(imgInput.files[0]);
         } else {
-            alert("Debe seleccionar una imagen para el producto.");
+            showToast("⚠️ Debe seleccionar una imagen.");
             saveBtn.disabled = false;
             saveBtn.textContent = 'Guardar Producto';
             return;
@@ -151,12 +139,19 @@ async function handleFormSubmit(e) {
         };
 
         const result = await createProduct(productData);
-        alert(`Producto ${result.name} agregado!`);
-        window.location.href = '../list-products/list-products.html'; 
+        
+        // --- AQUÍ EL CAMBIO CLAVE ---
+        // Mostramos la notificación flotante en lugar del alert
+        showToast(`✅ Producto "${result.name}" agregado con éxito!`);
+        
+        // Esperamos un momento antes de redirigir para que el usuario vea el mensaje
+        setTimeout(() => {
+            window.location.href = '../list-products/list-products.html'; 
+        }, 1500);
 
     } catch (error) {
         console.error("Error al guardar producto:", error);
-        alert(`Error al guardar: ${error.message}`);
+        showToast(`❌ Error al guardar: ${error.message}`);
     } finally {
         const saveBtn = document.getElementById('save-product-btn');
         if(saveBtn) {
@@ -171,14 +166,12 @@ async function handleFormSubmit(e) {
 async function loadCategories() {
     try {
         categoriesList = await getCategories();
-        // Carga inicial con toda la lista
         renderCategoriesCustomDropdown(categoriesList);
     } catch (error) {
         console.error("Error al cargar categorías:", error);
     }
 }
 
-// Acepta una lista filtrada como argumento
 function renderCategoriesCustomDropdown(listToRender) {
     const optionsList = document.getElementById('dropdown-options');
     const hiddenInput = document.getElementById('category_id');
@@ -207,11 +200,9 @@ function renderCategoriesCustomDropdown(listToRender) {
         li.addEventListener('click', (e) => {
             e.stopPropagation(); 
             
-            // Setear valores
             hiddenInput.value = category.id;
-            searchInput.value = category.nombre; // Llenamos el buscador con el nombre seleccionado
+            searchInput.value = category.nombre; 
             
-            // Cerrar dropdown
             const container = document.getElementById('category-dropdown');
             if(container) container.classList.remove('active-dropdown');
         });
@@ -248,7 +239,7 @@ async function handleCreateCategory() {
     const newCategoryName = newCatInput.value.trim();
     
     if (!newCategoryName) {
-        alert("Por favor, introduce el nombre de la nueva categoría.");
+        showToast("⚠️ Introduce un nombre para la categoría.");
         return;
     }
 
@@ -259,13 +250,12 @@ async function handleCreateCategory() {
         
         const newCategory = await createCategory(newCategoryName);
         
-        alert(`Categoría "${newCategory.nombre}" creada.`);
+        // Notificación flotante para categoría creada
+        showToast(`✅ Categoría "${newCategory.nombre}" creada.`);
         
         categoriesList.push(newCategory);
-        // Volver a renderizar la lista completa (o podríamos filtrar si el usuario estaba escribiendo)
         renderCategoriesCustomDropdown(categoriesList);
         
-        // Autoseleccionar la nueva categoría
         const hiddenInput = document.getElementById('category_id');
         const searchInput = document.getElementById('category_search');
         
@@ -276,7 +266,7 @@ async function handleCreateCategory() {
 
     } catch (error) {
         console.error("Error al crear categoría:", error);
-        alert(`Error: ${error.message}`);
+        showToast(`❌ Error: ${error.message}`);
     } finally {
         const createBtn = document.getElementById('create-category-btn');
         if(createBtn) {
