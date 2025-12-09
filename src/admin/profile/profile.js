@@ -4,6 +4,14 @@ import { initBottomNav } from '../modules/bottom-nav/bottom-nav.js';
 import { getSession, initAuthForm } from '../auth/auth.js'; 
 import { ProfileAdminService } from './profile.service.js';
 
+// **NUEVAS RUTAS DE NAVEGACIÓN PARA ESTA PÁGINA (UN NIVEL)**
+const PROFILE_VIEW_ROUTES = {
+    // Para ir a Productos, sube un nivel (a 'admin/') y baja a 'products/list-products/'
+    'products': '../products/list-products/list-products.html', 
+    // Para ir a sí misma (Profile), se mantiene la ruta actual (./)
+    'profile': './profile.html'                                 
+};
+
 const ADMIN_CONTENT_ID = 'app-content';
 const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container';
 const CURRENT_VIEW = 'profile';
@@ -38,7 +46,8 @@ export async function initProfilePage() {
         });
 
         // 2. Inicializar la barra de navegación inferior
-        initBottomNav(CURRENT_VIEW);
+        // Le pasamos la ruta de un solo nivel para el fetch y el objeto de rutas de navegación
+        initBottomNav(CURRENT_VIEW, '../modules/bottom-nav/bottom-nav.html', PROFILE_VIEW_ROUTES);
         
         // 3. Asegurar que el nav sea visible
         if (navContainer) navContainer.style.display = 'block';

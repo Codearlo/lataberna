@@ -1,25 +1,24 @@
 // src/admin/modules/bottom-nav/bottom-nav.js
 
 const NAV_CONTAINER_ID = 'admin-nav-container';
-const BOTTOM_NAV_HTML_PATH = './modules/bottom-nav/bottom-nav.html';
 
-// Mapeo de vistas a rutas de archivos HTML
-const VIEW_ROUTES = {
-    'products': '../list-products/list-products.html', // Usamos list-products como entrada
-    'profile': '../profile/profile.html'
-};
+// NO SE PUEDE DEFINIR VIEW_ROUTES AQUÍ porque las rutas cambian dependiendo de la página que llama.
 
 /**
  * Inicializa la barra de navegación inferior.
  * @param {string} currentViewName - Nombre de la vista actual ('products' o 'profile').
+ * @param {string} navHtmlPath - La RUTA RELATIVA CORRECTA para el FETCH de HTML de la barra (ej: '../modules/bottom-nav/bottom-nav.html').
+ * @param {object} viewRoutes - El OBJETO DE RUTAS DE NAVEGACIÓN RELATIVAS para la página actual.
  */
-export async function initBottomNav(currentViewName) {
+export async function initBottomNav(currentViewName, navHtmlPath, viewRoutes) {
     const container = document.getElementById(NAV_CONTAINER_ID);
     if (!container) return;
+    
+    // Usamos la ruta y el objeto de rutas pasados como argumento
 
     try {
         // 1. Cargar el HTML de la barra de navegación
-        const response = await fetch(BOTTOM_NAV_HTML_PATH);
+        const response = await fetch(navHtmlPath);
         if (!response.ok) {
             throw new Error(`Error al obtener HTML de navegación. Status: ${response.status}`);
         }
@@ -35,9 +34,9 @@ export async function initBottomNav(currentViewName) {
             e.preventDefault();
             const targetView = listItem.dataset.view;
             
-            // 3. Navega a la nueva página
-            if (VIEW_ROUTES[targetView]) {
-                window.location.href = VIEW_ROUTES[targetView];
+            // 3. Navegar usando el objeto de rutas DINÁMICO
+            if (viewRoutes[targetView]) {
+                window.location.href = viewRoutes[targetView];
             }
         });
 

@@ -1,11 +1,27 @@
-// src/admin/list-products/list-products.js
+// src/admin/products/list-products/list-products.js
 
 import { ProductsAdminService } from '../products.service.js';
 import { getSession, initAuthForm } from '../../auth/auth.js';
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
 
+// **NUEVAS RUTAS DE NAVEGACIÓN PARA ESTA PÁGINA (DOS NIVELES)**
+const PRODUCTS_VIEW_ROUTES = {
+    // Para ir a sí misma (Products), se mantiene la ruta actual (./)
+    'products': './list-products.html',
+    // Para ir a Profile, se suben dos niveles (a 'admin/') y se baja a 'profile/'
+    'profile': '../../profile/profile.html' 
+};
+
 // Variables de estado (DEBEN MANTENERSE AQUÍ)
-// ... (variables) ...
+let productsList = [];
+let categoriesList = []; 
+let currentFilter = 'active'; // El filtro inicial de la pestaña
+
+// Variables de estado para la paginación
+let currentPage = 1;
+const PRODUCTS_PER_PAGE = 10;
+let totalProductsCount = 0;
+let currentSearchTerm = ''; // Estado para mantener el término de búsqueda
 
 const ADMIN_CONTENT_ID = 'app-content';
 const ADMIN_NAV_CONTAINER_ID = 'admin-nav-container';
@@ -26,7 +42,7 @@ export async function initListProductsPage() {
     if (!session) {
         // No logueado: Cargar formulario de login
         // La URL de login debe ser relativa a la página actual, subiendo un nivel.
-        const authPath = '../auth/auth.html'; 
+        const authPath = '../../auth/auth.html'; 
         
         // El contenido del formulario de login se carga en el contenedor principal
         const response = await fetch(authPath);
@@ -46,20 +62,17 @@ export async function initListProductsPage() {
 
     // Logueado: Cargar contenido y navegación
     try {
-        // 1. Cargar datos estáticos
-        await loadCategories();
         
-        // 2. Adjuntar listeners
+        // 1. Inicializar la barra de navegación y los listeners DE INMEDIATO
+        // Esto desbloquea el renderizado de la UI y los eventos (búsqueda, tabs)
         attachEventListeners(); 
-        
-        // 3. Carga Inicial de Productos
-        await loadProducts(); 
-        
-        // 4. Inicializar la barra de navegación inferior
-        initBottomNav(CURRENT_VIEW);
-        
-        // 5. Asegurar que el nav sea visible
+        initBottomNav(CURRENT_VIEW, '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
         if (navContainer) navContainer.style.display = 'block';
+
+        // 2. Ejecutar la carga de datos PESADOS de forma ASÍNCRONA
+        // Esto ocurre mientras el usuario ve la barra de navegación y el esqueleto de la página.
+        await loadCategories();
+        await loadProducts(); // Esta función renderiza la lista una vez que los datos llegan.
         
     } catch (error) {
         console.error("Error al inicializar el panel de listado de productos:", error);
