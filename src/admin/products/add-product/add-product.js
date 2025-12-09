@@ -37,10 +37,11 @@ function attachEventListeners() {
     document.getElementById('image_file').addEventListener('change', handleImagePreview);
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
     
-    // ADICIÓN: Manejar el click en la tarjeta de categoría para abrir el select (en móviles)
+    // Manejar el click en la tarjeta de categoría para abrir el select (en móviles)
     const categoryCard = document.querySelector('.custom-select-container');
     if (categoryCard) {
         categoryCard.addEventListener('click', () => {
+            // Abrir el select nativo
             document.getElementById('category_id').focus();
         });
     }
@@ -48,6 +49,7 @@ function attachEventListeners() {
     // Listener para actualizar el input visible al seleccionar una opción
     document.getElementById('category_id').addEventListener('change', (e) => {
         const selectedOption = e.target.options[e.target.selectedIndex];
+        // Aseguramos que el input visible muestre el nombre de la categoría
         document.getElementById('category_display').value = selectedOption.value ? selectedOption.textContent : 'Categoría';
     });
 }
@@ -58,10 +60,10 @@ async function handleFormSubmit(e) {
     e.preventDefault();
     
     const form = e.target;
-    const formData = new FormData(form);
+    // No se necesita FormData para obtener los valores ya que usamos IDs
     
-    const name = formData.get('name'); 
-    const price = parseFloat(formData.get('price'));
+    const name = document.getElementById('name').value;
+    const price = parseFloat(document.getElementById('price').value);
     const categoriaId = parseInt(document.getElementById('category_id').value);
     const imageFile = document.getElementById('image_file').files[0];
     const isActive = document.getElementById('is_active').checked;
@@ -82,6 +84,8 @@ async function handleFormSubmit(e) {
             imageUrl = await uploadImage(imageFile);
         } else {
             alert("Debe seleccionar una imagen para el producto.");
+            document.getElementById('save-product-btn').disabled = false;
+            document.getElementById('save-product-btn').textContent = 'Guardar Producto';
             return;
         }
         
@@ -124,7 +128,7 @@ async function loadCategories() {
 
 function renderCategoriesSelect() {
     const select = document.getElementById('category_id');
-    // Mantenemos la opción por defecto visible en el select (aunque se oculta por CSS)
+    const displayInput = document.getElementById('category_display');
     select.innerHTML = '<option value="">Categoría</option>'; 
     
     categoriesList.forEach(category => {
@@ -134,9 +138,11 @@ function renderCategoriesSelect() {
         select.appendChild(option);
     });
     
-    // Inicializar el input visible de la categoría
-    const initialOption = select.options[select.selectedIndex];
-    document.getElementById('category_display').value = initialOption.textContent;
+    // 1. Resetear el valor seleccionado del select si es necesario
+    select.value = "";
+    
+    // 2. Inicializar el placeholder del input visible
+    displayInput.value = displayInput.placeholder || 'Categoría';
 }
 
 function handleImagePreview(e) {
@@ -191,7 +197,7 @@ async function handleCreateCategory() {
         renderCategoriesSelect();
         
         document.getElementById('category_id').value = newCategory.id;
-        // También actualizar el input visible
+        // Actualizar el input visible para reflejar la categoría recién creada
         document.getElementById('category_display').value = newCategory.nombre;
         document.getElementById('new_category_name').value = '';
 
@@ -211,14 +217,10 @@ function setupSwitch() {
     if (sw && txt) {
         const updateStatusText = () => {
             txt.textContent = sw.checked ? 'Producto Activo' : 'Producto Inactivo';
-            // Usamos colores fijos (Verde/Rojo) como en la referencia
             txt.style.color = sw.checked ? '#28a745' : '#dc3545'; 
         };
 
-        // Primera carga
         updateStatusText(); 
-        
-        // Listener
         sw.addEventListener('change', updateStatusText);
     }
 }
