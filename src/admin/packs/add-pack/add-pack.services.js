@@ -103,13 +103,22 @@ export async function createExtra(name) {
 
 /**
  * Crea un nuevo Pack (Producto) y su Composición.
- * @param {object} packData - Datos del Pack a crear (name, price, categoria_id, is_active, image_url, is_pack: true).
+ * AHORA INCLUYE 'base_product_id' PARA QUE EL TRIGGER SQL FUNCIONE.
+ * * @param {object} packData - Datos del Pack (name, price, categoria_id, is_active, image_url).
  * @param {Array<object>} compositionData - Array de {extra_id, quantity} para la tabla packs_composition.
+ * @param {number} baseProductId - ID del producto base (botella) para que el Trigger genere el nombre.
  */
-export async function createPack(packData, compositionData) {
+export async function createPack(packData, compositionData, baseProductId) {
+    // 1. Insertar el producto base en la tabla 'products'.
+    // NOTA: El 'name' que enviamos aquí (packData.name) será SOBREESCRITO inmediatamente 
+    // por el Trigger de la base de datos usando el base_product_id y la composición.
     const { data: pack, error: productError } = await supabase
         .from('products')
-        .insert([{ ...packData, is_pack: true }]) // Forzamos is_pack a true
+        .insert([{ 
+            ...packData, 
+            is_pack: true,
+            base_product_id: baseProductId // <--- CAMPO CLAVE PARA EL TRIGGER
+        }])
         .select('id')
         .single();
 
@@ -118,20 +127,21 @@ export async function createPack(packData, compositionData) {
         throw productError;
     }
 
-    // Preparar la data de composición con el ID del Pack recién creado
+    // 2. Insertar la composición del Pack (Tabla 'packs_composition')
+    // Al insertar aquí, el Trigger 'trg_actualizar_nombre_por_extras' se disparará 
+    // y actualizará el nombre del producto padre automáticamente.
     const compositionToInsert = compositionData.map(item => ({
         pack_product_id: pack.id,
         extra_id: item.extra_id,
         quantity: item.quantity,
     }));
     
-    // Insertar la composición del Pack
     const { error: compositionError } = await supabase
         .from('packs_composition')
         .insert(compositionToInsert);
 
     if (compositionError) {
-        // Rollback: eliminar el producto si falla la composición
+        // Rollback: eliminar el producto si falla la composición para no dejar basura
         await supabase.from('products').delete().eq('id', pack.id);
         console.error("Error al crear composición del Pack:", compositionError);
         throw compositionError;

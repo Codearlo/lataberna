@@ -17,7 +17,7 @@ let availableProducts = [];
 let availableExtras = [];
 let packComposition = new Map(); // Map<extra_id, {name, id, qty}>
 
-// Variable para almacenar el nombre del producto base seleccionado
+// Variable para almacenar el nombre del producto base seleccionado (Visual)
 let selectedProductName = ""; 
 
 let processedImageFile = null; 
@@ -72,7 +72,6 @@ function attachEventListeners() {
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
 
-    // Botón para crear nuevo extra
     const createExtraBtn = document.getElementById('create-extra-btn');
     if (createExtraBtn) createExtraBtn.addEventListener('click', handleCreateExtra);
     
@@ -82,6 +81,7 @@ function attachEventListeners() {
     const addBtn = document.getElementById('add-extra-btn');
     if (addBtn) addBtn.addEventListener('click', addExtraToComposition);
     
+    // Cierre global de dropdowns
     document.addEventListener('click', (e) => {
         const dropdownContainers = document.querySelectorAll('.custom-dropdown-container');
         let clickedInsideDropdown = false;
@@ -99,7 +99,7 @@ function attachEventListeners() {
     });
 }
 
-// --- LÓGICA DE NOMBRE AUTOMÁTICO ---
+// --- LÓGICA DE NOMBRE AUTOMÁTICO (VISUAL) ---
 function updatePackName() {
     const nameInput = document.getElementById('name');
     
@@ -108,16 +108,12 @@ function updatePackName() {
         return;
     }
 
-    // 1. Empezamos con "Pack [Producto Base]"
     let generatedName = `Pack ${selectedProductName}`;
     
-    // 2. Agregamos cada extra
-    // Convertimos el Map a array para iterar en orden de inserción (generalmente)
     packComposition.forEach(extra => {
         generatedName += ` + ${extra.name}`;
     });
 
-    // 3. Asignamos al input
     nameInput.value = generatedName;
 }
 
@@ -188,7 +184,7 @@ function setupProductDropdown() {
     const searchInput = document.getElementById('product_search');
     const hiddenInput = document.getElementById('product_id');
 
-    // Al seleccionar producto base, actualizamos nombre
+    // Al seleccionar producto base, actualizamos nombre visualmente
     const onSelectProduct = (id, name) => {
         selectedProductName = name; 
         updatePackName(); 
@@ -294,13 +290,14 @@ async function handleCreateExtra() {
     }
 }
 
-// --- GESTIÓN DE EXTRAS (CON ACTUALIZACIÓN DE NOMBRE) ---
+// --- GESTIÓN DE EXTRAS ---
 
 function addExtraToComposition() {
     const extraId = parseInt(document.getElementById('extra_id').value);
     const extraSearchInput = document.getElementById('extra_search');
     const extraName = extraSearchInput.value;
     const qty = parseInt(document.getElementById('extra_qty').value);
+    
     const qtyInput = document.getElementById('extra_qty');
     const addBtn = document.getElementById('add-extra-btn');
     const hiddenInput = document.getElementById('extra_id');
@@ -315,9 +312,7 @@ function addExtraToComposition() {
 
     packComposition.set(extraId, { id: extraId, name: extraName, qty: qty });
     
-    // ⚡ ACTUALIZAR NOMBRE AL AÑADIR
-    updatePackName();
-    
+    updatePackName(); // Actualizar visualmente
     renderCompositionList();
     
     hiddenInput.value = '';
@@ -333,9 +328,7 @@ function addExtraToComposition() {
 function removeExtraFromComposition(extraId) {
     packComposition.delete(extraId);
     
-    // ⚡ ACTUALIZAR NOMBRE AL ELIMINAR (Esto arregla el problema que mencionaste)
-    updatePackName();
-    
+    updatePackName(); // Actualizar visualmente
     renderCompositionList();
     showToast(`🗑️ Eliminado.`);
     setupExtraDropdown(); 
@@ -375,7 +368,7 @@ function renderCompositionList() {
 }
 
 // --- IMAGEN Y CROPPER ---
-// (Código igual al anterior, mantenido por completitud)
+
 function handleImageSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -437,33 +430,60 @@ function closeCropModal() {
     if (cropper) { cropper.destroy(); cropper = null; }
 }
 
+// --- ENVÍO DEL FORMULARIO (PASO 3 CLAVE) ---
+
 async function handleFormSubmit(e) {
     e.preventDefault();
+    
+    // Obtenemos los valores. El 'name' es solo visual/temporal.
     const name = document.getElementById('name').value;
     const price = parseFloat(document.getElementById('price').value);
     const categoriaId = parseInt(document.getElementById('category_id').value);
-    const productId = parseInt(document.getElementById('product_id').value); 
+    
+    // CAPTURAMOS EL ID DE LA BOTELLA (PRODUCTO BASE)
+    const baseProductId = parseInt(document.getElementById('product_id').value); 
+    
     const isActive = document.getElementById('is_active').checked;
     
     if (!categoriaId) return showToast("⚠️ Selecciona una categoría.");
-    if (!productId) return showToast("⚠️ Selecciona el Producto Base.");
-    if (packComposition.size === 0) return showToast("⚠️ Añade al menos un Extra.");
-    if (!processedImageFile) return showToast("⚠️ Sube una imagen.");
+    if (!baseProductId) return showToast("⚠️ Selecciona el Producto Principal.");
+    if (packComposition.size === 0) return showToast("⚠️ Un Pack debe tener al menos un Extra.");
+    if (!processedImageFile) return showToast("⚠️ Debes subir una imagen.");
 
     try {
         const saveBtn = document.getElementById('save-pack-btn');
-        saveBtn.disabled = true; saveBtn.textContent = 'Subiendo...';
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+
         const imageUrl = await uploadImage(processedImageFile);
         
-        const packData = { name: name, price: price, categoria_id: categoriaId, is_active: isActive, image_url: imageUrl };
-        const compositionData = Array.from(packComposition.values()).map(item => ({ extra_id: item.id, quantity: item.qty }));
+        const packData = {
+            name: name, // El Trigger de BD ignorará esto y pondrá el nombre correcto
+            price: price,
+            categoria_id: categoriaId,
+            is_active: isActive,
+            image_url: imageUrl,
+        };
         
-        await createPack(packData, compositionData);
-        showToast(`✅ Pack agregado!`);
-        setTimeout(() => { window.location.href = '../list-packs/list-packs.html'; }, 1500);
+        const compositionData = Array.from(packComposition.values()).map(item => ({
+            extra_id: item.id,
+            quantity: item.qty
+        }));
+        
+        // PASAMOS baseProductId PARA QUE EL TRIGGER FUNCIONE
+        await createPack(packData, compositionData, baseProductId);
+        
+        showToast(`✅ Pack creado y nombrado automáticamente por BD!`);
+        
+        setTimeout(() => {
+            window.location.href = '../list-packs/list-packs.html'; 
+        }, 1500);
+
     } catch (error) {
-        console.error(error); showToast(`❌ Error: ${error.message}`);
+        console.error(error);
+        showToast(`❌ Error: ${error.message}`);
         document.getElementById('save-pack-btn').disabled = false;
+        document.getElementById('save-pack-btn').textContent = 'Guardar Pack';
     }
 }
 
@@ -478,4 +498,6 @@ function setupSwitch() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => { initAddPack('app-content'); });
+document.addEventListener('DOMContentLoaded', () => {
+    initAddPack('app-content');
+});
