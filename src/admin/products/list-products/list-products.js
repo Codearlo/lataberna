@@ -1,7 +1,6 @@
 // src/admin/products/list-products/list-products.js
 
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
-// CORRECCIÓN: Solo importamos getSession
 import { getSession } from '../../auth/auth.js'; 
 import { getFilteredProductsPaged } from './list-products.service.js';
 
@@ -15,7 +14,7 @@ let totalProducts = 0;
 // **RUTAS DE NAVEGACIÓN**
 const PRODUCTS_VIEW_ROUTES = {
     'products': './list-products.html',
-    'packs': '../../packs/list-packs/list-packs.html', // NUEVA RUTA
+    'packs': '../../packs/list-packs/list-packs.html',
     'profile': '../../profile/profile.html'
 };
 
@@ -36,8 +35,6 @@ export async function initListProductsPage() {
     const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
 
     if (!session) {
-        // --- CORRECCIÓN CRÍTICA ---
-        // Redirección REAL a la página de autenticación si no hay sesión
         window.location.href = '../../auth/auth.html';
         return;
     }
@@ -91,11 +88,12 @@ function attachEventListeners() {
     const paginationContainer = document.getElementById(PAGINATION_CONTAINER_ID);
     if (paginationContainer) {
         paginationContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('button');
+            const button = e.target.closest('.pagination-btn');
             if (!button || button.disabled) return;
             
-            if (button.dataset.page) {
-                currentPage = parseInt(button.dataset.page);
+            const targetPage = parseInt(button.dataset.page);
+            if (targetPage && targetPage !== currentPage) {
+                currentPage = targetPage;
                 loadProducts();
             }
         });
@@ -218,6 +216,9 @@ function renderProductCard(product) {
     return card;
 }
 
+/**
+ * Renderiza la paginación con estilo actualizado (<< < 1 2 ... 5 > >>)
+ */
 function renderPagination() {
     const paginationArea = document.getElementById(PAGINATION_CONTAINER_ID);
     if (!paginationArea) return;
@@ -229,28 +230,61 @@ function renderPagination() {
         return;
     }
 
-    let paginationHTML = '<div class="pagination-content">';
-    const prevDisabled = currentPage === 1 ? 'disabled' : '';
-    paginationHTML += `<button data-page="${currentPage - 1}" ${prevDisabled}>&laquo; Anterior</button>`;
+    let paginationHTML = '<div class="pagination-wrapper">';
 
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
-    if (currentPage - 2 < 1) endPage = Math.min(totalPages, 5);
-    if (currentPage + 2 > totalPages) startPage = Math.max(1, totalPages - 4);
-    startPage = Math.max(1, startPage);
-    endPage = Math.min(totalPages, endPage);
+    // Función auxiliar para crear botones
+    const createBtn = (page, content, isActive = false, isDisabled = false) => {
+        const activeClass = isActive ? 'active' : '';
+        const disabledAttr = isDisabled ? 'disabled' : '';
+        return `<button class="pagination-btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
+    };
 
-    for (let i = startPage; i <= endPage; i++) {
-        const activeClass = i === currentPage ? 'active' : '';
-        paginationHTML += `<button data-page="${i}" class="${activeClass}">${i}</button>`;
+    // Botones Inicio (<<) y Anterior (<)
+    // Usamos códigos HTML: &laquo; (<<) y &#8249; (< estilo moderno)
+    paginationHTML += createBtn(1, '&laquo;', false, currentPage === 1); 
+    paginationHTML += createBtn(currentPage - 1, '&#8249;', false, currentPage === 1);
+
+    // Lógica para mostrar números y elipsis (...)
+    const pagesToShow = [];
+    
+    if (totalPages <= 7) {
+        // Si son pocas páginas, mostrar todas
+        for (let i = 1; i <= totalPages; i++) pagesToShow.push(i);
+    } else {
+        // Lógica de rango con elipsis
+        if (currentPage < 4) {
+            // Cerca del inicio: 1 2 3 4 5 ... Last
+            pagesToShow.push(1, 2, 3, 4, 5, '...', totalPages);
+        } else if (currentPage > totalPages - 3) {
+            // Cerca del final: 1 ... 6 7 8 9 10
+            pagesToShow.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        } else {
+            // En medio: 1 ... 4 5 6 ... 10
+            pagesToShow.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+        }
     }
+
+    // Generar botones numéricos
+    pagesToShow.forEach(p => {
+        if (p === '...') {
+            paginationHTML += `<span class="pagination-dots">...</span>`;
+        } else {
+            paginationHTML += createBtn(p, p, p === currentPage);
+        }
+    });
+
+    // Botones Siguiente (>) y Final (>>)
+    // Usamos códigos HTML: &#8250; (> estilo moderno) y &raquo; (>>)
+    paginationHTML += createBtn(currentPage + 1, '&#8250;', false, currentPage === totalPages);
+    paginationHTML += createBtn(totalPages, '&raquo;', false, currentPage === totalPages);
     
-    const nextDisabled = currentPage === totalPages ? 'disabled' : '';
-    paginationHTML += `<button data-page="${currentPage + 1}" ${nextDisabled}>Siguiente &raquo;</button>`;
-    
+    paginationHTML += `</div>`; // Cierre wrapper
+
+    // Info de conteo
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalProducts);
-    paginationHTML += `</div><p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalProducts} productos</p>`;
+    paginationHTML += `<p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalProducts} productos</p>`;
+    
     paginationArea.innerHTML = paginationHTML;
 }
 

@@ -263,3 +263,71 @@ body {
 .products-grid.active-view {
     display: flex; /* FIX CLAVE: Solo mostrar cuando esté activo */
 }
+
+/* --- NUEVOS ESTILOS DE PAGINACIÓN --- */
+
+.pagination-area {
+    margin-top: 25px;
+    margin-bottom: 20px;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px; /* Espacio entre botones */
+}
+
+.pagination-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    border: 1px solid #dee2e6; /* Borde sutil */
+    background-color: #ffffff;
+    color: #343a40;
+    
+    border-radius: 6px; /* Cuadrado con bordes redondeados */
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+/* Estilo para la página ACTIVA */
+.pagination-btn.active {
+    background-color: #495057; /* Gris Oscuro/Negro suave */
+    color: #ffffff;
+    border-color: #495057;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.pagination-btn:disabled {
+    color: #ced4da;
+    cursor: default;
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+}
+
+.pagination-dots {
+    font-size: 1.2rem;
+    color: #6c757d;
+    padding: 0 4px;
+    letter-spacing: 1px;
+}
+
+.pagination-info {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
