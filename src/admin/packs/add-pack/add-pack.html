@@ -110,7 +110,7 @@
                     </div>
                     
                     <div class="dropdown-trigger" style="height: 40px; align-items: flex-start; padding-top: 5px;">
-                        <input type="text" id="extra_search" class="dropdown-search-input" placeholder="Añadir Extra (Hielo, Gaseosa...)" autocomplete="off">
+                        <input type="text" id="extra_search" class="dropdown-search-input" placeholder="Buscar Extra (Hielo...)" autocomplete="off">
                         <input type="hidden" id="extra_id">
                         <input type="number" id="extra_qty" min="1" value="1" class="input-quantity" placeholder="Qty" style="margin-left: 10px; height: 36px; padding: 0 5px; flex-shrink: 0; display: none;">
                     </div>
@@ -120,6 +120,14 @@
                     </button>
 
                     <ul class="dropdown-options" id="extra-dropdown-options"></ul>
+                </div>
+
+                <div class="input-card input-with-button-card" id="new-extra-group" style="margin-top: 8px;">
+                    <div class="input-icon-wrapper icon-orange">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                    <input type="text" id="new_extra_name" class="clean-input" placeholder="Crear nuevo extra...">
+                    <button type="button" id="create-extra-btn" class="secondary-btn create-action-btn">Crear</button>
                 </div>
 
             </div>

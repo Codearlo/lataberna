@@ -6,6 +6,7 @@ import {
     uploadImage, 
     getAvailableProducts,
     getExtras,
+    createExtra,
     createPack
 } from './add-pack.services.js'; 
 
@@ -69,6 +70,10 @@ function attachEventListeners() {
 
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
+
+    // NUEVO: Listener para crear extra
+    const createExtraBtn = document.getElementById('create-extra-btn');
+    if (createExtraBtn) createExtraBtn.addEventListener('click', handleCreateExtra);
     
     document.getElementById('btn-confirm-crop').addEventListener('click', cropAndSave);
     document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
@@ -147,7 +152,7 @@ function setupCustomDropdown(containerId, searchInputId, hiddenInputId, optionsL
             });
         }
         
-        // --- CORRECCIÓN CLAVE: Cerrar otros dropdowns antes de abrir este ---
+        // Cerrar otros dropdowns antes de abrir este
         document.querySelectorAll('.custom-dropdown-container').forEach(cont => {
              if (cont.id !== containerId) {
                  cont.classList.remove('active-dropdown');
@@ -162,8 +167,6 @@ function setupCustomDropdown(containerId, searchInputId, hiddenInputId, optionsL
 
     searchInput.addEventListener('input', inputHandler);
     searchInput.addEventListener('focus', inputHandler);
-
-    // El cierre al hacer clic fuera se maneja en attachEventListeners (globalmente)
     
     const chevron = dropdownContainer.querySelector('.chevron-down');
     if (chevron) chevron.addEventListener('click', () => searchInput.focus());
@@ -180,7 +183,7 @@ function setupCategoryDropdown() {
         'dropdown-options', 
         categoriesList, 
         false,
-        () => {} // No necesita callback especial
+        () => {} 
     );
 }
 
@@ -192,7 +195,7 @@ function setupProductDropdown() {
         'product-dropdown-options', 
         availableProducts, 
         true,
-        () => {} // No necesita callback especial
+        () => {} 
     );
 }
 
@@ -203,7 +206,6 @@ function setupExtraDropdown() {
     const hiddenInput = document.getElementById('extra_id');
 
     const onSelectExtra = (id, name) => {
-        // Al seleccionar, mostramos el input de cantidad y activamos el botón de añadir
         qtyInput.style.display = 'inline-block';
         qtyInput.value = 1;
         addBtn.disabled = false;
@@ -219,13 +221,10 @@ function setupExtraDropdown() {
         onSelectExtra
     );
     
-    // Si el usuario escribe y no selecciona de la lista, limpiamos
     searchInput.addEventListener('input', () => {
-        // Obtener el ID del extra seleccionado para comparación
         const selectedExtraId = parseInt(hiddenInput.value);
         const selectedExtraName = availableExtras.find(e => e.id === selectedExtraId)?.nombre;
         
-        // Si el valor del input no coincide con el nombre del extra previamente seleccionado
         if (searchInput.value !== selectedExtraName) {
             hiddenInput.value = '';
             qtyInput.style.display = 'none';
@@ -234,6 +233,7 @@ function setupExtraDropdown() {
     });
 }
 
+// --- CREACIÓN RÁPIDA DE CATEGORÍA ---
 async function handleCreateCategory() {
     const newCatInput = document.getElementById('new_category_name');
     const name = newCatInput.value.trim();
@@ -247,17 +247,54 @@ async function handleCreateCategory() {
         showToast(`✅ Categoría creada.`);
         categoriesList.push(newCat);
         
-        // Forzamos la actualización de la lista y selección del nuevo ítem
         document.getElementById('category_id').value = newCat.id;
         document.getElementById('category_search').value = newCat.nombre;
         
-        // Re-renderizar dropdown de categorías
         setupCategoryDropdown(); 
         
         newCatInput.value = '';
         btn.disabled = false;
     } catch (error) {
         showToast(`❌ Error: ${error.message}`);
+    }
+}
+
+// --- NUEVO: CREACIÓN RÁPIDA DE EXTRA ---
+async function handleCreateExtra() {
+    const newExtraInput = document.getElementById('new_extra_name');
+    const name = newExtraInput.value.trim();
+    if (!name) return showToast("⚠️ Escribe un nombre para el extra.");
+
+    try {
+        const btn = document.getElementById('create-extra-btn');
+        btn.disabled = true;
+        
+        // Llamamos a la función importada
+        const newExtra = await createExtra(name);
+        showToast(`✅ Extra creado: ${newExtra.nombre}`);
+        availableExtras.push(newExtra);
+        
+        // Seleccionamos automáticamente el extra creado en el buscador
+        document.getElementById('extra_id').value = newExtra.id;
+        document.getElementById('extra_search').value = newExtra.nombre;
+        
+        // Mostramos el input de cantidad y activamos botón de añadir
+        const qtyInput = document.getElementById('extra_qty');
+        const addBtn = document.getElementById('add-extra-btn');
+        qtyInput.style.display = 'inline-block';
+        qtyInput.value = 1;
+        addBtn.disabled = false;
+        
+        // Refrescamos el dropdown
+        setupExtraDropdown(); 
+        
+        newExtraInput.value = '';
+        btn.disabled = false;
+    } catch (error) {
+        showToast(`❌ Error: ${error.message}`);
+        console.error(error);
+        const btn = document.getElementById('create-extra-btn');
+        if(btn) btn.disabled = false;
     }
 }
 
@@ -274,7 +311,6 @@ function addExtraToComposition() {
     const addBtn = document.getElementById('add-extra-btn');
     const hiddenInput = document.getElementById('extra_id');
     
-    // Verificación adicional: el extraId debe ser un ID válido que exista en availableExtras
     const selectedExtra = availableExtras.find(e => e.id === extraId);
     
     if (!selectedExtra || isNaN(qty) || qty <= 0) {
@@ -288,7 +324,6 @@ function addExtraToComposition() {
     packComposition.set(extraId, { id: extraId, name: extraName, qty: qty });
     renderCompositionList();
     
-    // Limpiar campos después de añadir
     hiddenInput.value = '';
     extraSearchInput.value = '';
     qtyInput.value = 1;
@@ -297,7 +332,6 @@ function addExtraToComposition() {
     
     showToast(`✅ ${extraName} (${qty}x) añadido.`);
     
-    // Re-renderizar el dropdown para que el item añadido se oculte de la lista de opciones
     setupExtraDropdown(); 
 }
 
@@ -305,7 +339,7 @@ function removeExtraFromComposition(extraId) {
     packComposition.delete(extraId);
     renderCompositionList();
     showToast(`🗑️ Extra eliminado.`);
-    setupExtraDropdown(); // Re-renderizar para que el item eliminado vuelva a aparecer en las opciones
+    setupExtraDropdown(); 
 }
 
 function renderCompositionList() {
@@ -332,7 +366,6 @@ function renderCompositionList() {
             </button>
         `;
         
-        // Usamos addEventListener, no onclick global
         itemEl.querySelector('.remove-component-btn').addEventListener('click', (e) => {
             const removeId = parseInt(e.currentTarget.dataset.id);
             removeExtraFromComposition(removeId);
@@ -363,7 +396,6 @@ function handleImageSelection(e) {
             cropper.destroy();
         }
         
-        // Requiere que Cropper esté cargado globalmente (por el script en el HTML)
         // eslint-disable-next-line no-undef
         cropper = new Cropper(imageElement, { 
             aspectRatio: 1, 
@@ -497,7 +529,6 @@ async function handleFormSubmit(e) {
 
         const imageUrl = await uploadImage(processedImageFile);
         
-        // 1. Datos para la tabla 'products'
         const packData = {
             name: name,
             price: price,
@@ -506,7 +537,6 @@ async function handleFormSubmit(e) {
             image_url: imageUrl,
         };
         
-        // 2. Datos para la tabla 'packs_composition'
         const compositionData = Array.from(packComposition.values()).map(item => ({
             extra_id: item.id,
             quantity: item.qty

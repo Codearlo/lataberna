@@ -87,6 +87,21 @@ export async function getExtras() {
 }
 
 /**
+ * Crea un nuevo Extra.
+ * @param {string} name - El nombre del nuevo extra.
+ */
+export async function createExtra(name) {
+    const { data, error } = await supabase
+        .from('extras')
+        .insert([{ nombre: name }])
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
  * Crea un nuevo Pack (Producto) y su Composición.
  * @param {object} packData - Datos del Pack a crear (name, price, categoria_id, is_active, image_url, is_pack: true).
  * @param {Array<object>} compositionData - Array de {extra_id, quantity} para la tabla packs_composition.
