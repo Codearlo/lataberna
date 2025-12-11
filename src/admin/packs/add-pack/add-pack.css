@@ -228,7 +228,7 @@ body {
     background-color: #fffbef; border: 1px solid #ffe082;
     border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     list-style: none; padding: 6px; margin: 0; display: none; 
-    z-index: 1000; /* Siempre debe ser mayor que el contenedor padre */
+    /* ELIMINADO: z-index: 1000; para que herede la prioridad del contenedor (#extra:90, #product:80, #category:70) */
     max-height: 250px; overflow-y: auto;
 }
 .active-dropdown .dropdown-options { display: block; border-color: #FFC107; }
