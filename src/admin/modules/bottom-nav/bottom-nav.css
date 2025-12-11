@@ -38,7 +38,7 @@
 }
 
 #admin-bottom-nav li {
-    flex-grow: 1; /* CLAVE: Asegura que ambos <li> ocupen el 50% exacto */
+    flex-grow: 1; /* CLAVE: Asegura que todos los <li> ocupen el mismo espacio */
     text-align: center;
     position: relative;
     padding: 5px 0; 
@@ -89,6 +89,7 @@
 
 /* Espacio en el footer */
 #main-footer {
+    /* Ajustamos el margin-bottom para 3 ítems */
     margin-bottom: 90px; 
     padding-bottom: 10px; 
 }
@@ -117,6 +118,7 @@
     /* No hay ajustes para el FAB, ya que fue eliminado. */
     
     #main-footer {
+        /* Ajustamos el margin-bottom para 3 ítems en móvil */
         margin-bottom: 80px; 
     }
 }

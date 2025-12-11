@@ -8,6 +8,7 @@ import { ProfileAdminService } from './profile.service.js';
 // Rutas de navegación
 const PROFILE_VIEW_ROUTES = {
     'products': '../products/list-products/list-products.html', 
+    'packs': '../packs/list-packs/list-packs.html', // NUEVA RUTA
     'profile': './profile.html'                                 
 };
 

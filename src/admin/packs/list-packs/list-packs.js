@@ -1,43 +1,40 @@
-// src/admin/products/list-products/list-products.js
+// src/admin/packs/list-packs/list-packs.js
 
 import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
-// CORRECCIÓN: Solo importamos getSession
 import { getSession } from '../../auth/auth.js'; 
-import { getFilteredProductsPaged } from './list-products.service.js';
+import { getFilteredPacksPaged } from './list-packs.service.js';
 
 // --- Configuración de Paginación y Estado ---
 const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
 let currentFilter = 'active'; 
 let currentSearchTerm = '';
-let totalProducts = 0;
+let totalPacks = 0;
 
 // **RUTAS DE NAVEGACIÓN**
-const PRODUCTS_VIEW_ROUTES = {
-    'products': './list-products.html',
-    'packs': '../../packs/list-packs/list-packs.html', // NUEVA RUTA
+const PACKS_VIEW_ROUTES = {
+    'products': '../../products/list-products/list-products.html',
+    'packs': './list-packs.html',
     'profile': '../../profile/profile.html'
 };
 
 const ADMIN_CONTENT_ID = 'app-content';
-const PRODUCTS_LIST_CONTAINER_ID = '#products-list-views';
-const ACTIVE_PRODUCTS_GRID_ID = 'active-products-list';
-const ALL_PRODUCTS_GRID_ID = 'all-products-list';
+const PACKS_LIST_CONTAINER_ID = '#packs-list-views';
+const ACTIVE_PACKS_GRID_ID = 'active-packs-list';
+const ALL_PACKS_GRID_ID = 'all-packs-list';
 const PAGINATION_CONTAINER_ID = 'pagination-container'; 
 
 /**
- * Inicializa la página de gestión de productos.
+ * Inicializa la página de gestión de packs.
  */
-export async function initListProductsPage() {
-    if (window.listProductsInitialized) return;
-    window.listProductsInitialized = true;
+export async function initListPacksPage() {
+    if (window.listPacksInitialized) return;
+    window.listPacksInitialized = true;
     
     const session = await getSession();
     const contentContainer = document.getElementById(ADMIN_CONTENT_ID);
 
     if (!session) {
-        // --- CORRECCIÓN CRÍTICA ---
-        // Redirección REAL a la página de autenticación si no hay sesión
         window.location.href = '../../auth/auth.html';
         return;
     }
@@ -45,11 +42,11 @@ export async function initListProductsPage() {
     // Logueado: Inicializar la vista
     try {
         attachEventListeners();
-        initBottomNav('products', '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
-        await loadProducts();
+        initBottomNav('packs', '../../modules/bottom-nav/bottom-nav.html', PACKS_VIEW_ROUTES); 
+        await loadPacks();
         
     } catch (error) {
-        console.error("Error al inicializar la lista de productos:", error);
+        console.error("Error al inicializar la lista de packs:", error);
         if(contentContainer) contentContainer.innerHTML = `<p class="error-msg">Error al cargar la interfaz.</p>`;
     }
 }
@@ -57,7 +54,7 @@ export async function initListProductsPage() {
 
 function attachEventListeners() {
     // Buscador
-    const searchInput = document.getElementById('product-search-input');
+    const searchInput = document.getElementById('pack-search-input');
     let searchTimeout;
     if (searchInput) {
         searchInput.addEventListener('input', () => {
@@ -65,13 +62,13 @@ function attachEventListeners() {
             searchTimeout = setTimeout(() => {
                 currentSearchTerm = searchInput.value.trim();
                 currentPage = 1; 
-                loadProducts();
+                loadPacks();
             }, 300);
         });
     }
 
     // Tabs
-    const tabsContainer = document.getElementById('product-view-tabs');
+    const tabsContainer = document.getElementById('pack-view-tabs');
     if (tabsContainer) {
         tabsContainer.addEventListener('click', (e) => {
             const button = e.target.closest('.tab-btn'); 
@@ -83,7 +80,7 @@ function attachEventListeners() {
             currentFilter = button.dataset.filter;
             currentPage = 1;
             updateActiveView(currentFilter);
-            loadProducts();
+            loadPacks();
         });
     }
     
@@ -96,27 +93,28 @@ function attachEventListeners() {
             
             if (button.dataset.page) {
                 currentPage = parseInt(button.dataset.page);
-                loadProducts();
+                loadPacks();
             }
         });
     }
 
     // Click en tarjeta (Editar)
-    const productListViews = document.getElementById('products-list-views');
-    if (productListViews) {
-        productListViews.addEventListener('click', (e) => {
+    const packsListViews = document.getElementById('packs-list-views');
+    if (packsListViews) {
+        packsListViews.addEventListener('click', (e) => {
             const listItem = e.target.closest('.product-card'); 
             if (listItem) {
-                const productId = listItem.dataset.id;
-                window.location.href = `../edit-product/edit-product.html?id=${productId}`;
+                const packId = listItem.dataset.id;
+                // La edición apunta a la nueva carpeta packs/edit-pack
+                window.location.href = `../edit-pack/edit-pack.html?id=${packId}`; 
             }
         });
     }
 }
 
 function updateActiveView(filter) {
-    const activeGrid = document.getElementById(ACTIVE_PRODUCTS_GRID_ID);
-    const allGrid = document.getElementById(ALL_PRODUCTS_GRID_ID);
+    const activeGrid = document.getElementById(ACTIVE_PACKS_GRID_ID);
+    const allGrid = document.getElementById(ALL_PACKS_GRID_ID);
     
     if (activeGrid) activeGrid.classList.remove('active-view');
     if (allGrid) allGrid.classList.remove('active-view');
@@ -133,8 +131,8 @@ function updateActiveView(filter) {
     if (allMsg) allMsg.style.display = 'none';
 }
 
-async function loadProducts() {
-    const activeListId = currentFilter === 'all' ? ALL_PRODUCTS_GRID_ID : ACTIVE_PRODUCTS_GRID_ID;
+async function loadPacks() {
+    const activeListId = currentFilter === 'all' ? ALL_PACKS_GRID_ID : ACTIVE_PACKS_GRID_ID;
     const listContainer = document.getElementById(activeListId);
     const emptyMsgElement = document.getElementById(`${currentFilter}-empty-msg`); 
     
@@ -147,22 +145,22 @@ async function loadProducts() {
     if (emptyMsgElement) emptyMsgElement.style.display = 'none'; 
 
     try {
-        const { products, totalCount } = await getFilteredProductsPaged({
+        const { packs, totalCount } = await getFilteredPacksPaged({
             searchTerm: currentSearchTerm,
             filterBy: currentFilter,
             itemsPerPage: ITEMS_PER_PAGE,
             pageNumber: currentPage
         });
         
-        totalProducts = totalCount;
+        totalPacks = totalCount;
 
-        if (products.length === 0) {
+        if (packs.length === 0) {
             listContainer.innerHTML = ''; 
             if (emptyMsgElement) emptyMsgElement.style.display = 'block';
         } else {
             listContainer.innerHTML = '';
-            products.forEach(product => {
-                listContainer.appendChild(renderProductCard(product));
+            packs.forEach(pack => {
+                listContainer.appendChild(renderPackCard(pack));
             });
             if (emptyMsgElement) emptyMsgElement.style.display = 'none';
         }
@@ -170,43 +168,44 @@ async function loadProducts() {
         renderPagination();
 
     } catch (error) {
-        console.error("Error al cargar productos:", error);
+        console.error("Error al cargar packs:", error);
         listContainer.innerHTML = `<p class="error-msg">Error: ${error.message}</p>`;
     } finally {
         if (mainContainer) mainContainer.classList.remove('is-searching');
     }
 }
 
-function renderProductCard(product) {
+function renderPackCard(pack) {
+    // Reutilizamos la clase 'product-card'
     const card = document.createElement('a');
     card.classList.add('product-card');
-    card.dataset.id = product.id;
-    card.href = `../edit-product/edit-product.html?id=${product.id}`;
+    card.dataset.id = pack.id;
+    card.href = `../edit-pack/edit-pack.html?id=${pack.id}`; // Apunta a editar pack
 
-    const priceFormatted = `S/ ${product.price.toFixed(2)}`;
+    const priceFormatted = `S/ ${pack.price.toFixed(2)}`;
     
     let stockClass = 'stock-none';
     let stockText = 'Agotado';
-    if (product.is_active) {
+    if (pack.is_active) {
         stockClass = 'stock-high';
         stockText = 'Activo';
     }
 
-    const imgHtml = product.image_url 
-        ? `<img src="${product.image_url}" alt="${product.name}" class="product-thumb">`
+    const imgHtml = pack.image_url 
+        ? `<img src="${pack.image_url}" alt="${pack.name}" class="product-thumb">`
         : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`;
 
     card.innerHTML = `
         <div class="product-card-left">
-            <div class="product-icon-box">
+            <div class="product-icon-box" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;"> 
                 ${imgHtml}
             </div>
             <div class="product-details">
-                <h4 class="product-name">${product.name}</h4>
+                <h4 class="product-name">${pack.name}</h4>
                 <div class="product-meta">
-                    <span>${product.category || 'Categoría'}</span>
+                    <span>PACK • ${pack.category || 'Categoría'}</span>
                     <span style="opacity:0.3">•</span>
-                    <span>ID: ${product.id}</span>
+                    <span>ID: ${pack.id}</span>
                 </div>
             </div>
         </div>
@@ -222,7 +221,7 @@ function renderPagination() {
     const paginationArea = document.getElementById(PAGINATION_CONTAINER_ID);
     if (!paginationArea) return;
 
-    const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalPacks / ITEMS_PER_PAGE); // Usamos totalPacks
     
     if (totalPages <= 1) {
         paginationArea.innerHTML = '';
@@ -249,9 +248,9 @@ function renderPagination() {
     paginationHTML += `<button data-page="${currentPage + 1}" ${nextDisabled}>Siguiente &raquo;</button>`;
     
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalProducts);
-    paginationHTML += `</div><p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalProducts} productos</p>`;
+    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalPacks);
+    paginationHTML += `</div><p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalPacks} packs</p>`;
     paginationArea.innerHTML = paginationHTML;
 }
 
-initListProductsPage();
+initListPacksPage();

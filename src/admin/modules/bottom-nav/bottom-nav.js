@@ -6,7 +6,7 @@ const NAV_CONTAINER_ID = 'admin-nav-container';
 
 /**
  * Inicializa la barra de navegación inferior.
- * @param {string} currentViewName - Nombre de la vista actual ('products' o 'profile').
+ * @param {string} currentViewName - Nombre de la vista actual ('products', 'packs' o 'profile').
  * @param {string} navHtmlPath - La RUTA RELATIVA CORRECTA para el FETCH de HTML de la barra (ej: '../modules/bottom-nav/bottom-nav.html').
  * @param {object} viewRoutes - El OBJETO DE RUTAS DE NAVEGACIÓN RELATIVAS para la página actual.
  */
@@ -50,7 +50,7 @@ export async function initBottomNav(currentViewName, navHtmlPath, viewRoutes) {
 
 /**
  * Establece la clase 'active' en el ítem de navegación actual.
- * @param {string} viewName - El nombre de la vista activa ('products' o 'profile').
+ * @param {string} viewName - El nombre de la vista activa ('products', 'packs' o 'profile').
  */
 function setActiveView(viewName) {
     const navItems = document.querySelectorAll('#admin-bottom-nav li[data-view]');
