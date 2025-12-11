@@ -4,11 +4,17 @@ import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
 import { getSession } from '../../auth/auth.js'; 
 import { getFilteredPacksPaged } from './list-packs.service.js';
 
+// --- Clave para guardar el estado en SessionStorage ---
+const STATE_KEY = 'lataberna_packs_state';
+
 // --- Configuración de Paginación y Estado ---
+// Recuperar estado guardado o usar defaults
+const savedState = JSON.parse(sessionStorage.getItem(STATE_KEY));
+
 const ITEMS_PER_PAGE = 10;
-let currentPage = 1;
-let currentFilter = 'active'; 
-let currentSearchTerm = '';
+let currentPage = savedState ? savedState.currentPage : 1;
+let currentFilter = savedState ? savedState.currentFilter : 'active'; 
+let currentSearchTerm = savedState ? savedState.currentSearchTerm : '';
 let totalPacks = 0;
 
 // **RUTAS DE NAVEGACIÓN**
@@ -41,8 +47,13 @@ export async function initListPacksPage() {
 
     // Logueado: Inicializar la vista
     try {
+        // Restauramos visualmente el estado
+        restoreUIState();
+
         attachEventListeners();
         initBottomNav('packs', '../../modules/bottom-nav/bottom-nav.html', PACKS_VIEW_ROUTES); 
+        
+        // Cargamos los packs con la paginación recordada
         await loadPacks();
         
     } catch (error) {
@@ -51,6 +62,36 @@ export async function initListPacksPage() {
     }
 }
 
+// --- Gestión del Estado ---
+function saveState() {
+    const state = {
+        currentPage,
+        currentFilter,
+        currentSearchTerm
+    };
+    sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+function restoreUIState() {
+    // Restaurar buscador
+    const searchInput = document.getElementById('pack-search-input');
+    if (searchInput) {
+        searchInput.value = currentSearchTerm;
+    }
+
+    // Restaurar tabs
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(btn => {
+        if (btn.dataset.filter === currentFilter) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Mostrar vista correcta
+    updateActiveView(currentFilter);
+}
 
 function attachEventListeners() {
     // Buscador
@@ -62,6 +103,7 @@ function attachEventListeners() {
             searchTimeout = setTimeout(() => {
                 currentSearchTerm = searchInput.value.trim();
                 currentPage = 1; 
+                saveState(); // Guardar
                 loadPacks();
             }, 300);
         });
@@ -79,6 +121,8 @@ function attachEventListeners() {
             
             currentFilter = button.dataset.filter;
             currentPage = 1;
+            
+            saveState(); // Guardar
             updateActiveView(currentFilter);
             loadPacks();
         });
@@ -94,6 +138,7 @@ function attachEventListeners() {
             const targetPage = parseInt(button.dataset.page);
             if (targetPage && targetPage !== currentPage) {
                 currentPage = targetPage;
+                saveState(); // Guardar estado de paginación
                 loadPacks();
             }
         });
@@ -177,11 +222,10 @@ async function loadPacks() {
 }
 
 function renderPackCard(pack) {
-    // Reutilizamos la clase 'product-card'
     const card = document.createElement('a');
     card.classList.add('product-card');
     card.dataset.id = pack.id;
-    card.href = `../edit-pack/edit-pack.html?id=${pack.id}`; // Apunta a editar pack
+    card.href = `../edit-pack/edit-pack.html?id=${pack.id}`; 
 
     const priceFormatted = `S/ ${pack.price.toFixed(2)}`;
     
@@ -218,14 +262,11 @@ function renderPackCard(pack) {
     return card;
 }
 
-/**
- * Renderiza la paginación de Packs (Estilo actualizado)
- */
 function renderPagination() {
     const paginationArea = document.getElementById(PAGINATION_CONTAINER_ID);
     if (!paginationArea) return;
 
-    const totalPages = Math.ceil(totalPacks / ITEMS_PER_PAGE); // Usamos totalPacks
+    const totalPages = Math.ceil(totalPacks / ITEMS_PER_PAGE);
     
     if (totalPages <= 1) {
         paginationArea.innerHTML = '';
@@ -234,18 +275,17 @@ function renderPagination() {
 
     let paginationHTML = '<div class="pagination-wrapper">';
 
-    // Función auxiliar
     const createBtn = (page, content, isActive = false, isDisabled = false) => {
         const activeClass = isActive ? 'active' : '';
         const disabledAttr = isDisabled ? 'disabled' : '';
         return `<button class="pagination-btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
     };
 
-    // Inicio y Anterior
+    // Botones Inicio y Anterior
     paginationHTML += createBtn(1, '&laquo;', false, currentPage === 1);
     paginationHTML += createBtn(currentPage - 1, '&#8249;', false, currentPage === 1);
 
-    // Números y Elipsis
+    // Lógica de elipsis
     const pagesToShow = [];
     if (totalPages <= 7) {
         for (let i = 1; i <= totalPages; i++) pagesToShow.push(i);
@@ -267,13 +307,12 @@ function renderPagination() {
         }
     });
 
-    // Siguiente y Final
+    // Botones Siguiente y Final
     paginationHTML += createBtn(currentPage + 1, '&#8250;', false, currentPage === totalPages);
     paginationHTML += createBtn(totalPages, '&raquo;', false, currentPage === totalPages);
     
     paginationHTML += `</div>`; // Fin wrapper
     
-    // Info
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalPacks);
     paginationHTML += `<p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalPacks} packs</p>`;

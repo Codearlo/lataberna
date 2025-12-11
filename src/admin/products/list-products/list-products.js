@@ -4,11 +4,17 @@ import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
 import { getSession } from '../../auth/auth.js'; 
 import { getFilteredProductsPaged } from './list-products.service.js';
 
+// --- Clave para guardar el estado en SessionStorage ---
+const STATE_KEY = 'lataberna_products_state';
+
 // --- Configuración de Paginación y Estado ---
+// Intentamos cargar el estado guardado, si no existe, usamos valores por defecto
+const savedState = JSON.parse(sessionStorage.getItem(STATE_KEY));
+
 const ITEMS_PER_PAGE = 10;
-let currentPage = 1;
-let currentFilter = 'active'; 
-let currentSearchTerm = '';
+let currentPage = savedState ? savedState.currentPage : 1;
+let currentFilter = savedState ? savedState.currentFilter : 'active'; 
+let currentSearchTerm = savedState ? savedState.currentSearchTerm : '';
 let totalProducts = 0;
 
 // **RUTAS DE NAVEGACIÓN**
@@ -41,8 +47,13 @@ export async function initListProductsPage() {
 
     // Logueado: Inicializar la vista
     try {
+        // Restauramos visualmente el estado (tabs y search) antes de cargar
+        restoreUIState();
+        
         attachEventListeners();
         initBottomNav('products', '../../modules/bottom-nav/bottom-nav.html', PRODUCTS_VIEW_ROUTES); 
+        
+        // Cargamos los productos usando el estado recuperado (o el defecto)
         await loadProducts();
         
     } catch (error) {
@@ -51,6 +62,36 @@ export async function initListProductsPage() {
     }
 }
 
+// --- Gestión del Estado ---
+function saveState() {
+    const state = {
+        currentPage,
+        currentFilter,
+        currentSearchTerm
+    };
+    sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+function restoreUIState() {
+    // Restaurar valor del buscador
+    const searchInput = document.getElementById('product-search-input');
+    if (searchInput) {
+        searchInput.value = currentSearchTerm;
+    }
+
+    // Restaurar tabs activos
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(btn => {
+        if (btn.dataset.filter === currentFilter) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Asegurar que la vista correcta (grid) esté visible
+    updateActiveView(currentFilter);
+}
 
 function attachEventListeners() {
     // Buscador
@@ -61,7 +102,8 @@ function attachEventListeners() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentSearchTerm = searchInput.value.trim();
-                currentPage = 1; 
+                currentPage = 1; // Al buscar, reseteamos a la página 1
+                saveState(); // Guardamos cambio
                 loadProducts();
             }, 300);
         });
@@ -78,7 +120,9 @@ function attachEventListeners() {
             button.classList.add('active');
             
             currentFilter = button.dataset.filter;
-            currentPage = 1;
+            currentPage = 1; // Al cambiar filtro, reseteamos a página 1
+            
+            saveState(); // Guardamos cambio
             updateActiveView(currentFilter);
             loadProducts();
         });
@@ -93,7 +137,8 @@ function attachEventListeners() {
             
             const targetPage = parseInt(button.dataset.page);
             if (targetPage && targetPage !== currentPage) {
-                currentPage = targetPage;
+                currentPage = targetPage; // Aquí mantenemos la página seleccionada
+                saveState(); // Guardamos cambio (Esta es la clave para volver a la misma página)
                 loadProducts();
             }
         });
@@ -106,6 +151,7 @@ function attachEventListeners() {
             const listItem = e.target.closest('.product-card'); 
             if (listItem) {
                 const productId = listItem.dataset.id;
+                // El estado ya está guardado, podemos navegar tranquilos
                 window.location.href = `../edit-product/edit-product.html?id=${productId}`;
             }
         });
@@ -179,6 +225,7 @@ function renderProductCard(product) {
     const card = document.createElement('a');
     card.classList.add('product-card');
     card.dataset.id = product.id;
+    // El href es útil para abrir en nueva pestaña, pero el click listener maneja la navegación SPA/Normal
     card.href = `../edit-product/edit-product.html?id=${product.id}`;
 
     const priceFormatted = `S/ ${product.price.toFixed(2)}`;
@@ -216,9 +263,6 @@ function renderProductCard(product) {
     return card;
 }
 
-/**
- * Renderiza la paginación con estilo actualizado (<< < 1 2 ... 5 > >>)
- */
 function renderPagination() {
     const paginationArea = document.getElementById(PAGINATION_CONTAINER_ID);
     if (!paginationArea) return;
@@ -232,39 +276,31 @@ function renderPagination() {
 
     let paginationHTML = '<div class="pagination-wrapper">';
 
-    // Función auxiliar para crear botones
     const createBtn = (page, content, isActive = false, isDisabled = false) => {
         const activeClass = isActive ? 'active' : '';
         const disabledAttr = isDisabled ? 'disabled' : '';
         return `<button class="pagination-btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
     };
 
-    // Botones Inicio (<<) y Anterior (<)
-    // Usamos códigos HTML: &laquo; (<<) y &#8249; (< estilo moderno)
+    // Botones Inicio y Anterior
     paginationHTML += createBtn(1, '&laquo;', false, currentPage === 1); 
     paginationHTML += createBtn(currentPage - 1, '&#8249;', false, currentPage === 1);
 
-    // Lógica para mostrar números y elipsis (...)
+    // Lógica de elipsis
     const pagesToShow = [];
     
     if (totalPages <= 7) {
-        // Si son pocas páginas, mostrar todas
         for (let i = 1; i <= totalPages; i++) pagesToShow.push(i);
     } else {
-        // Lógica de rango con elipsis
         if (currentPage < 4) {
-            // Cerca del inicio: 1 2 3 4 5 ... Last
             pagesToShow.push(1, 2, 3, 4, 5, '...', totalPages);
         } else if (currentPage > totalPages - 3) {
-            // Cerca del final: 1 ... 6 7 8 9 10
             pagesToShow.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
         } else {
-            // En medio: 1 ... 4 5 6 ... 10
             pagesToShow.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
         }
     }
 
-    // Generar botones numéricos
     pagesToShow.forEach(p => {
         if (p === '...') {
             paginationHTML += `<span class="pagination-dots">...</span>`;
@@ -273,14 +309,12 @@ function renderPagination() {
         }
     });
 
-    // Botones Siguiente (>) y Final (>>)
-    // Usamos códigos HTML: &#8250; (> estilo moderno) y &raquo; (>>)
+    // Botones Siguiente y Final
     paginationHTML += createBtn(currentPage + 1, '&#8250;', false, currentPage === totalPages);
     paginationHTML += createBtn(totalPages, '&raquo;', false, currentPage === totalPages);
     
     paginationHTML += `</div>`; // Cierre wrapper
 
-    // Info de conteo
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalProducts);
     paginationHTML += `<p class="pagination-info">Mostrando ${startItem}-${endItem} de ${totalProducts} productos</p>`;
