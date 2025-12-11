@@ -79,8 +79,19 @@ function attachEventListeners() {
     
     // Función de cierre global para los dropdowns al hacer clic fuera
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.custom-dropdown-container')) {
-             document.querySelectorAll('.custom-dropdown-container').forEach(cont => {
+        // Obtenemos todos los contenedores de dropdowns
+        const dropdownContainers = document.querySelectorAll('.custom-dropdown-container');
+        
+        // Si el clic no fue dentro de NINGÚN contenedor de dropdown, los cerramos todos
+        let clickedInsideDropdown = false;
+        dropdownContainers.forEach(cont => {
+            if (cont.contains(e.target)) {
+                clickedInsideDropdown = true;
+            }
+        });
+        
+        if (!clickedInsideDropdown) {
+             dropdownContainers.forEach(cont => {
                  cont.classList.remove('active-dropdown');
              });
         }
@@ -143,6 +154,7 @@ function setupCustomDropdown(containerId, searchInputId, hiddenInputId, optionsL
              }
         });
         
+        // Abrir el dropdown actual
         dropdownContainer.classList.add('active-dropdown');
     };
     
@@ -209,9 +221,13 @@ function setupExtraDropdown() {
     
     // Si el usuario escribe y no selecciona de la lista, limpiamos
     searchInput.addEventListener('input', () => {
-        if (searchInput.value !== availableExtras.find(e => e.id === parseInt(hiddenInput.value))?.nombre) {
+        // Obtener el ID del extra seleccionado para comparación
+        const selectedExtraId = parseInt(hiddenInput.value);
+        const selectedExtraName = availableExtras.find(e => e.id === selectedExtraId)?.nombre;
+        
+        // Si el valor del input no coincide con el nombre del extra previamente seleccionado
+        if (searchInput.value !== selectedExtraName) {
             hiddenInput.value = '';
-            // Aseguramos que se limpien los campos si se pierde el foco sin seleccionar
             qtyInput.style.display = 'none';
             addBtn.disabled = true;
         }
@@ -250,16 +266,19 @@ async function handleCreateCategory() {
 
 function addExtraToComposition() {
     const extraId = parseInt(document.getElementById('extra_id').value);
-    const extraName = document.getElementById('extra_search').value;
+    const extraSearchInput = document.getElementById('extra_search');
+    const extraName = extraSearchInput.value;
     const qty = parseInt(document.getElementById('extra_qty').value);
     
     const qtyInput = document.getElementById('extra_qty');
     const addBtn = document.getElementById('add-extra-btn');
-    const searchInput = document.getElementById('extra_search');
     const hiddenInput = document.getElementById('extra_id');
-
-    if (!extraId || isNaN(qty) || qty <= 0) {
-        return showToast("⚠️ Selecciona un extra y una cantidad válida.");
+    
+    // Verificación adicional: el extraId debe ser un ID válido que exista en availableExtras
+    const selectedExtra = availableExtras.find(e => e.id === extraId);
+    
+    if (!selectedExtra || isNaN(qty) || qty <= 0) {
+        return showToast("⚠️ Selecciona un extra de la lista y una cantidad válida.");
     }
     
     if (packComposition.has(extraId)) {
@@ -271,7 +290,7 @@ function addExtraToComposition() {
     
     // Limpiar campos después de añadir
     hiddenInput.value = '';
-    searchInput.value = '';
+    extraSearchInput.value = '';
     qtyInput.value = 1;
     qtyInput.style.display = 'none';
     addBtn.disabled = true;
@@ -344,7 +363,9 @@ function handleImageSelection(e) {
             cropper.destroy();
         }
         
-        cropper = new Cropper(imageElement, {
+        // Requiere que Cropper esté cargado globalmente (por el script en el HTML)
+        // eslint-disable-next-line no-undef
+        cropper = new Cropper(imageElement, { 
             aspectRatio: 1, 
             viewMode: 1,    
             autoCropArea: 0.8,
