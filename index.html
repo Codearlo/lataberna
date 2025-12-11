@@ -3,49 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Taberna - Pedidos al Toque</title>
+    <title>La Taberna - Bienvenidos</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="src/public/main.css"> 
-
-    <link rel="stylesheet" href="src/public/modules/layout/header/header.css">
-    <link rel="stylesheet" href="src/public/modules/layout/header/header.responsive.css">
-
-    <link rel="stylesheet" href="src/public/modules/store/product-grid/product-grid.css">
-    <link rel="stylesheet" href="src/public/modules/store/product-grid/product-grid.responsive.css">
-
-    <link rel="stylesheet" href="src/public/modules/store/cart-modal/cart-modal.css">
-    <link rel="stylesheet" href="src/public/modules/store/cart-modal/cart-modal.responsive.css">
     
-    <link rel="stylesheet" href="src/public/modules/store/toast-notification/toast.css"> 
+    <link rel="stylesheet" href="src/public/main.css">
+    <link rel="stylesheet" href="src/public/landing.css">
     <link rel="stylesheet" href="src/public/modules/whatsapp-button/whatsapp-button.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <header id="main-header">
+
+    <div id="welcome-modal" class="welcome-modal-container">
+        <div class="welcome-overlay"></div>
+        <div class="welcome-modal">
+            <h2 class="welcome-title">Verificación de Edad 🔞</h2>
+            <p class="welcome-text">El contenido de este sitio es para mayores de 18 años.</p>
+            
+            <div class="welcome-actions">
+                <button id="btn-age-yes" class="btn-go-store">SÍ, SOY MAYOR</button>
+                <button id="btn-age-no" class="btn-stay">No, salir de aquí</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="landing-header">
+         <div class="header-spacer"></div>
+         <h1>LA TABERNA</h1>
+         
+         <a href="store.html" class="landing-cart-btn" aria-label="Ir a la Tienda">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+         </a>
     </header>
 
-    <section id="top-banners">
+    <main class="landing-container">
+
+        <section id="landing-banners" class="landing-section">
+            <div class="banners-wrapper">
+                <img src="assets/banners/promo1.jpg" alt="Promoción Principal" class="banner-img active">
+                <img src="assets/banners/promo2.jpg" alt="Promoción Secundaria" class="banner-img">
+                
+                <div class="banner-overlay">
+                    <a href="store.html" class="cta-button shadow-pulse">
+                        <i class="fas fa-shopping-bag" style="margin-right: 8px;"></i> HACER PEDIDO AHORA
+                    </a>
+                </div>
+            </div>
         </section>
 
-    <main id="app-content">
-        <section id="product-grid-container"></section>
-        
-        <div id="cart-modal-container"></div>
+        <section id="how-to-order" class="landing-section alt-bg">
+            <h2 class="section-title">¿Cómo funciona?</h2>
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-mouse-pointer"></i></div>
+                    <h3>1. Elige</h3>
+                    <p>Selecciona tus tragos favoritos en nuestra tienda.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fab fa-whatsapp"></i></div>
+                    <h3>2. Pide</h3>
+                    <p>Envíanos tu pedido automáticamente por WhatsApp.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-motorcycle"></i></div>
+                    <h3>3. Recibe</h3>
+                    <p>Relájate, nosotros te lo llevamos al toque.</p>
+                </div>
+            </div>
+             <div style="text-align: center; margin-top: 40px;">
+                <a href="store.html" class="cta-button icon-cta" style="background: transparent; color: #000; border: 2px solid #000;">
+                    Ver catálogo completo <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </section>
+
+        <section id="social-media" class="landing-section">
+            <h2 class="section-title">Síguenos</h2>
+            <div class="social-links-container">
+                <a href="https://www.facebook.com/profile.php?id=61555728007145&ref=_xav_ig_profile_page_web" target="_blank" class="social-link facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </a>
+                <a href="https://www.instagram.com/lataberna.26/" target="_blank" class="social-link instagram">
+                    <i class="fab fa-instagram"></i> Instagram
+                </a>
+                <a href="https://www.tiktok.com/@la.taberna26" target="_blank" class="social-link tiktok">
+                    <i class="fab fa-tiktok"></i> TikTok
+                </a>
+            </div>
+        </section>
+
     </main>
-    
+
     <footer id="main-footer">
         <p>© 2025 La Taberna - Delivery Ica</p>
-        <div style="margin-top: 15px;">
-            <a href="src/admin/auth/auth.html" style="color: #6c757d; font-size: 0.8rem; text-decoration: none; opacity: 0.7;">Admin</a>
+        
+        <div class="footer-extras">
+            <a href="#" class="complaint-book" title="LIBRO DE RECLAMACIONES">
+                <img src="assets/icons/libro-reclamaciones.png" alt="Icono Libro">
+                <span>LIBRO DE RECLAMACIONES</span>
+            </a>
+            
+            <a href="src/admin/auth/auth.html" class="admin-link">Admin</a>
         </div>
     </footer>
 
     <div id="whatsapp-button-container"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-    <script type="module" src="src/public/main.js"></script> 
+    <script type="module" src="src/public/landing.js"></script>
 </body>
 </html>
