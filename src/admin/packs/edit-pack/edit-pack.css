@@ -1,6 +1,6 @@
 /* src/admin/packs/edit-pack/edit-pack.css */
 
-/* --- ESTILOS BASE (Copia de add-pack.css) --- */
+/* --- ESTILOS BASE --- */
 body {
     background-color: #ffffff;
     color: #343a40; 
@@ -55,7 +55,8 @@ body {
     text-align: center;
     flex-grow: 1;
 }
-/* Estilo para el botón Ver en Tienda */
+
+/* Botón Ver en Tienda */
 .view-store-header-btn {
     color: #343a40;
     width: 40px; 
@@ -73,6 +74,7 @@ body {
     color: #FFC107; 
 }
 
+/* --- CONTENIDO --- */
 .mobile-main-content {
     flex: 1;
     overflow-y: auto;
@@ -211,7 +213,6 @@ body {
 .icon-grey { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
 .icon-red-pack { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
-
 .clean-input {
     flex: 1;
     background: transparent;
@@ -225,7 +226,7 @@ body {
 }
 .clean-input::placeholder { color: #6c757d; }
 
-/* --- DROPDOWN (Z-INDEX AJUSTADOS) --- */
+/* --- DROPDOWNS --- */
 #extra-dropdown { z-index: 90; }
 #product-dropdown { z-index: 80; }
 #category-dropdown { z-index: 70; }
@@ -269,21 +270,47 @@ body {
 input:checked + .slider { background-color: #28a745; }
 input:checked + .slider:before { transform: translateX(22px); }
 
-/* --- FOOTER --- */
+/* --- FOOTER (BOTONES LADO A LADO) --- */
 .form-footer {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: #ffffff; border-top: 1px solid #e9ecef;
     padding: 16px 20px 30px 20px; z-index: 100; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    
+    /* Configuración Flex para poner botones en fila */
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
 }
+
 .action-btn {
-    width: 100%; display: flex; align-items: center; justify-content: center;
+    flex: 1; /* Ocupar el mismo espacio */
+    display: flex; align-items: center; justify-content: center;
     padding: 14px; border-radius: 12px; font-size: 1.1rem; font-weight: 700;
     cursor: pointer; border: none; transition: transform 0.1s;
 }
-.action-btn--primary { background-color: #FFC107; color: #343a40; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.25); }
-.action-btn--primary:hover { background-color: #e0a800; }
 
-/* --- MODAL DE RECORTE (NUEVO) --- */
+/* Botón Actualizar (Dorado) */
+.action-btn--primary { 
+    background-color: #FFC107; 
+    color: #343a40; 
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.25); 
+}
+.action-btn--primary:hover { 
+    background-color: #e0a800; 
+}
+
+/* Botón Eliminar (Rojo/Blanco) */
+.action-btn--delete { 
+    background-color: #fff; 
+    color: #dc3545; 
+    border: 1px solid #dc3545; 
+}
+.action-btn--delete:hover { 
+    background-color: #dc3545; 
+    color: white; 
+}
+
+/* --- MODALES --- */
 .modal-container {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000;
 }
@@ -292,85 +319,50 @@ input:checked + .slider:before { transform: translateX(22px); }
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(2px);
 }
-.modal-content.crop-modal-content {
+.modal-content {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background-color: #ffffff; padding: 20px; border-radius: 16px;
-    width: 95%; max-width: 500px;
-    display: flex; flex-direction: column; max-height: 90vh;
+    background-color: #ffffff; padding: 25px; border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); width: 90%; max-width: 350px; text-align: center;
+}
+
+/* Modal de Recorte Específico */
+.modal-content.crop-modal-content {
+    max-width: 500px; display: flex; flex-direction: column; max-height: 90vh; padding: 20px;
 }
 .crop-image-container {
     flex: 1; min-height: 250px; background-color: #f0f0f0;
     overflow: hidden; border-radius: 8px; margin-bottom: 20px;
 }
-/* Asegura que la imagen dentro del cropper se comporte bien */
 #image-to-crop {
     display: block; max-width: 100%;
 }
-.modal-actions { display: flex; gap: 10px; }
+
+.modal-content h4 { margin-top: 0; color: #dc3545; } /* Título rojo para eliminar */
+.crop-modal-content h4 { color: #343a40; } /* Título normal para recorte */
+
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
-.btn-cancel { background-color: #e9ecef; color: #343a40; }
-.btn-confirm-delete { background-color: #28a745; color: white; }
 
-
-/* --- ESTILOS ESPECÍFICOS PARA PACKS --- */
-
-.pack-composition-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+/* Botón de Confirmar Acción (Rojo por defecto para eliminar) */
+.btn-confirm-delete { 
+    background-color: #dc3545; 
+    color: white; 
+}
+.btn-cancel { 
+    background-color: #e9ecef; 
+    color: #343a40; 
 }
 
-.composition-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px 0;
-    border-top: 1px dashed #e9ecef;
-}
+/* --- ESTILOS DE LISTA DE EXTRAS --- */
+.pack-composition-container { display: flex; flex-direction: column; gap: 12px; }
+.composition-list { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-top: 1px dashed #e9ecef; }
+.composition-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background-color: #f8f9fa; border-radius: 8px; font-size: 0.95rem; }
+.item-info { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.remove-component-btn { background: transparent; border: none; color: #dc3545; cursor: pointer; font-weight: 700; font-size: 1.2rem; padding: 0 5px; line-height: 1; }
+.remove-component-btn:hover { color: #bb2d3b; }
+.input-quantity { width: 60px; text-align: center; padding: 5px 8px; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.9rem; outline: none; margin-left: 10px; }
 
-.composition-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    font-size: 0.95rem;
-}
-
-.item-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-}
-
-.remove-component-btn {
-    background: transparent;
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 1.2rem;
-    padding: 0 5px;
-    line-height: 1;
-}
-.remove-component-btn:hover {
-    color: #bb2d3b;
-}
-
-.input-quantity {
-    width: 60px;
-    text-align: center;
-    padding: 5px 8px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    outline: none;
-    margin-left: 10px;
-}
-
-/* --- Desktop Layout (Copia de add-product.css) --- */
+/* --- Desktop Layout --- */
 @media (min-width: 768px) {
     .page-header-bar { position: static; padding: 0 0 20px 0; border-bottom: none; }
     .back-btn { display: none; }
@@ -380,9 +372,8 @@ input:checked + .slider:before { transform: translateX(22px); }
     .image-upload-container { grid-column: 2 / 3; grid-row: 1 / span 3; padding-top: 50px; }
     .image-preview-box { width: 100%; height: 150px; }
     .section-label { display: none; }
-    /* Ajuste para que los componentes queden en la columna 1 */
     .pack-composition-container { grid-column: 1 / 2; }
-    .form-footer { position: static; grid-column: 1 / 3; padding: 20px 0 0 0; border: none; box-shadow: none; justify-content: flex-end; display: flex; }
+    .form-footer { position: static; grid-column: 1 / 3; padding: 20px 0 0 0; border: none; box-shadow: none; justify-content: flex-end; gap: 15px; }
     .form-footer .action-btn { max-width: 250px; margin-left: 0; }
     .input-card { box-shadow: none; height: 50px; padding: 5px 12px; }
     .input-card.switch-card { height: 56px; }

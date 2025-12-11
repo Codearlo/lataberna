@@ -3,10 +3,12 @@
 import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
 // Importamos funciones base de otros servicios para reutilizar la lógica
-import { getCategories, createCategory, uploadImage, getAvailableProducts, getExtras } from '../add-pack/add-pack.services.js';
+// SE AGREGÓ: createExtra
+import { getCategories, createCategory, uploadImage, getAvailableProducts, getExtras, createExtra } from '../add-pack/add-pack.services.js';
 
 // Reexportamos funciones base
-export { getCategories, createCategory, uploadImage, getAvailableProducts, getExtras };
+// SE AGREGÓ: createExtra
+export { getCategories, createCategory, uploadImage, getAvailableProducts, getExtras, createExtra };
 
 /**
  * Elimina una imagen del bucket de Supabase Storage.
