@@ -209,12 +209,10 @@ body {
 .clean-input::placeholder { color: #6c757d; }
 
 /* --- DROPDOWN --- */
-/* Z-INDEX AJUSTADOS PARA EVITAR SUPERPOSICIÓN:
-   extra-dropdown (90) > product-dropdown (80) > category-dropdown (70)
-*/
-#extra-dropdown { z-index: 90; }
-#product-dropdown { z-index: 80; }
-#category-dropdown { z-index: 70; }
+/* Z-INDEX CORREGIDOS: El superior (Category) debe tener MAYOR índice que el inferior (Product) */
+#category-dropdown { z-index: 100; }
+#product-dropdown { z-index: 90; }
+#extra-dropdown { z-index: 80; }
 
 .custom-dropdown-container { cursor: text; position: relative; }
 .dropdown-trigger { flex: 1; display: flex; align-items: center; height: 100%; position: relative; }
@@ -228,7 +226,7 @@ body {
     background-color: #fffbef; border: 1px solid #ffe082;
     border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     list-style: none; padding: 6px; margin: 0; display: none; 
-    /* ELIMINADO: z-index: 1000; para que herede la prioridad del contenedor (#extra:90, #product:80, #category:70) */
+    z-index: 2000; /* Asegura que flote sobre el contenido interno de su propio contenedor */
     max-height: 250px; overflow-y: auto;
 }
 .active-dropdown .dropdown-options { display: block; border-color: #FFC107; }
