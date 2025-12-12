@@ -7,13 +7,12 @@
     box-sizing: border-box;
 }
 
-/* Variables de diseño */
 :root {
-    --primary-color: #000000; /* Negro */
-    --secondary-color: #0d0d0d; /* Negro Muy Oscuro */
-    --text-color: #333333; /* Gris oscuro para texto general */
-    --background-color: #ffffff; /* Fondo BLANCO */
-    --card-bg: #ffffff; /* Fondo de tarjetas BLANCO */
+    --primary-color: #000000; 
+    --secondary-color: #0d0d0d;
+    --text-color: #333333; 
+    --background-color: #ffffff; 
+    --card-bg: #ffffff;
     --font-family: "Josefin Sans", sans-serif;
 }
 
@@ -45,7 +44,6 @@ button {
     margin-bottom: 30px; 
 }
 
-/* Contenido Principal */
 #app-content {
     flex-grow: 1;
     padding: 20px;
@@ -54,13 +52,11 @@ button {
     margin: 0 auto;
 }
 
-/* --- LAYOUT SIDEBAR + GRID (Ahora desde Tablet 768px) --- */
+/* --- LAYOUT SIDEBAR + GRID (Desde Tablet 768px) --- */
 @media (min-width: 768px) {
     .store-layout-grid {
         display: grid;
-        /* Columna 1: Sidebar (260px), Columna 2: Contenido (resto) */
         grid-template-columns: 260px 1fr;
-        /* Fila 1: Barra Categorías | Fila 2: Sidebar + Productos */
         grid-template-rows: auto 1fr;
         column-gap: 30px;
         row-gap: 20px;
@@ -68,7 +64,6 @@ button {
         padding-top: 40px;
     }
 
-    /* La barra de categorías ocupa todo el ancho de la primera fila */
     .store-layout-grid > #categories-bar-container {
         grid-column: 1 / -1; 
         width: 100vw; 
@@ -76,12 +71,10 @@ button {
         margin-right: calc(50% - 50vw);
     }
     
-    /* El sidebar va en la columna 1, fila 2 */
     .store-layout-grid > #desktop-sidebar-container {
         grid-column: 1 / 2;
     }
 
-    /* Los productos van en la columna 2, fila 2 */
     .store-layout-grid > #product-grid-container {
         grid-column: 2 / 3;
         margin-top: 0 !important; 

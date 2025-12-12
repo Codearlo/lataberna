@@ -1,6 +1,6 @@
 /* src/public/modules/store/product-grid/product-grid.responsive.css */
 
-/* MÓVIL (< 600px): 2 Columnas (Sin cambios) */
+/* MÓVIL (< 600px): 2 Columnas */
 @media (max-width: 599px) {
     .category-products-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -12,20 +12,12 @@
         margin-bottom: 20px;
     }
 
-    .product-card img {
-        height: 150px;
-    }
-    
-    .product-info {
-        padding: 10px;
-    }
-    
-    .product-name {
-        font-size: 0.9em;
-    }
+    .product-card img { height: 150px; }
+    .product-info { padding: 10px; }
+    .product-name { font-size: 0.9em; }
 }
 
-/* TABLET PEQUEÑA (600px - 767px): 3 Columnas (Aún sin sidebar) */
+/* TABLET PEQUEÑA (600px - 767px): 3 Columnas (Aún modo móvil sin sidebar) */
 @media (min-width: 600px) and (max-width: 767px) {
     .category-products-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -33,28 +25,26 @@
     }
 }
 
-/* TABLET CON SIDEBAR (768px+): 2 Columnas */
-@media (min-width: 768px) {
+/* TABLET CON SIDEBAR (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
     .category-products-grid {
-        /* Espacio reducido por el sidebar -> Bajamos a 2 columnas */
+        /* Al tener el sidebar al lado, bajamos a 2 columnas para que no se aprieten */
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
 }
 
-/* DESKTOP CON SIDEBAR (1024px+): 3 Columnas */
+/* PC ESTÁNDAR (1024px+): 3 Columnas */
 @media (min-width: 1024px) {
     .category-products-grid {
-        /* Espacio medio -> 3 columnas */
         grid-template-columns: repeat(3, 1fr);
         gap: 25px;
     }
 }
 
-/* LARGE DESKTOP CON SIDEBAR (1280px+): 4 Columnas */
+/* PC GRANDE (1280px+): 4 Columnas */
 @media (min-width: 1280px) {
     .category-products-grid {
-        /* Pantalla grande -> 4 columnas (antes eran 5) */
         grid-template-columns: repeat(4, 1fr);
     }
 }

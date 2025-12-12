@@ -5,7 +5,7 @@
     --search-bg: #f3f4f6;
     --icon-color: #374151;
     --sidebar-width: 280px;
-    --primary-highlight: #FFC107; /* Dorado */
+    --primary-highlight: #FFC107; 
 }
 
 #main-header {
@@ -22,10 +22,22 @@
 .header-top-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; /* Clave para distribuir elementos */
     padding: 10px 15px; 
-    height: 60px;
+    height: 70px; /* Un poco más alto para verse bien en PC */
     gap: 15px;
+}
+
+/* Marca (Logo Texto) */
+.header-brand {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #000;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    display: none; /* Oculto por defecto en móvil */
 }
 
 /* 1. Botón Hamburguesa */
@@ -45,7 +57,7 @@
 .header-search-container {
     flex-grow: 1;
     max-width: 600px;
-    position: relative; /* Para el dropdown absoluto */
+    position: relative; 
 }
 
 .search-input-wrapper {
@@ -80,7 +92,7 @@
     pointer-events: none;
 }
 
-/* --- DROPDOWN DE RESULTADOS (MEJORADO) --- */
+/* --- DROPDOWN --- */
 .search-dropdown {
     position: absolute;
     top: 100%;
@@ -94,7 +106,7 @@
     margin: 0;
     z-index: 1001;
     display: none;
-    max-height: 400px; /* Un poco más alto para caber secciones */
+    max-height: 400px; 
     overflow-y: auto;
     border-top: 1px solid #f0f0f0;
 }
@@ -103,11 +115,10 @@
     display: block;
 }
 
-/* Títulos de Sección (Categorías / Productos) */
 .search-section-title {
     padding: 8px 15px;
-    background-color: #f9fafb; /* Gris muy suave */
-    color: #6b7280; /* Texto gris medio */
+    background-color: #f9fafb; 
+    color: #6b7280; 
     font-size: 0.75rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -127,19 +138,13 @@
     transition: background 0.1s;
 }
 
-.search-item:last-child {
-    border-bottom: none;
-}
+.search-item:last-child { border-bottom: none; }
+.search-item:hover { background-color: #fffbeb; }
 
-.search-item:hover {
-    background-color: #fffbeb; /* Dorado muy pálido al hover */
-}
-
-/* Iconos de Categoría en Búsqueda */
 .search-cat-icon {
     width: 32px;
     height: 32px;
-    background-color: #eef2ff; /* Azul muy pálido */
+    background-color: #eef2ff; 
     color: #4f46e5;
     border-radius: 8px;
     display: flex;
@@ -147,7 +152,6 @@
     justify-content: center;
 }
 
-/* Imágenes de Producto */
 .search-item-img {
     width: 36px;
     height: 36px;
@@ -172,11 +176,11 @@
 
 .search-item-price {
     font-size: 0.8rem;
-    color: #059669; /* Verde precio */
+    color: #059669; 
     font-weight: 700;
 }
 
-/* --- Iconos y Sidebar (Sin cambios mayores) --- */
+/* --- Iconos y Sidebar --- */
 .icons-container {
     display: flex;
     align-items: center;
@@ -206,7 +210,6 @@
     font-weight: 700;
 }
 
-/* Sidebar Styles */
 .header-nav-sidebar {
     position: fixed;
     top: 0;

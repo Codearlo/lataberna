@@ -1,23 +1,43 @@
 /* src/public/modules/layout/header/header.responsive.css */
 
-/* Ajustes para Tablet y Desktop (Desde 768px) */
+/* --- TABLET Y ESCRITORIO (>= 768px) --- */
 @media (min-width: 768px) {
     .header-top-row {
         padding: 10px 40px; 
+        gap: 40px; 
     }
     
+    /* 1. MOSTRAR MARCA / LOGO */
+    .header-brand {
+        display: block; 
+        width: 200px; 
+    }
+
+    /* 2. OCULTAR MENÚ HAMBURGUESA */
+    .menu-toggle-btn {
+        display: none !important;
+    }
+
+    /* 3. CENTRAR BUSCADOR */
+    .header-search-container {
+        margin: 0 auto; 
+        max-width: 600px;
+        width: 100%;
+    }
+
     .search-input-wrapper input {
         font-size: 1rem;
         padding: 12px 12px 12px 45px; 
     }
-    
-    /* Ocultar botón hamburguesa porque ya tenemos el sidebar visible */
-    .menu-toggle-btn {
-        display: none !important;
+
+    /* 4. EQUILIBRIO DERECHA (CARRITO) */
+    .icons-container {
+        width: 200px; 
+        justify-content: flex-end;
     }
 }
 
-/* Ajustes para Móvil */
+/* Ajustes para Móvil (< 768px) */
 @media (max-width: 767px) {
     .header-top-row {
         padding: 10px;
