@@ -12,17 +12,24 @@ export async function initProductGrid(containerId) {
     mainContainer.innerHTML = '<div style="text-align:center; padding:40px; width:100%;">Cargando catálogo...</div>';
 
     try {
-        const allProducts = await getActiveProducts();
+        let allProducts = await getActiveProducts();
         
         if (!allProducts || allProducts.length === 0) {
             mainContainer.innerHTML = '<p class="empty-grid-msg">No hay productos disponibles por ahora.</p>';
             return;
         }
 
+        // --- ORDENAMIENTO PRIORITARIO ---
+        // Ponemos los Packs primero, luego el resto.
+        allProducts.sort((a, b) => {
+            if (a.is_pack === b.is_pack) return 0;
+            return a.is_pack ? -1 : 1; // true (Packs) van antes (-1)
+        });
+
         allProductsCache = allProducts;
         
-        // Render inicial: Mostrar TODO agrupado por defecto
-        renderGrid(mainContainer, allProductsCache);
+        // Render inicial: GRID PLANO sin secciones (Título null)
+        renderFlatGrid(mainContainer, allProductsCache, null);
 
         // 1. Escuchar MULTISELECCIÓN de la barra de categorías
         window.addEventListener('categories-selection-changed', (e) => {
@@ -30,7 +37,7 @@ export async function initProductGrid(containerId) {
             handleMultiCategoryFilter(mainContainer, selectedIds);
         });
 
-        // 2. Escuchar búsqueda del Header (Mantenemos compatibilidad)
+        // 2. Escuchar búsqueda del Header
         window.addEventListener('search-query', (e) => {
             const term = e.detail.term;
             handleSearchFilter(mainContainer, term);
@@ -57,22 +64,22 @@ export async function initProductGrid(containerId) {
  * @param {string[]} selectedIds Array de IDs seleccionados
  */
 function handleMultiCategoryFilter(container, selectedIds) {
-    // Si no hay nada seleccionado (array vacío), mostramos TODO (Vista por defecto)
+    // Si no hay nada seleccionado (array vacío), mostramos TODO en vista PLANA (Packs arriba)
     if (!selectedIds || selectedIds.length === 0) {
-        renderGrid(container, allProductsCache);
+        renderFlatGrid(container, allProductsCache, null);
         return;
     }
 
-    // Filtramos productos que pertenezcan a ALGUNA de las categorías seleccionadas
+    // Si HAY selección, filtramos y mostramos AGRUPADO por secciones (Colección de X...)
     const filtered = allProductsCache.filter(p => selectedIds.includes(p.categoria_id));
     
-    // Mostramos los resultados en un grid plano
-    renderFlatGrid(container, filtered, "Tu Selección");
+    // Usamos renderGroupedGrid para mostrar las secciones solicitadas
+    renderGroupedGrid(container, filtered);
 }
 
 function handleSearchFilter(container, term) {
     if (!term) {
-        renderGrid(container, allProductsCache);
+        renderFlatGrid(container, allProductsCache, null);
         return;
     }
     
@@ -85,9 +92,17 @@ function handleSearchFilter(container, term) {
     renderFlatGrid(container, filtered, `Resultados para "${term}"`);
 }
 
-/** Renderizado Agrupado (Vista por defecto) */
-function renderGrid(container, products) {
+/** * Renderizado Agrupado (Secciones "Colección de...") 
+ * Se usa cuando hay categorías seleccionadas.
+ */
+function renderGroupedGrid(container, products) {
     container.innerHTML = '';
+    
+    if (products.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">No hay productos en esta selección.</div>';
+        return;
+    }
+
     const productsByCategory = products.reduce((acc, product) => {
         const catName = product.category || 'Otros';
         if (catName.toUpperCase() === 'SIN CATEGORIA') return acc;
@@ -101,18 +116,22 @@ function renderGrid(container, products) {
     sortedCategories.forEach(categoryName => {
         const items = productsByCategory[categoryName];
         if (items.length > 0) {
-            createCategorySection(container, categoryName, items, false);
+            // Mostramos todo (true) porque el usuario ya filtró explícitamente
+            createCategorySection(container, categoryName, items, true);
         }
     });
 }
 
-/** Renderizado Plano (Para filtros y búsquedas) */
+/** * Renderizado Plano (Todo mezclado) 
+ * Se usa para la vista inicial y búsquedas.
+ */
 function renderFlatGrid(container, products, titleText) {
     container.innerHTML = '';
     if (products.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">No hay productos en esta selección.</div>';
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">No hay productos disponibles.</div>';
         return;
     }
+    // Pasamos titleText (puede ser null para no mostrar título)
     createCategorySection(container, titleText, products, true);
 }
 
@@ -122,10 +141,20 @@ function createCategorySection(container, categoryName, products, showAll) {
     const section = document.createElement('section');
     section.className = 'category-section';
 
-    const title = document.createElement('h2');
-    title.className = 'category-title';
-    title.textContent = showAll ? categoryName.toUpperCase() : `COLECCIÓN DE ${categoryName.toUpperCase()}`;
-    section.appendChild(title);
+    // SOLO renderizar el título si categoryName existe
+    if (categoryName) {
+        const title = document.createElement('h2');
+        title.className = 'category-title';
+        
+        // Si es un resultado de búsqueda o un título custom, lo mostramos directo
+        if (categoryName.startsWith('Resultados')) {
+            title.textContent = categoryName;
+        } else {
+            // Si es una categoría, usamos el formato "COLECCIÓN DE..."
+            title.textContent = showAll ? categoryName.toUpperCase() : `COLECCIÓN DE ${categoryName.toUpperCase()}`;
+        }
+        section.appendChild(title);
+    }
 
     const grid = document.createElement('div');
     grid.className = 'category-products-grid'; 
@@ -136,8 +165,8 @@ function createCategorySection(container, categoryName, products, showAll) {
     });
     section.appendChild(grid);
 
-    // Botón "Ver Todo" solo en vista agrupada
-    if (!showAll && products.length > 5) {
+    // Botón "Ver Todo" (Solo si no estamos mostrando todo y hay título/categoría)
+    if (!showAll && products.length > 5 && categoryName) {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'category-footer';
         const btn = document.createElement('button');
@@ -145,11 +174,13 @@ function createCategorySection(container, categoryName, products, showAll) {
         btn.textContent = `VER TODO ${categoryName.toUpperCase()}`;
         
         btn.addEventListener('click', () => {
-            // Al hacer clic en "Ver Todo" de una sección, filtramos solo por esa categoría
-            handleMultiCategoryFilter(container, [products[0].categoria_id]);
-            
-            // Opcional: Actualizar visualmente la barra superior si existe
-            // (Esto requeriría lógica extra para sincronizar UI, pero funcionalmente el grid ya responde)
+            // Al hacer clic en "Ver Todo", filtramos por esa categoría específica
+            if (products.length > 0) {
+                // Disparamos evento para que el sistema lo reconozca como un filtro único
+                window.dispatchEvent(new CustomEvent('category-selected', { 
+                    detail: { categoryId: products[0].categoria_id } 
+                }));
+            }
         });
 
         buttonContainer.appendChild(btn);
