@@ -14,8 +14,9 @@ const FOLDER_ICON_SVG = `<svg class="folder-icon" xmlns="http://www.w3.org/2000/
 
 let selectedCategories = new Set();
 let allCategoriesData = []; 
-let currentEditingCategory = null; // Para saber si estamos editando
-let selectedImageFile = null; // Archivo seleccionado para subir
+let currentEditingCategory = null; 
+let processedImageFile = null; // Archivo final procesado (WebP)
+let cropper = null; // Instancia del cropper
 
 async function initManageCategories() {
     initToastNotification();
@@ -33,17 +34,140 @@ async function initManageCategories() {
         renderCategoriesList(filtered);
     });
 
-    // Abrir modal en modo "Crear"
     openCreateBtn.addEventListener('click', () => openModal());
-    
     deleteSelectedBtn.addEventListener('click', handleBulkDelete);
 
-    // Eventos del modal
+    // Eventos de imagen (Click, Cambio y Pegar)
     const imgBox = document.getElementById('cat-img-preview-box');
     const fileInput = document.getElementById('cat-image-input');
     
     imgBox.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleImageFileSelect);
+
+    // Soporte para PEGAR (Ctrl+V)
+    document.addEventListener('paste', handlePaste);
+
+    // Eventos de recorte
+    document.getElementById('btn-confirm-crop').addEventListener('click', cropAndSave);
+    document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
+}
+
+// --- MANEJO DE IMAGEN Y RECORTE ---
+
+function handlePaste(e) {
+    // Solo si el modal de crear/editar está abierto
+    const modal = document.getElementById('create-modal-container');
+    if (!modal.classList.contains('visible')) return;
+
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.includes('image/')) {
+            const blob = item.getAsFile();
+            openCropper(blob);
+            break;
+        }
+    }
+}
+
+function handleImageFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+        openCropper(file);
+        e.target.value = ''; // Reset para poder seleccionar la misma
+    }
+}
+
+function openCropper(file) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const imageElement = document.getElementById('image-to-crop');
+        imageElement.src = ev.target.result;
+        
+        document.getElementById('remove-bg-check').checked = false;
+        
+        // Ocultar modal principal temporalmente o poner encima?
+        // Ponemos el de crop encima (z-index mayor en CSS)
+        const cropModal = document.getElementById('crop-modal');
+        cropModal.classList.add('visible');
+
+        if (cropper) cropper.destroy();
+        
+        // eslint-disable-next-line no-undef
+        cropper = new Cropper(imageElement, {
+            aspectRatio: 1, // CUADRADO
+            viewMode: 1,
+            autoCropArea: 0.8,
+            movable: true,
+            zoomable: true,
+            scalable: false,
+            background: false 
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function cropAndSave() {
+    if (!cropper) return;
+
+    let canvas = cropper.getCroppedCanvas({
+        width: 500, // Tamaño optimizado para categoría
+        height: 500,
+        fillColor: '#fff' 
+    });
+
+    const removeBg = document.getElementById('remove-bg-check').checked;
+    
+    if (removeBg) {
+        canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+        canvas = removeWhiteBackground(canvas);
+    }
+
+    canvas.toBlob((blob) => {
+        processedImageFile = new File([blob], "cat_image.webp", { type: 'image/webp' });
+
+        const preview = document.getElementById('cat-img-preview');
+        const placeholder = document.getElementById('cat-img-placeholder');
+        
+        preview.src = URL.createObjectURL(processedImageFile);
+        preview.style.display = 'block';
+        
+        // Mostrar transparencia con fondo de cuadrícula
+        preview.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
+        preview.style.backgroundSize = '20px 20px';
+
+        placeholder.style.display = 'none';
+        
+        closeCropModal();
+        showToast(removeBg ? "✂️ Recortado y sin fondo!" : "✂️ Imagen lista!");
+
+    }, 'image/webp', 0.85); 
+}
+
+function removeWhiteBackground(canvas) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const threshold = 230; 
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        if (r > threshold && g > threshold && b > threshold) {
+            data[i + 3] = 0; 
+        }
+    }
+    ctx.putImageData(imageData, 0, 0);
+    return canvas;
+}
+
+function closeCropModal() {
+    document.getElementById('crop-modal').classList.remove('visible');
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
 }
 
 // --- CARGA Y RENDERIZADO ---
@@ -97,14 +221,11 @@ function renderCategoriesList(listToRender) {
             </div>
         `;
 
-        // Click en la tarjeta -> Toggle Selección (para borrar)
         card.addEventListener('click', (e) => {
-            // Si el click fue en el botón de editar, no seleccionamos
             if (e.target.closest('.edit-category-btn')) return;
             toggleSelection(card, cat.id);
         });
 
-        // Click en botón editar
         const editBtn = card.querySelector('.edit-category-btn');
         editBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -114,8 +235,6 @@ function renderCategoriesList(listToRender) {
         container.appendChild(card);
     });
 }
-
-// --- SELECCIÓN (DELETE) ---
 
 function toggleSelection(cardElement, id) {
     if (selectedCategories.has(id)) {
@@ -137,27 +256,8 @@ function updateSelectionUI() {
     btn.disabled = count === 0;
 }
 
-// --- MODAL (CREATE / EDIT) ---
+// --- MODAL PRINCIPAL ---
 
-function handleImageFileSelect(e) {
-    const file = e.target.files[0];
-    if (file) {
-        selectedImageFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const preview = document.getElementById('cat-img-preview');
-            const placeholder = document.getElementById('cat-img-placeholder');
-            preview.src = ev.target.result;
-            preview.style.display = 'block';
-            placeholder.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-/**
- * Abre el modal. Si recibe 'category', es edición. Si no, es creación.
- */
 function openModal(category = null) {
     const modal = document.getElementById('create-modal-container');
     const title = document.getElementById('modal-title-text');
@@ -165,17 +265,14 @@ function openModal(category = null) {
     const inputId = document.getElementById('modal-category-id');
     const preview = document.getElementById('cat-img-preview');
     const placeholder = document.getElementById('cat-img-placeholder');
-    const fileInput = document.getElementById('cat-image-input');
     const btnConfirm = document.getElementById('btn-confirm-create');
     const btnCancel = document.getElementById('btn-cancel-create');
 
     // Resetear estado
-    selectedImageFile = null;
-    fileInput.value = '';
+    processedImageFile = null; // Limpiar imagen previa
     inputName.classList.remove('error');
 
     if (category) {
-        // MODO EDICIÓN
         currentEditingCategory = category;
         title.textContent = "Editar Categoría";
         inputName.value = category.nombre;
@@ -187,27 +284,26 @@ function openModal(category = null) {
             placeholder.style.display = 'none';
         } else {
             preview.style.display = 'none';
-            placeholder.style.display = 'block';
+            placeholder.style.display = 'flex';
         }
     } else {
-        // MODO CREACIÓN
         currentEditingCategory = null;
         title.textContent = "Nueva Categoría";
         inputName.value = '';
         inputId.value = '';
         preview.style.display = 'none';
-        placeholder.style.display = 'block';
+        placeholder.style.display = 'flex';
     }
 
     modal.classList.add('visible');
     inputName.focus();
 
-    // Handlers internos para cerrar/guardar
     const cleanup = () => {
         modal.classList.remove('visible');
         btnCancel.removeEventListener('click', closeHandler);
         btnConfirm.removeEventListener('click', saveHandler);
         inputName.removeEventListener('keypress', enterHandler);
+        document.removeEventListener('paste', handlePaste); // Limpiar evento global
     };
 
     const closeHandler = () => cleanup();
@@ -225,17 +321,15 @@ function openModal(category = null) {
 
             let imageUrl = currentEditingCategory ? currentEditingCategory.image_url : null;
 
-            // Si hay nueva imagen seleccionada, subirla
-            if (selectedImageFile) {
-                imageUrl = await uploadCategoryImage(selectedImageFile);
+            // Si hay nueva imagen procesada, subirla
+            if (processedImageFile) {
+                imageUrl = await uploadCategoryImage(processedImageFile);
             }
 
             if (currentEditingCategory) {
-                // UPDATE
                 await updateCategory(currentEditingCategory.id, name, imageUrl);
                 showToast(`✅ Categoría actualizada.`);
             } else {
-                // CREATE
                 await createCategory(name, imageUrl);
                 showToast(`✅ Categoría creada.`);
             }
@@ -260,23 +354,19 @@ function openModal(category = null) {
     btnCancel.addEventListener('click', closeHandler);
     btnConfirm.addEventListener('click', saveHandler);
     inputName.addEventListener('keypress', enterHandler);
+    // Paste ya está agregado globalmente en init, pero solo funciona si el modal está visible
 }
 
-// --- ELIMINACIÓN MASIVA (Sin cambios mayores) ---
-
+// ... (Funciones de borrado masivo idénticas a la versión anterior) ...
 async function handleBulkDelete() {
     if (selectedCategories.size === 0) return;
-
     const btn = document.getElementById('delete-selected-btn');
     const originalHTML = btn.innerHTML; 
-    
     btn.disabled = true;
     btn.textContent = "Verificando...";
-
     const idsToDelete = Array.from(selectedCategories);
     const conflicts = [];
     const safeToDelete = [];
-
     try {
         for (const id of idsToDelete) {
             const category = allCategoriesData.find(c => c.id === id);
@@ -288,9 +378,7 @@ async function handleBulkDelete() {
                 safeToDelete.push({ id, name: category.nombre });
             }
         }
-
         let deletedCount = 0;
-
         for (const item of conflicts) {
             const decision = await showConflictModal(item.name, item.count);
             if (decision === 'continue') {
@@ -299,7 +387,6 @@ async function handleBulkDelete() {
                 deletedCount++;
             }
         }
-
         if (safeToDelete.length > 0) {
             const namesList = safeToDelete.map(i => i.name);
             const confirmed = await showBatchConfirmModal(namesList);
@@ -311,12 +398,10 @@ async function handleBulkDelete() {
                 }
             }
         }
-
         if (deletedCount > 0) {
             showToast(`✅ ${deletedCount} eliminadas.`);
             selectedCategories.clear(); 
         }
-
     } catch (error) {
         console.error(error);
         showToast(`❌ Error: ${error.message}`);
@@ -329,7 +414,6 @@ async function handleBulkDelete() {
     }
 }
 
-// ... (Funciones de Modales de Conflicto y Batch - Sin cambios lógicos, se mantienen igual) ...
 function showConflictModal(categoryName, count) {
     return new Promise((resolve) => {
         const modal = document.getElementById('conflict-modal-container');
@@ -337,11 +421,9 @@ function showConflictModal(categoryName, count) {
         const countEl = document.getElementById('conflict-prod-count');
         const btnSkip = document.getElementById('btn-skip-conflict');
         const btnContinue = document.getElementById('btn-continue-conflict');
-
         nameEl.innerHTML = `${FOLDER_ICON_SVG} ${categoryName}`;
         countEl.textContent = count;
         modal.classList.add('visible');
-
         const cleanup = () => {
             modal.classList.remove('visible');
             btnSkip.removeEventListener('click', handleSkip);
@@ -349,7 +431,6 @@ function showConflictModal(categoryName, count) {
         };
         const handleSkip = () => { cleanup(); resolve('skip'); };
         const handleContinue = () => { cleanup(); resolve('continue'); };
-
         btnSkip.addEventListener('click', handleSkip, { once: true });
         btnContinue.addEventListener('click', handleContinue, { once: true });
     });
@@ -361,10 +442,8 @@ function showBatchConfirmModal(namesList) {
         const listEl = document.getElementById('batch-cat-list');
         const btnCancel = document.getElementById('btn-cancel-batch');
         const btnConfirm = document.getElementById('btn-confirm-batch');
-
         listEl.innerHTML = namesList.map(name => `<li>${FOLDER_ICON_SVG} ${name}</li>`).join('');
         modal.classList.add('visible');
-
         const cleanup = () => {
             modal.classList.remove('visible');
             btnCancel.removeEventListener('click', handleCancel);
@@ -372,7 +451,6 @@ function showBatchConfirmModal(namesList) {
         };
         const handleCancel = () => { cleanup(); resolve(false); };
         const handleConfirm = () => { cleanup(); resolve(true); };
-
         btnCancel.addEventListener('click', handleCancel, { once: true });
         btnConfirm.addEventListener('click', handleConfirm, { once: true });
     });

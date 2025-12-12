@@ -89,7 +89,6 @@ body {
 /* Icono default */
 .folder-icon { color: #FFC107; width: 24px; height: 24px; }
 
-/* Botón Editar dentro de la tarjeta */
 .edit-category-btn {
     background: transparent; border: none; color: #adb5bd;
     padding: 8px; cursor: pointer; transition: color 0.2s;
@@ -139,19 +138,31 @@ body {
     margin-top: 0; color: #dc3545; margin-bottom: 10px; font-size: 1.2rem;
     display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-#create-modal-container h4 { color: #343a40; } /* Título normal para crear/editar */
+#create-modal-container h4 { color: #343a40; } 
 
-/* Upload de Imagen en Modal */
+/* Upload de Imagen CUADRADA */
 .category-img-upload {
     display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
 }
-.img-preview-circle {
-    width: 80px; height: 80px; border-radius: 50%; background-color: #f8f9fa;
-    border: 2px dashed #FFC107; display: flex; align-items: center; justify-content: center;
+.img-preview-box {
+    width: 140px; height: 140px; border-radius: 12px; background-color: #f8f9fa;
+    border: 2px dashed #FFC107; display: flex; flex-direction: column; align-items: center; justify-content: center;
     cursor: pointer; overflow: hidden; position: relative;
+    transition: background 0.2s;
 }
-.img-preview-circle img { width: 100%; height: 100%; object-fit: cover; }
-#cat-img-placeholder { font-size: 1.5rem; }
+.img-preview-box:hover { background-color: #fff8e1; }
+.img-preview-box img { width: 100%; height: 100%; object-fit: contain; }
+#cat-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+
+/* --- MODAL DE RECORTE (Estilos copiados de add-product.css) --- */
+.modal-content.crop-modal-content {
+    max-width: 500px; display: flex; flex-direction: column; max-height: 90vh; padding: 20px;
+}
+.crop-image-container {
+    flex: 1; min-height: 250px; background-color: #f0f0f0;
+    overflow: hidden; border-radius: 8px; margin-bottom: 20px;
+}
+#image-to-crop { display: block; max-width: 100%; }
 
 .modal-list {
     list-style: none; padding: 0; margin: 15px 0 25px 0; text-align: left;

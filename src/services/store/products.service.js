@@ -4,20 +4,18 @@ import { supabase } from '../../config/supabaseClient.js';
 
 /**
  * Obtiene METADATA ligera de TODOS los productos (id, nombre, precio, categoría).
- * Esto sirve para calcular los rangos de precio y marcas en el Sidebar
- * sin descargar todas las imágenes pesadas y datos extra.
- * Optimiza el consumo del servidor.
+ * Esto sirve para calcular los rangos de precio y marcas en el Sidebar.
  */
 export async function getProductsMetadata() {
     try {
         const { data, error } = await supabase
             .from('products')
-            .select('id, name, price, categoria_id, is_pack') // Solo lo necesario para filtros
+            .select('id, name, price, categoria_id, is_pack') 
             .eq('is_active', true);
         
         if (error) throw error;
         
-        // Procesamos marcas aquí mismo para tener la lista lista
+        // Procesamos marcas
         return data.map(p => {
             let cleanName = p.name.replace(/Pack\s+/i, "").replace(/Botella\s+/i, "");
             const generics = ["RON", "PISCO", "GIN", "VODKA", "WHISKY", "CERVEZA", "VINO", "ESPUMANTE", "LATA", "SIXPACK"];
@@ -47,15 +45,6 @@ export async function getProductsMetadata() {
 
 /**
  * Obtiene productos PAGINADOS y FILTRADOS desde el servidor.
- * @param {object} params 
- * @param {number} params.page - Página actual (1, 2, 3...)
- * @param {number} params.limit - Productos por página (Recomendado: 12)
- * @param {number[]} params.categoryIds - Filtro de categorías
- * @param {string} params.searchTerm - Búsqueda
- * @param {number} params.minPrice - Precio mínimo
- * @param {number} params.maxPrice - Precio máximo
- * @param {string[]} params.brands - Array de marcas seleccionadas (nombres)
- * @param {boolean} params.onlyPacks - Si es solo packs
  */
 export async function getProductsPaged({ 
     page = 1, 
@@ -93,14 +82,13 @@ export async function getProductsPaged({
             query = query.ilike('name', `%${searchTerm}%`);
         }
 
-        // 4. Marcas (Complejo: Construimos un OR con ilike para cada marca)
+        // 4. Marcas
         if (brands.length > 0) {
-            // Ejemplo: name.ilike.%Cartavio%,name.ilike.%Bacardi%
             const orString = brands.map(b => `name.ilike.%${b}%`).join(',');
             query = query.or(orString);
         }
 
-        // Ordenamiento: Packs primero, luego alfabético
+        // Ordenamiento
         query = query
             .order('is_pack', { ascending: false })
             .order('name', { ascending: true })
@@ -124,24 +112,27 @@ export async function getProductsPaged({
     }
 }
 
-// Mantenemos estas para compatibilidad si se usan en otro lado (admin), 
-// pero la tienda ahora usará las de arriba.
+// Compatibilidad Admin
 export async function getActiveProducts() {
-    // ... (código existente o legacy)
     return [];
 }
+
+/**
+ * Obtiene las categorías para el menú de navegación.
+ * AHORA INCLUYE 'image_url' PARA MOSTRAR FOTOS REALES.
+ */
 export async function getMenuCategories() {
     try {
         const { data, error } = await supabase
             .from('categorias')
-            .select('id, nombre')
+            .select('id, nombre, image_url') // <--- AQUÍ ESTÁ EL CAMBIO IMPORTANTE
             .neq('nombre', 'SIN CATEGORIA')
             .order('nombre', { ascending: true });
         
         if (error) throw error;
         return data;
     } catch (err) {
-        console.error(err);
+        console.error("Error obteniendo categorías:", err);
         return [];
     }
 }
