@@ -15,7 +15,7 @@
     --background-color: #ffffff; /* Fondo BLANCO */
     --card-bg: #ffffff; /* Fondo de tarjetas BLANCO */
     
-    /* CAMBIO: Actualizamos la fuente global */
+    /* Fuente global */
     --font-family: "Josefin Sans", sans-serif;
 }
 
@@ -37,7 +37,7 @@ button {
     border-radius: 4px;
     font-weight: bold;
     transition: background-color 0.3s;
-    font-family: var(--font-family); /* Aseguramos que los botones hereden la fuente */
+    font-family: var(--font-family);
 }
 
 /* --- Contenedor de Banners Superiores --- */
@@ -49,13 +49,26 @@ button {
     margin-bottom: 30px; 
 }
 
-/* Contenido Principal */
+/* Contenido Principal (General) */
 #app-content {
     flex-grow: 1;
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1300px; 
     width: 100%;
     margin: 0 auto;
+}
+
+/* --- CORRECCIÓN: Layout Específico para la Tienda (Sidebar + Grid) --- */
+/* Solo se aplica si el elemento tiene la clase .store-layout-grid */
+@media (min-width: 1024px) {
+    .store-layout-grid {
+        display: grid;
+        /* Columna 1: Sidebar (260px), Columna 2: Contenido (resto) */
+        grid-template-columns: 260px 1fr;
+        gap: 30px;
+        align-items: start; 
+        padding-top: 40px;
+    }
 }
 
 /* Footer */

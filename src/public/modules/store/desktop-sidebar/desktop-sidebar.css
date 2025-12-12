@@ -1,0 +1,132 @@
+/* src/public/modules/store/desktop-sidebar/desktop-sidebar.css */
+
+#desktop-sidebar-container {
+    display: none; /* Oculto por defecto en móvil */
+}
+
+/* Solo visible en Desktop */
+@media (min-width: 1024px) {
+    #desktop-sidebar-container {
+        display: block;
+        position: sticky;
+        top: 90px; /* Debajo del header */
+        height: fit-content;
+        z-index: 100;
+    }
+}
+
+.sidebar-card {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+
+/* --- TABS SUPERIORES --- */
+.sidebar-tabs {
+    display: flex;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.sidebar-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 15px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #495057;
+    cursor: pointer;
+    position: relative;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+
+.sidebar-tab:hover {
+    color: #000;
+}
+
+/* Línea roja activa (estilo de la imagen) */
+.sidebar-tab.active {
+    color: #000;
+}
+
+.sidebar-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; /* Superponer el borde gris */
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #dc3545; /* Rojo */
+}
+
+/* --- CONTENIDO --- */
+.sidebar-content {
+    display: none;
+    padding: 20px;
+}
+
+.sidebar-content.active {
+    display: block;
+}
+
+.filter-header {
+    font-size: 1rem;
+    color: #343a40;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* --- LISTA DE ITEMS --- */
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: color 0.2s;
+    color: #343a40;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.sidebar-item:last-child {
+    border-bottom: none;
+}
+
+.sidebar-item:hover {
+    color: #dc3545; /* Rojo al pasar el mouse */
+}
+
+.sidebar-item.selected {
+    color: #dc3545;
+    font-weight: 800;
+}
+
+.item-plus {
+    font-size: 1.2rem;
+    color: #adb5bd;
+    font-weight: 400;
+}
+
+.sidebar-item:hover .item-plus {
+    color: #dc3545;
+}
+
+.empty-filters {
+    color: #999;
+    font-size: 0.9rem;
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}

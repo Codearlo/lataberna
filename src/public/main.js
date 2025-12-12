@@ -5,7 +5,8 @@ import { initProductGrid } from './modules/store/product-grid/product-grid.js';
 import { initCartModal } from './modules/store/cart-modal/cart-modal.js'; 
 import { initToastNotification } from './modules/store/toast-notification/toast.js'; 
 import { initWhatsappButton } from './modules/whatsapp-button/whatsapp-button.js'; 
-import { initCategoriesBar } from './modules/store/categories-bar/categories-bar.js'; // IMPORT
+import { initCategoriesBar } from './modules/store/categories-bar/categories-bar.js'; 
+import { initDesktopSidebar } from './modules/store/desktop-sidebar/desktop-sidebar.js'; // IMPORT NUEVO
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -18,12 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Inicializa el Toast
     initToastNotification(); 
 
-    // 4. Inicializa la Barra de Categorías (Rappi Style) - NUEVO
+    // 4. Inicializa la Barra de Categorías (Solo móvil/tablet por CSS)
     initCategoriesBar();
 
-    // 5. Inicializa la Rejilla de Productos
+    // 5. Inicializa el Sidebar Desktop (Solo PC por CSS) - NUEVO
+    initDesktopSidebar();
+
+    // 6. Inicializa la Rejilla de Productos
     initProductGrid('product-grid-container'); 
     
-    // 6. Botón flotante de WhatsApp
+    // 7. Botón flotante de WhatsApp
     initWhatsappButton('whatsapp-button-container'); 
 });

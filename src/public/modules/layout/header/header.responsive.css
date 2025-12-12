@@ -11,7 +11,10 @@
         padding: 12px 12px 12px 45px; /* Input un poco más alto */
     }
     
-    /* En PC, aunque hay espacio, mantenemos la hamburguesa porque así se pidió */
+    /* Ocultar botón hamburguesa en PC */
+    .menu-toggle-btn {
+        display: none !important;
+    }
 }
 
 /* Ajustes para Móvil */
