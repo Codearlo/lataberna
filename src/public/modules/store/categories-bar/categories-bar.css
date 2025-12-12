@@ -5,18 +5,25 @@
     margin-bottom: 20px;
     background-color: #ffffff;
     padding: 10px 0;
-    position: sticky; /* Optional: sticks while scrolling the grid */
-    top: 60px; /* Below header */
+    position: sticky;
+    top: 60px; /* Debajo del header */
     z-index: 90;
+    /* Para posicionar el degradado absoluto */
+    position: relative; 
 }
 
 .categories-bar-wrapper {
     display: flex;
     overflow-x: auto;
-    gap: 20px;
-    padding: 10px 20px;
+    gap: 15px; /* Reducimos un poco el gap para que quepan más */
+    padding: 10px 20px; /* Padding lateral para que no se pegue al borde */
+    
+    /* Ocultar scrollbar pero mantener funcionalidad */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE 10+ */
+    
+    /* Comportamiento suave */
+    scroll-behavior: smooth;
     align-items: flex-start;
 }
 
@@ -24,7 +31,26 @@
     display: none; /* Chrome/Safari */
 }
 
-/* Category Item */
+/* --- INDICADOR VISUAL DE SCROLL (NUEVO) --- */
+.categories-scroll-fade {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50px; /* Ancho del desvanecimiento */
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0), #ffffff 90%);
+    pointer-events: none; /* Permite hacer clic "a través" del degradado */
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* Clase para ocultar el degradado cuando llegamos al final */
+.categories-scroll-fade.is-hidden {
+    opacity: 0;
+}
+
+/* --- ITEMS --- */
 .cat-nav-item {
     display: flex;
     flex-direction: column;
@@ -34,6 +60,8 @@
     width: 70px;
     transition: transform 0.2s ease, opacity 0.2s;
     opacity: 0.8;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .cat-nav-item.active, .cat-nav-item:hover {
@@ -41,12 +69,12 @@
     transform: scale(1.05);
 }
 
-/* Icon Container (Circle/Card) */
+/* Icon Container */
 .cat-nav-icon {
     width: 60px;
     height: 60px;
-    background-color: #f8f9fa; /* Light gray bg */
-    border-radius: 18px; /* Soft square like iOS/Rappi */
+    background-color: #f8f9fa;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -55,30 +83,35 @@
     border: 2px solid transparent;
     transition: all 0.2s;
     overflow: hidden;
+    position: relative;
 }
 
 .cat-nav-item.active .cat-nav-icon {
-    background-color: #fff8e1; /* Pale Gold */
+    background-color: #fff8e1; /* Dorado pálido */
     border-color: #FFC107;
     box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
 }
 
 .cat-nav-icon img {
-    width: 80%;
-    height: 80%;
+    width: 70%;
+    height: 70%;
     object-fit: contain;
 }
 
 /* Label */
 .cat-nav-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-align: center;
     color: #343a40;
     line-height: 1.2;
     text-transform: capitalize;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .cat-nav-item.active .cat-nav-label {
-    color: #dfa300;
+    color: #d79b00;
 }
