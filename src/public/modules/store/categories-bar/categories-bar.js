@@ -4,12 +4,12 @@ import { getMenuCategories } from '../../../../services/store/products.service.j
 
 const CONTAINER_ID = 'categories-bar-container';
 
-// Usamos un Set para manejar selecciones únicas de forma eficiente
+// Set para manejar las selecciones activas
 const selectedCategories = new Set();
 
 /**
  * Inicializa la barra de categorías horizontal.
- * Soporta multiselección y toggle.
+ * Soporta multiselección y sincronización con Sidebar.
  */
 export async function initCategoriesBar() {
     const container = document.getElementById(CONTAINER_ID);
@@ -17,8 +17,24 @@ export async function initCategoriesBar() {
 
     try {
         const categories = await getMenuCategories();
-        // Ya no agregamos "Todo" manual. Si no hay selección, se muestra todo.
         renderBar(container, categories);
+
+        // --- NUEVO: Sincronización con el Sidebar ---
+        // Escuchamos cuando el usuario elige una categoría desde el menú lateral
+        window.addEventListener('category-selected', (e) => {
+            const externalCatId = e.detail.categoryId;
+            
+            // Limpiamos la multiselección previa porque el sidebar actúa como filtro único/reinicio
+            selectedCategories.clear();
+
+            // Si la selección no es "Ver Todo" (all), marcamos esa categoría específica
+            if (externalCatId !== 'all') {
+                selectedCategories.add(externalCatId);
+            }
+
+            // Actualizamos visualmente los iconos (pone/quita la clase .active)
+            updateBarVisualState();
+        });
 
     } catch (error) {
         console.error("Error loading categories bar:", error);
@@ -33,9 +49,9 @@ function renderBar(container, categories) {
     categories.forEach(cat => {
         const item = document.createElement('div');
         item.className = 'cat-nav-item';
+        // Guardamos el ID en el elemento HTML para encontrarlo luego
         item.dataset.id = cat.id;
 
-        // Intentamos cargar la imagen específica, fallback a icono genérico
         const imgSrc = `assets/categories/cat_${cat.id}.png`;
         const fallbackIcon = `https://cdn-icons-png.flaticon.com/512/3565/3565405.png`; 
 
@@ -46,19 +62,17 @@ function renderBar(container, categories) {
             <span class="cat-nav-label">${cat.nombre.toLowerCase()}</span>
         `;
 
-        // Lógica de Toggle (Multiselección)
+        // Lógica de clic en la propia barra (Multiselección)
         item.addEventListener('click', () => {
             if (selectedCategories.has(cat.id)) {
-                // Si ya está, lo quitamos (Deseleccionar)
                 selectedCategories.delete(cat.id);
-                item.classList.remove('active');
             } else {
-                // Si no está, lo agregamos (Seleccionar)
                 selectedCategories.add(cat.id);
-                item.classList.add('active');
             }
 
-            // Disparamos el evento con el ARRAY de todas las categorías seleccionadas
+            updateBarVisualState();
+
+            // Avisamos al Grid que cambiaron las categorías seleccionadas
             window.dispatchEvent(new CustomEvent('categories-selection-changed', { 
                 detail: { selectedIds: Array.from(selectedCategories) } 
             }));
@@ -69,4 +83,22 @@ function renderBar(container, categories) {
 
     container.innerHTML = '';
     container.appendChild(wrapper);
+}
+
+/**
+ * Actualiza las clases CSS .active de los iconos basándose en el Set selectedCategories
+ */
+function updateBarVisualState() {
+    const allItems = document.querySelectorAll('.cat-nav-item');
+    
+    allItems.forEach(item => {
+        // Convertimos el dataset.id (string) al tipo correcto (number) para comparar con el Set
+        const id = Number(item.dataset.id);
+        
+        if (selectedCategories.has(id)) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
 }
