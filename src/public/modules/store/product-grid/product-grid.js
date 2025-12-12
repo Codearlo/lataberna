@@ -1,20 +1,27 @@
 // src/public/modules/store/product-grid/product-grid.js
 
-import { getActiveProducts } from '../../../../services/store/products.service.js'; 
+import { getProductsMetadata, getProductsPaged } from '../../../../services/store/products.service.js'; 
 import { renderProductCard } from './product-grid.utils.js'; 
 import { updateSidebarFilters } from '../desktop-sidebar/desktop-sidebar.js';
 
-let allProductsCache = []; 
+// Configuración de Paginación
+const ITEMS_PER_PAGE = 12; // Recomendado para mantener simetría
 
-// ESTADO GLOBAL DE LA APP (Para combinar filtros)
-let currentAppState = {
-    categoryIds: [], // IDs seleccionados (vacio = todos)
-    searchTerm: '',
+// Estado Global de la Grid
+let gridState = {
+    page: 1,
+    products: [],     // Productos cargados y visibles
+    total: 0,         // Total disponible en DB para el filtro actual
+    isLoading: false,
+    
+    // Filtros activos
     filters: {
+        categoryIds: [],
+        searchTerm: '',
         minPrice: 0,
         maxPrice: Infinity,
         brands: [],
-        onlyOffers: false,
+        onlyOffers: false, // Nota: Ofertas es simulado cliente, pero filtrado visualmente
         onlyPacks: false
     }
 };
@@ -23,207 +30,198 @@ export async function initProductGrid(containerId) {
     const mainContainer = document.getElementById(containerId);
     if (!mainContainer) return;
 
-    mainContainer.innerHTML = '<div style="text-align:center; padding:40px; width:100%;">Cargando catálogo...</div>';
+    // Estructura base
+    mainContainer.innerHTML = `
+        <div id="grid-content-area"></div>
+        <div id="grid-loader" class="loader-container" style="display:none;">
+            <div class="spinner"></div>
+        </div>
+        <div class="load-more-container">
+            <button id="btn-load-more" class="load-more-btn" style="display:none;">Cargar más productos</button>
+        </div>
+    `;
+
+    const contentArea = document.getElementById('grid-content-area');
+    const loadMoreBtn = document.getElementById('btn-load-more');
+
+    // 1. Cargar Metadata para el Sidebar (Solo una vez al inicio)
+    // Esto configura los filtros de precios y marcas disponibles
+    try {
+        const metadata = await getProductsMetadata();
+        updateSidebarFilters(metadata); // Inicializamos el sidebar con datos reales ligeros
+    } catch (e) {
+        console.error("Error metadata:", e);
+    }
+
+    // 2. Cargar Primera Página
+    await fetchAndRender(true);
+
+    // --- EVENTOS ---
+
+    // A. Botón Cargar Más
+    loadMoreBtn.addEventListener('click', () => {
+        gridState.page++;
+        fetchAndRender(false); // false = no limpiar, añadir al final
+    });
+
+    // B. Filtros del Sidebar
+    window.addEventListener('filter-changed', (e) => {
+        // Actualizamos filtros y reseteamos a página 1
+        gridState.filters.minPrice = e.detail.minPrice;
+        gridState.filters.maxPrice = e.detail.maxPrice;
+        gridState.filters.brands = e.detail.brands;
+        gridState.filters.onlyOffers = e.detail.onlyOffers;
+        gridState.filters.onlyPacks = e.detail.onlyPacks;
+        
+        resetAndReload();
+    });
+
+    // C. Barra de Categorías
+    window.addEventListener('categories-selection-changed', (e) => {
+        gridState.filters.categoryIds = e.detail.selectedIds;
+        gridState.filters.searchTerm = ''; // Limpiar búsqueda
+        resetAndReload();
+    });
+
+    // D. Búsqueda Header
+    window.addEventListener('search-query', (e) => {
+        gridState.filters.searchTerm = e.detail.term;
+        gridState.filters.categoryIds = []; // Prioridad a búsqueda global
+        resetAndReload();
+    });
+
+    // E. Categoría Simple Sidebar
+    window.addEventListener('category-selected', (e) => {
+        const catId = e.detail.categoryId;
+        gridState.filters.categoryIds = (catId === 'all') ? [] : [catId];
+        gridState.filters.searchTerm = '';
+        resetAndReload();
+    });
+}
+
+function resetAndReload() {
+    gridState.page = 1;
+    gridState.products = [];
+    fetchAndRender(true); // true = limpiar grid actual
+}
+
+async function fetchAndRender(isReset) {
+    if (gridState.isLoading) return;
+    gridState.isLoading = true;
+
+    const contentArea = document.getElementById('grid-content-area');
+    const loader = document.getElementById('grid-loader');
+    const loadMoreBtn = document.getElementById('btn-load-more');
+
+    // UI Loading
+    loader.style.display = 'flex';
+    loadMoreBtn.style.display = 'none';
+    if (isReset) {
+        contentArea.innerHTML = ''; // Limpiar si es filtro nuevo
+    }
 
     try {
-        let rawProducts = await getActiveProducts();
-        
-        if (!rawProducts || rawProducts.length === 0) {
-            mainContainer.innerHTML = '<p class="empty-grid-msg">No hay productos disponibles por ahora.</p>';
-            return;
-        }
+        const { products, total } = await getProductsPaged({
+            page: gridState.page,
+            limit: ITEMS_PER_PAGE,
+            categoryIds: gridState.filters.categoryIds,
+            searchTerm: gridState.filters.searchTerm,
+            minPrice: gridState.filters.minPrice,
+            maxPrice: gridState.filters.maxPrice,
+            brands: gridState.filters.brands,
+            onlyPacks: gridState.filters.onlyPacks
+        });
 
-        // --- PROCESAMIENTO ---
-        const processedProducts = rawProducts.map((p, index) => {
-            const hasDiscount = (index % 3 === 0); 
+        // Procesamiento Client-Side (Marcas simuladas y Ofertas)
+        // Necesitamos procesar esto aquí para que las tarjetas se rendericen bien
+        const processedBatch = products.map((p, index) => {
+            // Lógica de simulación para visualización
+            // Nota: El índice es local al batch, así que el patrón de ofertas puede variar por página
+            const hasDiscount = (p.id % 3 === 0); // Usamos ID para que sea consistente entre recargas
             const fakeOriginalPrice = hasDiscount ? p.price * 1.25 : null;
-
-            // Extracción de Marca
-            let cleanName = p.name.replace(/Pack\s+/i, "").replace(/Botella\s+/i, "");
-            const generics = ["RON", "PISCO", "GIN", "VODKA", "WHISKY", "CERVEZA", "VINO", "ESPUMANTE", "LATA", "SIXPACK"];
-            const words = cleanName.trim().split(" ");
-            let brand = "Genérico";
-            if (words.length > 0) {
-                if (generics.includes(words[0].toUpperCase()) && words.length > 1) {
-                    brand = words[1];
-                } else {
-                    brand = words[0]; 
-                }
-            }
-            brand = brand.replace(/,/g, "").trim();
-
+            
+            // Marca (ya viene limpia si usamos metadata, pero por seguridad si viene del query normal)
+            // En getProductsPaged no procesamos la marca, así que lo hacemos aquí para la tarjeta
+            // (Aunque el filtro ya se aplicó en servidor vía 'ilike')
+            
             return {
                 ...p,
                 hasDiscount,
-                fakeOriginalPrice,
-                brand: brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase()
+                fakeOriginalPrice
             };
         });
 
-        // Ordenar: Packs primero
-        processedProducts.sort((a, b) => (a.is_pack === b.is_pack) ? 0 : (a.is_pack ? -1 : 1));
+        // Filtrado Client-Side FINAL solo para "Solo Ofertas"
+        // Como "hasDiscount" es simulado, no podemos filtrarlo en BD.
+        // Si el usuario marca "Solo Ofertas", ocultamos los que no lo son de este lote.
+        let productsToShow = processedBatch;
+        if (gridState.filters.onlyOffers) {
+            productsToShow = processedBatch.filter(p => p.hasDiscount);
+        }
 
-        allProductsCache = processedProducts;
-        
-        // 1. Render Inicial
-        applyGlobalFilters(mainContainer);
+        gridState.products = isReset ? productsToShow : [...gridState.products, ...productsToShow];
+        gridState.total = total;
 
-        // 2. Inicializar Sidebar
-        updateSidebarFilters(allProductsCache);
+        // Renderizado
+        if (gridState.products.length === 0 && isReset) {
+            contentArea.innerHTML = '<div class="empty-state-msg">No encontramos productos.</div>';
+        } else {
+            // Si es reset, decidimos si mostrar agrupado o plano
+            // Por simplicidad en paginación infinita, usaremos siempre Grid Plano
+            // salvo que queramos insertar títulos entre lotes (complejo).
+            // Usaremos Grid Plano para paginación fluida.
+            renderBatch(contentArea, productsToShow);
+        }
 
-        // --- LISTENERS UNIFICADOS ---
-
-        // A. Cambios en el Sidebar (Precios, Marcas, Packs, Ofertas)
-        window.addEventListener('filter-changed', (e) => {
-            currentAppState.filters = e.detail;
-            applyGlobalFilters(mainContainer);
-        });
-
-        // B. Barra de Categorías (Multiselección)
-        window.addEventListener('categories-selection-changed', (e) => {
-            currentAppState.categoryIds = e.detail.selectedIds;
-            currentAppState.searchTerm = ''; // Limpiar búsqueda al cambiar categoría
-            applyGlobalFilters(mainContainer);
-        });
-
-        // C. Búsqueda Header
-        window.addEventListener('search-query', (e) => {
-            currentAppState.searchTerm = e.detail.term;
-            // No limpiamos categorías necesariamente, pero para evitar confusión:
-            currentAppState.categoryIds = []; 
-            applyGlobalFilters(mainContainer);
-        });
-
-        // D. Sidebar Categoría Simple
-        window.addEventListener('category-selected', (e) => {
-            const catId = e.detail.categoryId;
-            currentAppState.categoryIds = (catId === 'all') ? [] : [catId];
-            currentAppState.searchTerm = '';
-            applyGlobalFilters(mainContainer);
-        });
+        // Control del botón "Cargar Más"
+        // Si tenemos menos productos cargados que el total real en DB
+        const loadedCount = (gridState.page * ITEMS_PER_PAGE); 
+        if (loadedCount < total) {
+            loadMoreBtn.style.display = 'block';
+            loadMoreBtn.textContent = `Ver más (${total - loadedCount} restantes)`;
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
 
     } catch (error) {
-        console.error("Error cargando productos:", error);
-        mainContainer.innerHTML = '<p class="empty-grid-msg">Error al cargar el catálogo.</p>';
+        console.error("Error grid:", error);
+        contentArea.innerHTML = '<p class="error-msg">Error de conexión.</p>';
+    } finally {
+        gridState.isLoading = false;
+        loader.style.display = 'none';
     }
 }
 
-/**
- * FUNCIÓN MAESTRA DE FILTRADO
- * Combina Categoría + Búsqueda + Filtros del Sidebar
- */
-function applyGlobalFilters(container) {
-    const { categoryIds, searchTerm, filters } = currentAppState;
-
-    let results = allProductsCache;
-
-    // 1. Filtrar por Categoría(s)
-    if (categoryIds.length > 0) {
-        results = results.filter(p => categoryIds.includes(p.categoria_id));
-    }
-
-    // 2. Filtrar por Búsqueda
-    if (searchTerm) {
-        const lowerTerm = searchTerm.toLowerCase();
-        results = results.filter(p => 
-            p.name.toLowerCase().includes(lowerTerm) || 
-            (p.category && p.category.toLowerCase().includes(lowerTerm))
-        );
-    }
-
-    // 3. Filtrar por Sidebar (Precio, Marca, Oferta, PACKS)
-    if (filters) {
-        results = results.filter(p => {
-            const matchPrice = p.price >= filters.minPrice && p.price <= filters.maxPrice;
-            const matchBrand = filters.brands.length === 0 || filters.brands.includes(p.brand);
-            const matchOffer = !filters.onlyOffers || p.hasDiscount;
-            // Lógica para "Solo Packs"
-            const matchPack = !filters.onlyPacks || p.is_pack; 
-
-            return matchPrice && matchBrand && matchOffer && matchPack;
-        });
-    }
-
-    // --- DECISIÓN DE RENDERIZADO ---
-    // Si hay filtros activos (sidebar o búsqueda), usamos vista plana.
-    // Si solo hay categorías seleccionadas (o nada), usamos vista agrupada (si no hay filtro de packs).
+function renderBatch(container, products) {
+    // Si el contenedor está vacío (reset), creamos la estructura del grid
+    let grid = container.querySelector('.category-products-grid');
     
-    const isSidebarActive = filters && (filters.brands.length > 0 || filters.onlyOffers || filters.onlyPacks || filters.minPrice > 0);
-    const isSearchActive = !!searchTerm;
-
-    if (isSidebarActive || isSearchActive) {
-        // Vista Plana (Resultados filtrados)
-        let title = "Resultados";
-        if (isSearchActive) title = `Resultados para "${searchTerm}"`;
-        else if (filters.onlyPacks) title = "Packs y Combos Seleccionados";
-        else title = "Tu Selección Filtrada";
-
-        renderFlatGrid(container, results, title);
-    } else {
-        // Vista Agrupada (Por defecto o solo Categoría)
-        if (categoryIds.length > 0) {
-            renderGroupedGrid(container, results);
-        } else {
-            // Vista "Home" (Todo)
-            renderFlatGrid(container, results, null); // Muestra todo con Packs arriba
+    if (!grid) {
+        // Título opcional
+        const titleText = getTitleText();
+        if (titleText) {
+            const title = document.createElement('h2');
+            title.className = 'category-title';
+            title.textContent = titleText;
+            container.appendChild(title);
         }
-    }
-}
 
-// --- FUNCIONES DE RENDER (Mismas de antes) ---
-
-function renderGroupedGrid(container, products) {
-    container.innerHTML = '';
-    if (products.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">No hay productos.</div>';
-        return;
-    }
-    const productsByCategory = products.reduce((acc, product) => {
-        const catName = product.category || 'Otros';
-        if (catName.toUpperCase() === 'SIN CATEGORIA') return acc;
-        if (!acc[catName]) acc[catName] = [];
-        acc[catName].push(product);
-        return acc;
-    }, {});
-
-    Object.keys(productsByCategory).sort().forEach(categoryName => {
-        const items = productsByCategory[categoryName];
-        if (items.length > 0) createCategorySection(container, categoryName, items, true);
-    });
-}
-
-function renderFlatGrid(container, products, titleText) {
-    container.innerHTML = '';
-    if (products.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">No se encontraron productos.</div>';
-        return;
-    }
-    createCategorySection(container, titleText, products, true);
-}
-
-function createCategorySection(container, categoryName, products, showAll) {
-    const displayedProducts = showAll ? products : products.slice(0, 5);
-    const section = document.createElement('section');
-    section.className = 'category-section';
-
-    if (categoryName) {
-        const title = document.createElement('h2');
-        title.className = 'category-title';
-        if (categoryName.startsWith('Resultados') || categoryName.startsWith('Tu') || categoryName.startsWith('Packs')) {
-            title.textContent = categoryName;
-        } else {
-            title.textContent = `COLECCIÓN DE ${categoryName.toUpperCase()}`;
-        }
-        section.appendChild(title);
+        grid = document.createElement('div');
+        grid.className = 'category-products-grid';
+        container.appendChild(grid);
     }
 
-    const grid = document.createElement('div');
-    grid.className = 'category-products-grid'; 
-
-    displayedProducts.forEach(product => {
+    products.forEach(product => {
         const card = renderProductCard(product);
         grid.appendChild(card);
     });
-    section.appendChild(grid);
-    container.appendChild(section);
+}
+
+function getTitleText() {
+    const f = gridState.filters;
+    if (f.searchTerm) return `Resultados para "${f.searchTerm}"`;
+    if (f.onlyPacks) return "Packs y Combos";
+    if (f.categoryIds.length > 0) return "Tu Selección";
+    if (f.onlyOffers) return "Ofertas Especiales";
+    return null; // Home por defecto sin título
 }
