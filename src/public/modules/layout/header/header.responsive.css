@@ -1,7 +1,7 @@
 /* src/public/modules/layout/header/header.responsive.css */
 
-/* Ajustes para Pantallas Grandes */
-@media (min-width: 1024px) {
+/* Ajustes para Tablet y Desktop (Desde 768px) */
+@media (min-width: 768px) {
     .header-top-row {
         padding: 10px 40px; 
     }
@@ -11,14 +11,14 @@
         padding: 12px 12px 12px 45px; 
     }
     
-    /* Ocultar botón hamburguesa en PC */
+    /* Ocultar botón hamburguesa porque ya tenemos el sidebar visible */
     .menu-toggle-btn {
         display: none !important;
     }
 }
 
 /* Ajustes para Móvil */
-@media (max-width: 600px) {
+@media (max-width: 767px) {
     .header-top-row {
         padding: 10px;
         gap: 10px;

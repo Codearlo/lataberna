@@ -4,11 +4,10 @@
     display: none; /* Oculto en móvil */
 }
 
-@media (min-width: 1024px) {
+/* Visible desde Tablet (768px) */
+@media (min-width: 768px) {
     #desktop-sidebar-container {
         display: block;
-        /* Como está dentro del grid, el sticky debe tener un top considerando la barra horizontal */
-        /* La barra horizontal mide ~100px. Header 60px. Top sticky = 170px aprox */
         position: sticky;
         top: 180px; 
         height: fit-content;
@@ -20,12 +19,164 @@
     background-color: #ffffff;
     border: 1px solid #e9ecef;
     border-radius: 8px;
-    padding: 0;
+    padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     overflow: hidden;
 }
 
-/* --- TABS --- */
+.sidebar-header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.sidebar-header-main h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #343a40;
+}
+
+.reset-link {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+/* SECCIONES DE FILTRO */
+.filter-section {
+    margin-bottom: 25px;
+}
+
+.filter-section h4 {
+    font-size: 0.95rem;
+    color: #343a40;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+/* PRECIO */
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.price-inputs input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.apply-btn {
+    width: 100%;
+    background-color: #343a40;
+    color: #fff;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.apply-btn:hover {
+    background-color: #000;
+}
+
+/* LISTAS Y CHECKBOXES */
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.sidebar-list::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-list::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+.sidebar-item-check {
+    padding: 6px 0;
+}
+
+/* Custom Checkbox */
+.custom-check-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding-left: 30px;
+    font-size: 0.9rem;
+    color: #495057;
+    user-select: none;
+}
+
+.custom-check-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: #eee;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.custom-check-label:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+
+.custom-check-label input:checked ~ .checkmark {
+    background-color: #dc3545;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-check-label input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.custom-check-label .checkmark:after {
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.label-text {
+    margin-top: 1px;
+}
+
+/* --- TABS (Categorías vs Filtros) --- */
 .sidebar-tabs {
     display: flex;
     border-bottom: 2px solid #f0f0f0;
@@ -45,15 +196,9 @@
     transition: color 0.2s;
 }
 
-.sidebar-tab:hover {
-    color: #000;
-}
+.sidebar-tab:hover { color: #000; }
+.sidebar-tab.active { color: #343a40; }
 
-.sidebar-tab.active {
-    color: #343a40; /* Negro suave */
-}
-
-/* Línea roja inferior para el tab activo */
 .sidebar-tab.active::after {
     content: '';
     position: absolute;
@@ -61,68 +206,8 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background-color: #dc3545; /* Rojo */
+    background-color: #dc3545; 
 }
 
-/* --- CONTENIDO --- */
-.sidebar-content {
-    display: none;
-    padding: 20px;
-}
-
-.sidebar-content.active {
-    display: block;
-}
-
-.filter-header {
-    font-size: 1rem;
-    color: #343a40;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
-
-/* --- LISTA --- */
-.sidebar-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.sidebar-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f3f4f6;
-    cursor: pointer;
-    transition: color 0.2s;
-    color: #343a40;
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.sidebar-item:last-child {
-    border-bottom: none;
-}
-
-.sidebar-item:hover {
-    color: #dc3545;
-}
-
-.item-plus {
-    font-size: 1.2rem;
-    color: #adb5bd;
-    font-weight: 400;
-}
-
-.sidebar-item:hover .item-plus {
-    color: #dc3545;
-}
-
-.empty-filters {
-    color: #999;
-    font-size: 0.9rem;
-    font-style: italic;
-    text-align: center;
-    padding: 20px 0;
-}
+.sidebar-content { display: none; padding: 20px; }
+.sidebar-content.active { display: block; }

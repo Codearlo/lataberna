@@ -45,7 +45,7 @@ button {
     margin-bottom: 30px; 
 }
 
-/* Contenedor Principal Genérico (Admin y Store) */
+/* Contenido Principal */
 #app-content {
     flex-grow: 1;
     padding: 20px;
@@ -54,11 +54,11 @@ button {
     margin: 0 auto;
 }
 
-/* --- LAYOUT EXCLUSIVO PARA LA TIENDA --- */
-@media (min-width: 1024px) {
+/* --- LAYOUT SIDEBAR + GRID (Ahora desde Tablet 768px) --- */
+@media (min-width: 768px) {
     .store-layout-grid {
         display: grid;
-        /* Sidebar (260px) | Contenido (Resto) */
+        /* Columna 1: Sidebar (260px), Columna 2: Contenido (resto) */
         grid-template-columns: 260px 1fr;
         /* Fila 1: Barra Categorías | Fila 2: Sidebar + Productos */
         grid-template-rows: auto 1fr;
@@ -71,7 +71,7 @@ button {
     /* La barra de categorías ocupa todo el ancho de la primera fila */
     .store-layout-grid > #categories-bar-container {
         grid-column: 1 / -1; 
-        width: 100vw; /* Forzamos el ancho completo visualmente */
+        width: 100vw; 
         margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
     }
@@ -84,7 +84,7 @@ button {
     /* Los productos van en la columna 2, fila 2 */
     .store-layout-grid > #product-grid-container {
         grid-column: 2 / 3;
-        margin-top: 0 !important; /* Reseteamos margen superior */
+        margin-top: 0 !important; 
     }
 }
 
