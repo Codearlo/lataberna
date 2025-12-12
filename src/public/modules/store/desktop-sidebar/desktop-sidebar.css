@@ -1,17 +1,18 @@
 /* src/public/modules/store/desktop-sidebar/desktop-sidebar.css */
 
 #desktop-sidebar-container {
-    display: none; /* Oculto por defecto en móvil */
+    display: none; /* Oculto en móvil */
 }
 
-/* Solo visible en Desktop */
 @media (min-width: 1024px) {
     #desktop-sidebar-container {
         display: block;
+        /* Como está dentro del grid, el sticky debe tener un top considerando la barra horizontal */
+        /* La barra horizontal mide ~100px. Header 60px. Top sticky = 170px aprox */
         position: sticky;
-        top: 90px; /* Debajo del header */
+        top: 180px; 
         height: fit-content;
-        z-index: 100;
+        z-index: 50;
     }
 }
 
@@ -24,7 +25,7 @@
     overflow: hidden;
 }
 
-/* --- TABS SUPERIORES --- */
+/* --- TABS --- */
 .sidebar-tabs {
     display: flex;
     border-bottom: 2px solid #f0f0f0;
@@ -37,7 +38,7 @@
     padding: 15px;
     font-size: 1rem;
     font-weight: 700;
-    color: #495057;
+    color: #6c757d;
     cursor: pointer;
     position: relative;
     font-family: inherit;
@@ -48,15 +49,15 @@
     color: #000;
 }
 
-/* Línea roja activa (estilo de la imagen) */
 .sidebar-tab.active {
-    color: #000;
+    color: #343a40; /* Negro suave */
 }
 
+/* Línea roja inferior para el tab activo */
 .sidebar-tab.active::after {
     content: '';
     position: absolute;
-    bottom: -2px; /* Superponer el borde gris */
+    bottom: -2px; 
     left: 0;
     width: 100%;
     height: 3px;
@@ -80,7 +81,7 @@
     font-weight: 600;
 }
 
-/* --- LISTA DE ITEMS --- */
+/* --- LISTA --- */
 .sidebar-list {
     list-style: none;
     padding: 0;
@@ -105,12 +106,7 @@
 }
 
 .sidebar-item:hover {
-    color: #dc3545; /* Rojo al pasar el mouse */
-}
-
-.sidebar-item.selected {
     color: #dc3545;
-    font-weight: 800;
 }
 
 .item-plus {

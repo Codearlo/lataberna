@@ -6,7 +6,7 @@ import { initCartModal } from './modules/store/cart-modal/cart-modal.js';
 import { initToastNotification } from './modules/store/toast-notification/toast.js'; 
 import { initWhatsappButton } from './modules/whatsapp-button/whatsapp-button.js'; 
 import { initCategoriesBar } from './modules/store/categories-bar/categories-bar.js'; 
-import { initDesktopSidebar } from './modules/store/desktop-sidebar/desktop-sidebar.js'; // IMPORT NUEVO
+import { initDesktopSidebar } from './modules/store/desktop-sidebar/desktop-sidebar.js'; // IMPORT
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Inicializa el Toast
     initToastNotification(); 
 
-    // 4. Inicializa la Barra de Categorías (Solo móvil/tablet por CSS)
+    // 4. Inicializa la Barra de Categorías (Visible siempre, estilo Rappi)
     initCategoriesBar();
 
-    // 5. Inicializa el Sidebar Desktop (Solo PC por CSS) - NUEVO
+    // 5. Inicializa el Sidebar de Filtros (Solo PC)
     initDesktopSidebar();
 
     // 6. Inicializa la Rejilla de Productos

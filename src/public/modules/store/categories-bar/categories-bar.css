@@ -1,77 +1,61 @@
 /* src/public/modules/store/categories-bar/categories-bar.css */
 
 #categories-bar-container {
-    /* --- CORRECCIÓN DE ESPACIOS Y ANCHO COMPLETO (FULL BLEED) --- */
-    
-    /* Forzamos que ocupe todo el ancho de la ventana (viewport), ignorando el contenedor padre */
+    /* Full Bleed: Ocupa todo el ancho de la ventana */
     width: 100vw; 
-    
-    /* Centramos el elemento expandido restando la mitad del viewport a la mitad del contenedor */
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     
-    /* Mover ARRIBA para eliminar el hueco con el header */
     margin-top: -20px;        
-    
-    margin-bottom: 10px;      /* Espacio reducido antes de los productos */
+    margin-bottom: 10px;
     background-color: #ffffff;
     
-    /* Padding ajustado para quitar espacios blancos excesivos */
     padding: 2px 0 10px 0;   
     
-    /* Sticky: Se pega debajo del header (60px es la altura del header) */
-    position: -webkit-sticky; /* Soporte Safari */
+    /* Sticky */
+    position: -webkit-sticky;
     position: sticky;
-    top: 60px; /* Coincide con la altura de .header-top-row en header.css */
-    
-    z-index: 990; /* Alto, pero debajo del header (que es 1000) */
+    top: 60px; 
+    z-index: 990; 
     
     border-bottom: 1px solid #f0f0f0;
-    
-    /* Quitamos la sombra por defecto para que se vea plano al inicio */
     box-shadow: none; 
-    
-    /* Transición suave para cuando aparezca la sombra */
     transition: box-shadow 0.3s ease;
 }
 
-/* CLASE NUEVA: Se activa vía JS al hacer scroll */
 #categories-bar-container.is-pinned {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Sombra elegante al flotar */
-}
-
-/* --- OCULTAR EN DESKTOP (PC) --- */
-@media (min-width: 1024px) {
-    #categories-bar-container {
-        display: none !important;
-    }
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
 }
 
 .categories-bar-wrapper {
     display: flex;
     overflow-x: auto;
-    gap: 20px; /* Separación cómoda entre categorías */
-    padding: 5px 20px; /* Padding lateral interno */
+    gap: 20px; 
+    padding: 5px 20px; 
     
     scrollbar-width: none; 
     -ms-overflow-style: none;
     scroll-behavior: smooth;
     align-items: flex-start;
-    
-    /* Por defecto (móvil) alineado a la izquierda para hacer scroll */
-    justify-content: flex-start;
+    justify-content: flex-start; /* Móvil: alineado izquierda */
+}
+
+/* En PC centramos los iconos */
+@media (min-width: 1024px) {
+    .categories-bar-wrapper {
+        justify-content: center;
+    }
 }
 
 .categories-bar-wrapper::-webkit-scrollbar { 
     display: none; 
 }
 
-/* --- Indicador Visual de Scroll (Fade) --- */
 .categories-scroll-fade {
     position: absolute;
     top: 0;
     right: 0;
-    width: 60px; /* Degradado más suave */
+    width: 60px; 
     height: 100%;
     background: linear-gradient(to right, rgba(255,255,255,0), #ffffff 100%);
     pointer-events: none;
@@ -84,14 +68,13 @@
     opacity: 0;
 }
 
-/* --- ITEMS (TAMAÑO ORIGINAL GRANDE) --- */
 .cat-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     cursor: pointer;
     flex-shrink: 0;
-    width: 75px; /* Ancho para contener bien el texto */
+    width: 75px; 
     transition: transform 0.2s ease, opacity 0.2s;
     opacity: 0.9;
     user-select: none;
@@ -100,20 +83,19 @@
 
 .cat-nav-item.active, .cat-nav-item:hover {
     opacity: 1;
-    transform: scale(1.05); /* Efecto pop al seleccionar */
+    transform: scale(1.05); 
 }
 
-/* Icon Container - TAMAÑO GRANDE RECUPERADO */
 .cat-nav-icon {
-    width: 60px;  /* Volvemos a 60px */
-    height: 60px; /* Volvemos a 60px */
+    width: 60px;  
+    height: 60px; 
     background-color: #f8f9fa;
-    border-radius: 20px; /* Bordes más suaves estilo iOS/Rappi */
+    border-radius: 20px; 
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Sombra suave para volumen */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
     border: 2px solid transparent;
     transition: all 0.2s;
     overflow: hidden;
@@ -121,28 +103,25 @@
 }
 
 .cat-nav-item.active .cat-nav-icon {
-    background-color: #fff8e1; /* Fondo dorado pálido */
-    border-color: #FFC107;     /* Borde dorado */
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3); /* Resplandor dorado */
+    background-color: #fff8e1; 
+    border-color: #FFC107;     
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3); 
 }
 
 .cat-nav-icon img {
-    width: 75%; /* Imagen grande y clara */
+    width: 75%; 
     height: 75%;
     object-fit: contain;
 }
 
-/* Label - TEXTO ORIGINAL */
 .cat-nav-label {
-    font-size: 0.75rem; /* Letra legible */
+    font-size: 0.75rem; 
     font-weight: 700;
     text-align: center;
     color: #343a40;
     line-height: 1.2;
     text-transform: capitalize;
     max-width: 100%;
-    
-    /* Permitir 2 líneas si es necesario para nombres largos */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -150,5 +129,5 @@
 }
 
 .cat-nav-item.active .cat-nav-label {
-    color: #d79b00; /* Texto dorado al activar */
+    color: #d79b00; 
 }

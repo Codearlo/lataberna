@@ -3,12 +3,12 @@
 /* Ajustes para Pantallas Grandes */
 @media (min-width: 1024px) {
     .header-top-row {
-        padding: 10px 40px; /* Más padding lateral */
+        padding: 10px 40px; 
     }
     
     .search-input-wrapper input {
         font-size: 1rem;
-        padding: 12px 12px 12px 45px; /* Input un poco más alto */
+        padding: 12px 12px 12px 45px; 
     }
     
     /* Ocultar botón hamburguesa en PC */
@@ -23,6 +23,4 @@
         padding: 10px;
         gap: 10px;
     }
-    
-    /* El input se adapta automáticamente gracias al flex-grow */
 }
