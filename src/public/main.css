@@ -81,6 +81,7 @@ button {
     }
 }
 
+/* --- FOOTER --- */
 #main-footer {
     text-align: center;
     padding: 15px 20px;
@@ -88,6 +89,45 @@ button {
     color: #fff;
     font-size: 0.9em;
 }
+
+/* FOOTER EXTRAS (Libro Reclamaciones + Admin Link) */
+.footer-extras {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+/* En PC/Tablet los ponemos en fila */
+@media (min-width: 768px) {
+    .footer-extras {
+        flex-direction: row;
+        justify-content: center;
+        gap: 40px;
+    }
+}
+
+.complaint-book {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 8px 15px;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.complaint-book:hover { background-color: #fff; color: #000; }
+.complaint-book img { height: 24px; width: auto; background-color: #fff; padding: 1px; border-radius: 2px; }
+.complaint-book span { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; }
+
+.admin-link { color: #6c757d; font-size: 0.8rem; text-decoration: none; opacity: 0.7; transition: color 0.2s; }
+.admin-link:hover { color: #FFC107; opacity: 1; }
 
 .empty-grid-msg {
     text-align: center;
