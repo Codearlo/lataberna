@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Administrativo - La Taberna</title>
+    <link rel="icon" type="image/webp" href="../../../assets/icons/icon.webp">
     
     <link rel="stylesheet" href="../../public/main.css">
     <link rel="stylesheet" href="./auth.css">
@@ -41,13 +42,11 @@
     <script type="module">
         import { handleLoginSubmit, getSession } from './auth.js';
 
-        // 1. Verificar sesión: Si ya estás logueado, te envía a productos
         const session = await getSession();
         if (session) {
             window.location.href = '../products/list-products/list-products.html';
         }
 
-        // 2. Conectar el formulario
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => handleLoginSubmit(e));

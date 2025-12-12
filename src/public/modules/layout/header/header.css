@@ -28,16 +28,30 @@
     gap: 15px;
 }
 
-/* Marca (Logo Texto) */
+/* Marca (Logo Imagen + Texto) */
 .header-brand {
+    display: none; /* Oculto por defecto en móvil */
+    align-items: center; /* Centrar verticalmente imagen y texto */
+    gap: 12px; /* Espacio entre logo y texto */
+    text-decoration: none;
+    color: #000;
+}
+
+/* Estilos para la imagen del logo */
+.header-brand-logo {
+    height: 45px; /* Altura ajustada para el header de 70px */
+    width: auto;  /* Mantener proporción */
+    object-fit: contain;
+}
+
+/* Estilos para el texto del logo */
+.header-brand span {
     font-size: 1.5rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: #000;
-    text-decoration: none;
     letter-spacing: -0.5px;
     white-space: nowrap;
-    display: none; /* Oculto por defecto en móvil */
+    line-height: 1; /* Asegurar alineación */
 }
 
 /* 1. Botón Hamburguesa */
