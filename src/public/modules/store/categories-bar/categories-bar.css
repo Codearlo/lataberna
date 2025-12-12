@@ -11,7 +11,7 @@
     margin-bottom: 10px;      /* Espacio reducido antes de los productos */
     background-color: #ffffff;
     
-    /* CAMBIO: Reducido el padding superior de 15px a 2px para quitar el espacio blanco */
+    /* Padding ajustado para quitar espacios blancos excesivos */
     padding: 2px 0 10px 0;   
     
     /* Sticky: Se pega debajo del header (60px es la altura del header) */
@@ -22,7 +22,17 @@
     z-index: 990; /* Alto, pero debajo del header (que es 1000) */
     
     border-bottom: 1px solid #f0f0f0;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); /* Sombra un poco más visible para notar que flota */
+    
+    /* CAMBIO: Quitamos la sombra por defecto para que se vea plano al inicio */
+    box-shadow: none; 
+    
+    /* Transición suave para cuando aparezca la sombra */
+    transition: box-shadow 0.3s ease;
+}
+
+/* CLASE NUEVA: Se activa vía JS al hacer scroll */
+#categories-bar-container.is-pinned {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Sombra elegante al flotar */
 }
 
 .categories-bar-wrapper {

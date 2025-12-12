@@ -11,6 +11,16 @@ export async function initCategoriesBar() {
     const container = document.getElementById(CONTAINER_ID);
     if (!container) return;
 
+    // --- NUEVO: Lógica de Sombra al Scroll ---
+    window.addEventListener('scroll', () => {
+        // Si bajamos más de 10px, activamos la sombra
+        if (window.scrollY > 10) {
+            container.classList.add('is-pinned');
+        } else {
+            container.classList.remove('is-pinned');
+        }
+    });
+
     try {
         const categories = await getMenuCategories();
         renderBar(container, categories);
