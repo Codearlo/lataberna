@@ -62,11 +62,12 @@
     font-weight: 800;
 }
 
-/* --- BANNERS --- */
+/* --- BANNERS RESPONSIVOS (Lógica de Aspect Ratio) --- */
 #landing-banners {
     padding: 0;
     width: 100%;
     position: relative;
+    background-color: #000;
 }
 
 .banners-wrapper {
@@ -75,23 +76,34 @@
     grid-template-areas: "stack";
     overflow: hidden;
     position: relative;
-    min-height: 300px; 
+    
+    /* 1. MÓVIL (Por defecto) */
+    /* Resolución: 500x400 -> Relación 5/4 */
+    aspect-ratio: 5 / 4;
 }
 
-.banner-img {
+/* Contenedor del Slide */
+.banner-slide {
     grid-area: stack;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: 100%; /* Se adapta al aspect-ratio del padre */
     display: block;
     opacity: 0;
     transition: opacity 1s ease-in-out;
     z-index: 1;
 }
 
-.banner-img.active {
+.banner-slide.active {
     opacity: 1;
     z-index: 2;
+}
+
+/* Imagen */
+.banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cubre todo el espacio reservado */
+    display: block;
 }
 
 .banner-overlay {
@@ -100,9 +112,11 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 40px;
-    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 40%);
+    padding-bottom: 30px;
+    background: linear-gradient(to top, rgba(0,0,0,0.5), transparent 30%);
+    pointer-events: none;
 }
+.banner-overlay .cta-button { pointer-events: auto; }
 
 .shadow-pulse {
     box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
@@ -205,7 +219,6 @@
     border-top: 1px solid #333;
 }
 
-/* Libro de Reclamaciones */
 .complaint-book {
     display: flex;
     align-items: center;
@@ -218,38 +231,12 @@
     transition: background-color 0.2s, color 0.2s;
 }
 
-.complaint-book:hover {
-    background-color: #fff;
-    color: #000;
-}
+.complaint-book:hover { background-color: #fff; color: #000; }
+.complaint-book img { height: 24px; width: auto; background-color: #fff; padding: 1px; border-radius: 2px; }
+.complaint-book span { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; }
 
-.complaint-book img {
-    height: 24px;
-    width: auto;
-    background-color: #fff; /* Fondo blanco para el icono */
-    padding: 1px;
-    border-radius: 2px;
-}
-
-.complaint-book span {
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-/* Link Admin */
-.admin-link {
-    color: #6c757d;
-    font-size: 0.8rem;
-    text-decoration: none;
-    opacity: 0.7;
-    transition: color 0.2s;
-}
-
-.admin-link:hover {
-    color: #FFC107;
-    opacity: 1;
-}
+.admin-link { color: #6c757d; font-size: 0.8rem; text-decoration: none; opacity: 0.7; transition: color 0.2s; }
+.admin-link:hover { color: #FFC107; opacity: 1; }
 
 /* --- MODAL (Age Gate) --- */
 .welcome-modal-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; }
@@ -257,23 +244,35 @@
 .welcome-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); backdrop-filter: blur(5px); }
 .welcome-modal { position: relative; background-color: #ffffff; width: 90%; max-width: 400px; padding: 40px 30px; border-radius: 20px; text-align: center; border: 3px solid #FFC107; animation: slideUp 0.4s ease-out; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
 .welcome-title { font-size: 1.6rem; color: #343a40; margin-bottom: 10px; font-weight: 800; }
 .welcome-text { color: #6c757d; margin-bottom: 25px; font-weight: 500; }
 .welcome-actions { display: flex; flex-direction: column; gap: 12px; }
-
 .btn-go-store { background-color: #dc3545; color: #fff; padding: 14px; border: none; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; text-transform: uppercase; width: 100%; transition: background 0.2s; }
 .btn-go-store:hover { background-color: #bb2d3b; }
 .btn-stay { background: transparent; color: #6c757d; border: none; font-weight: 600; cursor: pointer; text-decoration: underline; }
 .btn-stay:hover { color: #343a40; }
 
-/* Responsive Banner Height */
+/* --- MEDIA QUERIES (Cambio de Relación de Aspecto) --- */
+
+/* 2. TABLET (>= 768px) */
 @media (min-width: 768px) {
-    .banners-wrapper { min-height: 450px; }
-    
+    .banners-wrapper {
+        /* Resolución: 800x300 -> Relación 8/3 */
+        aspect-ratio: 8 / 3;
+    }
+
     .footer-extras {
         flex-direction: row;
         justify-content: center;
         gap: 40px;
+    }
+}
+
+/* 3. PC / ESCRITORIO (>= 1024px) */
+@media (min-width: 1024px) {
+    .banners-wrapper {
+        /* Resolución: 1000x200 -> Relación 5/1 */
+        aspect-ratio: 5 / 1; 
+        max-width: 100%; /* Asegura ancho completo */
     }
 }

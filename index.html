@@ -32,7 +32,6 @@
     <header class="landing-header">
          <div class="header-spacer"></div>
          <h1>LA TABERNA</h1>
-         
          <a href="store.html" class="landing-cart-btn" aria-label="Ir a la Tienda">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
@@ -46,8 +45,18 @@
 
         <section id="landing-banners" class="landing-section">
             <div class="banners-wrapper">
-                <img src="assets/banners/promo1.webp" alt="Promoción Principal" class="banner-img active">
-                <img src="assets/banners/promo2.webp" alt="Promoción Secundaria" class="banner-img">
+                
+                <picture class="banner-slide active">
+                    <source media="(min-width: 1024px)" srcset="assets/banners/pc-promo1.webp">
+                    <source media="(min-width: 768px)" srcset="assets/banners/tablet-promo1.webp">
+                    <img src="assets/banners/mobile-promo1.webp" alt="Promoción Principal" class="banner-img">
+                </picture>
+
+                <picture class="banner-slide">
+                    <source media="(min-width: 1024px)" srcset="assets/banners/pc-promo2.webp">
+                    <source media="(min-width: 768px)" srcset="assets/banners/tablet-promo2.webp">
+                    <img src="assets/banners/mobile-promo2.webp" alt="Promoción Secundaria" class="banner-img">
+                </picture>
                 
                 <div class="banner-overlay">
                     <a href="store.html" class="cta-button shadow-pulse">
@@ -102,19 +111,16 @@
 
     <footer id="main-footer">
         <p>© 2025 La Taberna - Delivery Ica</p>
-        
         <div class="footer-extras">
             <a href="#" class="complaint-book" title="LIBRO DE RECLAMACIONES">
                 <img src="assets/icons/libro-reclamaciones.png" alt="Icono Libro">
                 <span>LIBRO DE RECLAMACIONES</span>
             </a>
-            
             <a href="src/admin/auth/auth.html" class="admin-link">Admin</a>
         </div>
     </footer>
 
     <div id="whatsapp-button-container"></div>
-
     <script type="module" src="src/public/landing.js"></script>
 </body>
 </html>
