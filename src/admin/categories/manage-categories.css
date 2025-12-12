@@ -8,7 +8,6 @@ body {
     margin: 0;
 }
 
-/* --- HEADER --- */
 .page-header-bar {
     display: flex;
     align-items: center;
@@ -31,11 +30,7 @@ body {
     align-items: center;
 }
 
-.header-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    margin: 0;
-}
+.header-title { font-size: 1.25rem; font-weight: 800; margin: 0; }
 
 .mobile-main-content {
     padding: 20px;
@@ -44,295 +39,132 @@ body {
     width: 100%;
 }
 
-/* --- BARRA DE BÚSQUEDA Y CREACIÓN --- */
 .search-create-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: stretch;
+    display: flex; gap: 10px; margin-bottom: 20px; align-items: stretch;
 }
 
 .search-input-wrapper {
-    flex-grow: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
+    flex-grow: 1; position: relative; display: flex; align-items: center;
 }
 
 .search-input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    font-size: 1rem;
-    outline: none;
-    color: #495057;
-    background-color: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%; padding: 12px 15px; border: 1px solid #ced4da;
+    border-radius: 8px; font-size: 1rem; outline: none; color: #495057;
+    background-color: #fff; transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-.search-input:focus {
-    border-color: #FFC107;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.15);
-}
+.search-input:focus { border-color: #FFC107; box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.15); }
 
 .add-btn {
-    background-color: #FFC107; 
-    color: #212529;
-    border: none;
-    border-radius: 8px;
-    width: 48px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    background-color: #FFC107; color: #212529; border: none; border-radius: 8px;
+    width: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background-color 0.2s;
 }
-
-.add-btn:hover {
-    background-color: #e0a800;
-}
-
-.add-btn svg {
-    width: 24px;
-    height: 24px;
-    stroke-width: 3;
-}
+.add-btn:hover { background-color: #e0a800; }
+.add-btn svg { width: 24px; height: 24px; stroke-width: 3; }
 
 /* --- LISTA DE CATEGORÍAS --- */
-.category-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+.category-list { display: flex; flex-direction: column; gap: 12px; }
 
 .category-card {
-    background-color: #ffffff;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
+    background-color: #ffffff; border: 1px solid #e9ecef; border-radius: 12px;
+    padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; transition: all 0.2s; user-select: none;
+}
+.category-card:hover { background-color: #fcfcfc; border-color: #dee2e6; }
+.category-card.selected { background-color: #fffbf0; border-color: #FFC107; }
+
+.category-left-group {
+    display: flex; align-items: center; gap: 12px; flex: 1;
 }
 
-.category-card:hover {
-    background-color: #fcfcfc;
-    border-color: #dee2e6;
-}
-
-.category-card.selected {
-    background-color: #fffbf0;
-    border-color: #FFC107;
+.category-thumb {
+    width: 36px; height: 36px; border-radius: 6px; object-fit: cover;
+    background-color: #f8f9fa; border: 1px solid #eee;
 }
 
 .category-name {
-    font-weight: 600;
-    color: #343a40;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    /* Quitamos gap aquí porque el icono ya tiene margin-right */
+    font-weight: 600; color: #343a40; font-size: 1rem; display: flex; align-items: center;
 }
 
-/* ESTILO DEL ICONO DE CARPETA (Unificado) */
-.folder-icon {
-    color: #FFC107;
-    width: 20px;
-    height: 20px;
-    margin-right: 8px; /* Espacio uniforme */
-    vertical-align: middle;
+/* Icono default */
+.folder-icon { color: #FFC107; width: 24px; height: 24px; }
+
+/* Botón Editar dentro de la tarjeta */
+.edit-category-btn {
+    background: transparent; border: none; color: #adb5bd;
+    padding: 8px; cursor: pointer; transition: color 0.2s;
+    display: flex; align-items: center; justify-content: center;
 }
+.edit-category-btn:hover { color: #FFC107; }
 
 .custom-checkbox {
-    width: 24px;
-    height: 24px;
-    border: 2px solid #e0e0e0; 
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    background-color: #fff;
-    color: #fff;
+    width: 24px; height: 24px; border: 2px solid #e0e0e0; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; background-color: #fff; color: #fff;
+    margin-left: 10px;
 }
-
-.category-card.selected .custom-checkbox {
-    background-color: #dc3545;
-    border-color: #dc3545;
-}
-
-.custom-checkbox svg {
-    opacity: 0;
-    transition: opacity 0.2s;
-    width: 16px;
-    height: 16px;
-}
-
-.category-card.selected .custom-checkbox svg {
-    opacity: 1;
-}
+.category-card.selected .custom-checkbox { background-color: #dc3545; border-color: #dc3545; }
+.custom-checkbox svg { opacity: 0; transition: opacity 0.2s; width: 16px; height: 16px; }
+.category-card.selected .custom-checkbox svg { opacity: 1; }
 
 /* --- FOOTER FIJO --- */
 .footer-actions {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #ffffff;
-    border-top: 1px solid #e9ecef;
-    padding: 16px 20px 30px 20px;
-    z-index: 100;
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background-color: #ffffff; border-top: 1px solid #e9ecef;
+    padding: 16px 20px 30px 20px; z-index: 100;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
-
 .delete-action-btn {
-    width: 100%;
-    background-color: #dc3545;
-    color: #ffffff;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: background-color 0.2s, opacity 0.2s;
+    width: 100%; background-color: #dc3545; color: #ffffff;
+    padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 700;
+    border: none; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 10px; transition: background-color 0.2s, opacity 0.2s;
 }
+.delete-action-btn:disabled { background-color: #e9ecef; color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
+.delete-action-btn:not(:disabled):hover { background-color: #bb2d3b; }
 
-.delete-action-btn:disabled {
-    background-color: #e9ecef;
-    color: #adb5bd;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.delete-action-btn:not(:disabled):hover {
-    background-color: #bb2d3b;
-}
-
-.empty-state {
-    text-align: center;
-    color: #adb5bd;
-    margin-top: 40px;
-    font-style: italic;
-}
+.empty-state { text-align: center; color: #adb5bd; margin-top: 40px; font-style: italic; }
 
 /* --- MODALES --- */
-.modal-container {
-    display: none; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2000;
-}
-
-.modal-container.visible {
-    display: block;
-}
-
-.modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(2px);
-}
-
+.modal-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; }
+.modal-container.visible { display: block; }
+.modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); }
 .modal-content {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #ffffff; 
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    width: 90%;
-    max-width: 350px;
-    text-align: center;
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background-color: #ffffff; padding: 25px; border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); width: 90%; max-width: 350px; text-align: center;
 }
 
-/* Estilo del título del modal y su icono */
 .modal-content h4 {
-    margin-top: 0;
-    color: #dc3545; /* Rojo por defecto (Delete) */
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-    
-    /* Flex para alinear icono y texto perfectamente al centro */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-top: 0; color: #dc3545; margin-bottom: 10px; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
 }
+#create-modal-container h4 { color: #343a40; } /* Título normal para crear/editar */
 
-/* Icono en el título del modal un poco más grande */
-.modal-content h4 .folder-icon {
-    width: 24px;
-    height: 24px;
+/* Upload de Imagen en Modal */
+.category-img-upload {
+    display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
 }
-
-/* Sobrescribimos el color rojo solo para el modal de Crear Categoría */
-#create-modal-container h4 {
-    color: #343a40; /* Negro normal */
+.img-preview-circle {
+    width: 80px; height: 80px; border-radius: 50%; background-color: #f8f9fa;
+    border: 2px dashed #FFC107; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden; position: relative;
 }
+.img-preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+#cat-img-placeholder { font-size: 1.5rem; }
 
-/* Lista dentro del modal */
 .modal-list {
-    list-style: none;
-    padding: 0;
-    margin: 15px 0 25px 0;
-    text-align: left;
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    background: #f8f9fa;
+    list-style: none; padding: 0; margin: 15px 0 25px 0; text-align: left;
+    max-height: 150px; overflow-y: auto; border: 1px solid #e9ecef;
+    border-radius: 8px; background: #f8f9fa;
 }
-
 .modal-list li {
-    padding: 8px 12px;
-    border-bottom: 1px solid #e9ecef;
-    font-size: 0.95em;
-    color: #343a40;
-    display: flex;
-    align-items: center; /* Alinear icono en la lista */
+    padding: 8px 12px; border-bottom: 1px solid #e9ecef; font-size: 0.95em; color: #343a40;
+    display: flex; align-items: center; gap: 8px;
 }
-.modal-list li:last-child {
-    border-bottom: none;
-}
+.modal-list li:last-child { border-bottom: none; }
 
-.modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.modal-actions button {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-confirm-delete {
-    background-color: #dc3545;
-    color: white;
-}
-.btn-cancel {
-    background-color: #e9ecef;
-    color: #343a40;
-}
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
+.btn-confirm-delete { background-color: #dc3545; color: white; }
+.btn-cancel { background-color: #e9ecef; color: #343a40; }

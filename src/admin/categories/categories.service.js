@@ -1,6 +1,7 @@
 // src/admin/categories/categories.service.js
 
-import { supabase } from '../../config/supabaseClient.js';
+// CAMBIO: Importamos CATEGORIES_BUCKET
+import { supabase, CATEGORIES_BUCKET } from '../../config/supabaseClient.js';
 
 export async function getCategories() {
     const { data, error } = await supabase
@@ -12,10 +13,22 @@ export async function getCategories() {
     return data;
 }
 
-export async function createCategory(name) {
+export async function createCategory(name, imageUrl = null) {
     const { data, error } = await supabase
         .from('categorias')
-        .insert([{ nombre: name }])
+        .insert([{ nombre: name, image_url: imageUrl }])
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+export async function updateCategory(id, name, imageUrl) {
+    const { data, error } = await supabase
+        .from('categorias')
+        .update({ nombre: name, image_url: imageUrl })
+        .eq('id', id)
         .select()
         .single();
 
@@ -24,8 +37,29 @@ export async function createCategory(name) {
 }
 
 /**
- * Cuenta cuántos productos tiene una categoría.
+ * Sube imagen de categoría al bucket de CATEGORÍAS.
  */
+export async function uploadCategoryImage(file) {
+    if (!file) return null;
+
+    const fileExtension = file.name.split('.').pop();
+    // Prefijo simple
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}.${fileExtension}`;
+
+    // CAMBIO: Usamos CATEGORIES_BUCKET
+    const { error: uploadError } = await supabase.storage
+        .from(CATEGORIES_BUCKET)
+        .upload(fileName, file);
+
+    if (uploadError) throw new Error(`Error al subir imagen: ${uploadError.message}`);
+
+    const { data } = supabase.storage
+        .from(CATEGORIES_BUCKET)
+        .getPublicUrl(fileName);
+
+    return data.publicUrl;
+}
+
 export async function getCategoryProductCount(id) {
     const { count, error } = await supabase
         .from('products')
@@ -36,11 +70,7 @@ export async function getCategoryProductCount(id) {
     return count;
 }
 
-/**
- * Busca o crea la categoría "SIN CATEGORIA" para refugio de productos huérfanos.
- */
 async function getOrCreateNoCategory() {
-    // 1. Buscar si ya existe (insensible a mayúsculas)
     const { data, error } = await supabase
         .from('categorias')
         .select('id')
@@ -50,7 +80,6 @@ async function getOrCreateNoCategory() {
     if (error) throw error;
     if (data) return data.id;
 
-    // 2. Si no existe, crearla
     const { data: newCat, error: createError } = await supabase
         .from('categorias')
         .insert([{ nombre: 'SIN CATEGORIA' }])
@@ -61,28 +90,16 @@ async function getOrCreateNoCategory() {
     return newCat.id;
 }
 
-/**
- * Elimina una categoría.
- * @param {number} id - ID de la categoría a eliminar.
- * @param {boolean} moveProducts - Si es true, mueve los productos a "SIN CATEGORIA" antes de borrar.
- */
 export async function deleteCategory(id, moveProducts = false) {
-    // 1. Verificación inicial si NO se solicitó mover productos
     if (!moveProducts) {
         const count = await getCategoryProductCount(id);
         if (count > 0) {
-            throw new Error(`La categoría tiene ${count} productos. Se requiere confirmación para moverlos.`);
+            throw new Error(`La categoría tiene ${count} productos. Se requiere confirmación.`);
         }
     } else {
-        // 2. Lógica de Reasignación (Si moveProducts es true)
         const targetId = await getOrCreateNoCategory();
+        if (targetId === id) throw new Error("No se puede eliminar la categoría de respaldo.");
 
-        // Evitar bucle si intentamos borrar la propia categoría "SIN CATEGORIA"
-        if (targetId === id) {
-            throw new Error("No se puede eliminar la categoría de respaldo 'SIN CATEGORIA' si tiene productos.");
-        }
-
-        // Mover los productos a la nueva categoría
         const { error: updateError } = await supabase
             .from('products')
             .update({ categoria_id: targetId })
@@ -91,7 +108,6 @@ export async function deleteCategory(id, moveProducts = false) {
         if (updateError) throw updateError;
     }
 
-    // 3. Eliminar la categoría (ahora vacía)
     const { error } = await supabase
         .from('categorias')
         .delete()
