@@ -4,9 +4,12 @@ import { getMenuCategories } from '../../../../services/store/products.service.j
 
 const CONTAINER_ID = 'categories-bar-container';
 
+// Usamos un Set para manejar selecciones únicas de forma eficiente
+const selectedCategories = new Set();
+
 /**
- * Initializes the horizontal categories bar.
- * Dispatches 'category-selected' event to window when clicked.
+ * Inicializa la barra de categorías horizontal.
+ * Soporta multiselección y toggle.
  */
 export async function initCategoriesBar() {
     const container = document.getElementById(CONTAINER_ID);
@@ -14,14 +17,8 @@ export async function initCategoriesBar() {
 
     try {
         const categories = await getMenuCategories();
-        
-        // Add "All" option at the beginning
-        const allCategories = [
-            { id: 'all', nombre: 'Todo' },
-            ...categories
-        ];
-
-        renderBar(container, allCategories);
+        // Ya no agregamos "Todo" manual. Si no hay selección, se muestra todo.
+        renderBar(container, categories);
 
     } catch (error) {
         console.error("Error loading categories bar:", error);
@@ -36,16 +33,10 @@ function renderBar(container, categories) {
     categories.forEach(cat => {
         const item = document.createElement('div');
         item.className = 'cat-nav-item';
-        if (cat.id === 'all') item.classList.add('active');
         item.dataset.id = cat.id;
 
-        // Try to load specific category image, fallback to default SVG
-        // Naming convention: assets/categories/cat_{id}.png
-        const imgSrc = cat.id === 'all' 
-            ? 'src/public/modules/store/categories-bar/icons/all.svg' // You can create this or it will fallback
-            : `assets/categories/cat_${cat.id}.png`;
-
-        // Generic fallback icon (Folder/Grid)
+        // Intentamos cargar la imagen específica, fallback a icono genérico
+        const imgSrc = `assets/categories/cat_${cat.id}.png`;
         const fallbackIcon = `https://cdn-icons-png.flaticon.com/512/3565/3565405.png`; 
 
         item.innerHTML = `
@@ -55,14 +46,21 @@ function renderBar(container, categories) {
             <span class="cat-nav-label">${cat.nombre.toLowerCase()}</span>
         `;
 
+        // Lógica de Toggle (Multiselección)
         item.addEventListener('click', () => {
-            // Visual Active State
-            document.querySelectorAll('.cat-nav-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
+            if (selectedCategories.has(cat.id)) {
+                // Si ya está, lo quitamos (Deseleccionar)
+                selectedCategories.delete(cat.id);
+                item.classList.remove('active');
+            } else {
+                // Si no está, lo agregamos (Seleccionar)
+                selectedCategories.add(cat.id);
+                item.classList.add('active');
+            }
 
-            // Dispatch Event
-            window.dispatchEvent(new CustomEvent('category-selected', { 
-                detail: { categoryId: cat.id } 
+            // Disparamos el evento con el ARRAY de todas las categorías seleccionadas
+            window.dispatchEvent(new CustomEvent('categories-selection-changed', { 
+                detail: { selectedIds: Array.from(selectedCategories) } 
             }));
         });
 

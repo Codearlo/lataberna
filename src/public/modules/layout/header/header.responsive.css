@@ -1,23 +1,25 @@
 /* src/public/modules/layout/header/header.responsive.css */
 
-/* Escritorio Grande */
+/* Ajustes para Pantallas Grandes */
 @media (min-width: 1024px) {
     .header-top-row {
-        padding: 10px 40px;
+        padding: 10px 40px; /* Más padding lateral */
     }
     
     .search-input-wrapper input {
         font-size: 1rem;
-        padding: 12px 12px 12px 45px;
+        padding: 12px 12px 12px 45px; /* Input un poco más alto */
     }
+    
+    /* En PC, aunque hay espacio, mantenemos la hamburguesa porque así se pidió */
 }
 
-/* Móvil */
+/* Ajustes para Móvil */
 @media (max-width: 600px) {
     .header-top-row {
         padding: 10px;
         gap: 10px;
     }
     
-    /* El input ocupa el espacio restante automáticamente por flex-grow */
+    /* El input se adapta automáticamente gracias al flex-grow */
 }
