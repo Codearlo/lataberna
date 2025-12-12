@@ -5,27 +5,25 @@ import { initProductGrid } from './modules/store/product-grid/product-grid.js';
 import { initCartModal } from './modules/store/cart-modal/cart-modal.js'; 
 import { initToastNotification } from './modules/store/toast-notification/toast.js'; 
 import { initWhatsappButton } from './modules/whatsapp-button/whatsapp-button.js'; 
-
-// ELIMINADA: import { initAdminPanel } from '../admin/admin.js';
+import { initCategoriesBar } from './modules/store/categories-bar/categories-bar.js'; // IMPORT
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // ELIMINADO: Lógica de enrutamiento (?view=admin)
-    
-    // Inicializar la vista de la Tienda (Por defecto)
-    
-    // 1. Inicializa el Header y el Contador
+    // 1. Inicializa el Header
     initHeader('main-header'); 
 
-    // 2. Inicializa el Modal del Carrito (Estructura visual)
+    // 2. Inicializa el Modal del Carrito
     initCartModal();
     
-    // 3. Inicializa el Toast de Notificaciones (Estructura visual)
+    // 3. Inicializa el Toast
     initToastNotification(); 
 
-    // 4. Inicializa la Rejilla de Productos (Carga, Realtime y Render)
+    // 4. Inicializa la Barra de Categorías (Rappi Style) - NUEVO
+    initCategoriesBar();
+
+    // 5. Inicializa la Rejilla de Productos
     initProductGrid('product-grid-container'); 
     
-    // 5. NUEVO: Inicializa el botón flotante de WhatsApp
+    // 6. Botón flotante de WhatsApp
     initWhatsappButton('whatsapp-button-container'); 
 });

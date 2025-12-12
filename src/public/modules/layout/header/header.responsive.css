@@ -1,99 +1,23 @@
 /* src/public/modules/layout/header/header.responsive.css */
 
-/* --- Ajustes para Móviles (Max-width: 767px) --- */
-@media (max-width: 767px) {
-    
-    /* 1. Mostrar Botón de Hamburguesa */
-    .menu-toggle-btn {
-        display: block; /* Muestra el botón de menú */
-        margin-right: 10px;
-        order: -1; /* Mueve la hamburguesa al principio */
-    }
-    
-    /* 2. Navegación: OCULTA por defecto */
-    .header-nav {
-        display: none; 
-        position: absolute;
-        top: 60px; /* Debajo de la barra superior */
-        left: 0;
-        width: 100%;
-        background-color: #0d0d0d;
-        z-index: 990;
-        padding: 0;
-    }
-    
-    /* 3. Navegación: VISIBLE solo si tiene la clase 'is-open' */
-    .header-nav.is-open {
-        display: block;
-    }
-    
-    .header-nav ul {
-        flex-direction: column; /* Apila las categorías verticalmente */
-        padding: 10px 20px;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    
-    .header-nav li {
-        width: 100%;
-        padding: 5px 0;
-        border-bottom: 1px solid #1a1a1a;
-    }
-    .header-nav li:last-child {
-        border-bottom: none;
-    }
-    
-    .header-nav a {
-        font-size: 1em; 
-    }
-
-    /* 4. Ajustar la fila superior */
+/* Escritorio Grande */
+@media (min-width: 1024px) {
     .header-top-row {
-        padding: 10px; /* Reducir padding */
-        height: auto;
+        padding: 10px 40px;
     }
     
-    /* 5. Ajustar tamaño del logo y carrito */
-    .logo {
-        font-size: 1.5em; /* Ajustado para móvil */
-    }
-
-    .icons-container {
-        margin-left: 0; 
-    }
-
-    .cart-icon {
-        width: 22px; 
-        height: 22px;
+    .search-input-wrapper input {
+        font-size: 1rem;
+        padding: 12px 12px 12px 45px;
     }
 }
 
-
-/* --- Tablet y Escritorio (Min-width: 768px) --- */
-@media (min-width: 768px) {
-    /* 1. Ocultar el botón de menú hamburguesa */
-    .menu-toggle-btn {
-        display: none !important;
-    }
-
-    /* 2. Asegurar que la navegación esté en línea (visible por defecto en desktop) */
-    .header-nav {
-        display: block !important; 
-    }
-    .header-nav ul {
-        flex-direction: row; 
-    }
-    
-    /* 3. Ajustar padding y tamaño de logo/búsqueda para escritorio */
+/* Móvil */
+@media (max-width: 600px) {
     .header-top-row {
-        padding: 15px 40px;
+        padding: 10px;
+        gap: 10px;
     }
     
-    .logo {
-        font-size: 2.2em; /* Ajustado para escritorio */
-    }
-    
-    .header-nav {
-        padding: 10px 40px;
-    }
+    /* El input ocupa el espacio restante automáticamente por flex-grow */
 }

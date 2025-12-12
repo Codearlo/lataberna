@@ -3,12 +3,13 @@
 import { getActiveProducts } from '../../../../services/store/products.service.js'; 
 import { renderProductCard } from './product-grid.utils.js'; 
 
+let allProductsCache = []; 
+
 export async function initProductGrid(containerId) {
     const mainContainer = document.getElementById(containerId);
     if (!mainContainer) return;
 
-    // Limpiamos el contenedor y mostramos carga (opcional)
-    mainContainer.innerHTML = '<div style="text-align:center; padding:40px;">Cargando catálogo...</div>';
+    mainContainer.innerHTML = '<div style="text-align:center; padding:40px; width:100%;">Cargando catálogo...</div>';
 
     try {
         const allProducts = await getActiveProducts();
@@ -18,33 +19,19 @@ export async function initProductGrid(containerId) {
             return;
         }
 
-        // 1. Agrupar productos por categoría
-        const productsByCategory = allProducts.reduce((acc, product) => {
-            const catName = product.category || 'Otros';
-            // Excluimos explícitamente "SIN CATEGORIA" si aparece
-            if (catName.toUpperCase() === 'SIN CATEGORIA') return acc;
-            
-            if (!acc[catName]) {
-                acc[catName] = [];
-            }
-            acc[catName].push(product);
-            return acc;
-        }, {});
+        allProductsCache = allProducts;
+        renderGrid(mainContainer, allProductsCache);
 
-        // Limpiamos el loader
-        mainContainer.innerHTML = '';
+        // 1. Escuchar filtro por Categoría (Barra horizontal o Sidebar)
+        window.addEventListener('category-selected', (e) => {
+            const catId = e.detail.categoryId;
+            handleCategoryFilter(mainContainer, catId);
+        });
 
-        // 2. Iterar sobre cada categoría y crear la sección
-        // Ordenamos las categorías alfabéticamente
-        const sortedCategories = Object.keys(productsByCategory).sort();
-
-        sortedCategories.forEach(categoryName => {
-            const products = productsByCategory[categoryName];
-            
-            // Solo renderizamos si hay productos
-            if (products.length > 0) {
-                createCategorySection(mainContainer, categoryName, products);
-            }
+        // 2. Escuchar filtro por Búsqueda (Header Input)
+        window.addEventListener('search-query', (e) => {
+            const term = e.detail.term;
+            handleSearchFilter(mainContainer, term);
         });
 
     } catch (error) {
@@ -53,26 +40,74 @@ export async function initProductGrid(containerId) {
     }
 }
 
-/**
- * Crea la estructura visual para una categoría: Título, Grid de 5 items, Botón Ver Todo.
- */
-function createCategorySection(container, categoryName, products) {
-    // Tomamos solo los primeros 5 productos
-    const displayedProducts = products.slice(0, 5);
+function handleCategoryFilter(container, categoryId) {
+    if (!categoryId || categoryId === 'all') {
+        renderGrid(container, allProductsCache);
+        return;
+    }
+    const filtered = allProductsCache.filter(p => p.categoria_id === categoryId);
+    renderFlatGrid(container, filtered, "Categoría");
+}
 
-    // 1. Contenedor de la Sección
+function handleSearchFilter(container, term) {
+    if (!term) {
+        renderGrid(container, allProductsCache); // Si borra, mostrar todo normal
+        return;
+    }
+    
+    const lowerTerm = term.toLowerCase();
+    const filtered = allProductsCache.filter(p => 
+        p.name.toLowerCase().includes(lowerTerm) || 
+        (p.category && p.category.toLowerCase().includes(lowerTerm))
+    );
+    
+    renderFlatGrid(container, filtered, `Resultados para "${term}"`);
+}
+
+/** Renderizado Agrupado (Home por defecto) */
+function renderGrid(container, products) {
+    container.innerHTML = '';
+    const productsByCategory = products.reduce((acc, product) => {
+        const catName = product.category || 'Otros';
+        if (catName.toUpperCase() === 'SIN CATEGORIA') return acc;
+        if (!acc[catName]) acc[catName] = [];
+        acc[catName].push(product);
+        return acc;
+    }, {});
+
+    const sortedCategories = Object.keys(productsByCategory).sort();
+
+    sortedCategories.forEach(categoryName => {
+        const items = productsByCategory[categoryName];
+        if (items.length > 0) {
+            createCategorySection(container, categoryName, items, false);
+        }
+    });
+}
+
+/** Renderizado Plano (Para búsquedas o filtros específicos) */
+function renderFlatGrid(container, products, titleText) {
+    container.innerHTML = '';
+    if (products.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">No se encontraron productos.</div>';
+        return;
+    }
+    createCategorySection(container, titleText, products, true);
+}
+
+function createCategorySection(container, categoryName, products, showAll) {
+    const displayedProducts = showAll ? products : products.slice(0, 5);
+
     const section = document.createElement('section');
     section.className = 'category-section';
 
-    // 2. Título de la Categoría
     const title = document.createElement('h2');
     title.className = 'category-title';
-    title.textContent = `COLECCIÓN DE ${categoryName.toUpperCase()}`;
+    title.textContent = showAll ? categoryName.toUpperCase() : `COLECCIÓN DE ${categoryName.toUpperCase()}`;
     section.appendChild(title);
 
-    // 3. Grid de Productos (Reutilizamos lógica visual)
     const grid = document.createElement('div');
-    grid.className = 'category-products-grid'; // Nueva clase para CSS
+    grid.className = 'category-products-grid'; 
 
     displayedProducts.forEach(product => {
         const card = renderProductCard(product);
@@ -80,24 +115,18 @@ function createCategorySection(container, categoryName, products) {
     });
     section.appendChild(grid);
 
-    // 4. Botón "IR A [CATEGORIA]"
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'category-footer';
-    
-    const btn = document.createElement('button');
-    btn.className = 'view-all-cat-btn';
-    btn.textContent = `IR A ${categoryName.toUpperCase()}`;
-    
-    // Aquí podrías agregar lógica para filtrar la vista, por ahora solo es visual o link
-    btn.addEventListener('click', () => {
-        // Ejemplo: Filtrar la vista actual para mostrar solo esta categoría
-        // O navegar a una página de categoría específica
-        alert(`Navegando a ver todos los ${categoryName}... (Lógica pendiente de implementación)`);
-    });
-
-    buttonContainer.appendChild(btn);
-    section.appendChild(buttonContainer);
-
-    // Agregar todo al contenedor principal
+    if (!showAll && products.length > 5) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'category-footer';
+        const btn = document.createElement('button');
+        btn.className = 'view-all-cat-btn';
+        btn.textContent = `VER TODO ${categoryName.toUpperCase()}`;
+        btn.addEventListener('click', () => {
+            const navItem = document.querySelector(`.cat-nav-item[data-id="${products[0].categoria_id}"]`);
+            if(navItem) navItem.click();
+        });
+        buttonContainer.appendChild(btn);
+        section.appendChild(buttonContainer);
+    }
     container.appendChild(section);
 }

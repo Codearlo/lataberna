@@ -1,0 +1,84 @@
+/* src/public/modules/store/categories-bar/categories-bar.css */
+
+#categories-bar-container {
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 10px 0;
+    position: sticky; /* Optional: sticks while scrolling the grid */
+    top: 60px; /* Below header */
+    z-index: 90;
+}
+
+.categories-bar-wrapper {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 10px 20px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE 10+ */
+    align-items: flex-start;
+}
+
+.categories-bar-wrapper::-webkit-scrollbar { 
+    display: none; /* Chrome/Safari */
+}
+
+/* Category Item */
+.cat-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    width: 70px;
+    transition: transform 0.2s ease, opacity 0.2s;
+    opacity: 0.8;
+}
+
+.cat-nav-item.active, .cat-nav-item:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Icon Container (Circle/Card) */
+.cat-nav-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #f8f9fa; /* Light gray bg */
+    border-radius: 18px; /* Soft square like iOS/Rappi */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    overflow: hidden;
+}
+
+.cat-nav-item.active .cat-nav-icon {
+    background-color: #fff8e1; /* Pale Gold */
+    border-color: #FFC107;
+    box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+}
+
+.cat-nav-icon img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+/* Label */
+.cat-nav-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    color: #343a40;
+    line-height: 1.2;
+    text-transform: capitalize;
+}
+
+.cat-nav-item.active .cat-nav-label {
+    color: #dfa300;
+}

@@ -1,76 +1,85 @@
 /* src/public/modules/layout/header/header.css */
 
-/* El header principal usa el color primario (negro) */
+:root {
+    --header-bg: #ffffff;
+    --search-bg: #f3f4f6; /* Gris muy claro tipo Rappi */
+    --icon-color: #374151; /* Gris oscuro */
+    --sidebar-width: 280px;
+}
+
 #main-header {
-    background-color: var(--primary-color); /* Negro */
-    color: #fff;
-    padding: 0; 
-    display: flex;
-    flex-direction: column; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    background-color: var(--header-bg);
+    color: var(--icon-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     position: sticky; 
     top: 0;
-    z-index: 999;
+    z-index: 1000;
+    padding: 0;
 }
 
-/* --- Estilos de la Fila Superior (Top Row) --- */
-
+/* --- Layout Principal --- */
 .header-top-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 15px 20px; 
-    border-bottom: 1px solid #333; 
+    justify-content: space-between;
+    padding: 10px 15px; 
     height: 60px;
+    gap: 15px;
 }
 
-/* Botón de Hamburguesa - Oculto por defecto en desktop */
+/* 1. Botón Hamburguesa */
 .menu-toggle-btn {
-    display: none; /* Oculto por defecto */
     background: none;
     border: none;
-    color: #fff; /* Icono blanco */
+    color: var(--icon-color);
     cursor: pointer;
-    padding: 0;
-    width: 28px;
-    height: 28px;
-    flex-shrink: 0;
-}
-.menu-toggle-btn svg {
-    width: 100%;
-    height: 100%;
-}
-
-/* Logo centralizado */
-.logo {
-    font-size: 1.8em; 
-    font-weight: 900;
-    color: #fff; /* Logo blanco */
-    text-align: center;
-    flex-grow: 1; 
-    line-height: 1.1;
-}
-
-/* Estilos para contenedores de Iconos SVG */
-.cart-icon {
-    display: inline-flex; 
+    padding: 5px;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Aseguramos que los SVGs tomen el 100% de su contenedor */
-.cart-icon svg,
-.menu-toggle-btn svg {
-    width: 100%;
-    height: 100%;
+/* 2. Barra de Búsqueda Central */
+.header-search-container {
+    flex-grow: 1; /* Ocupa todo el espacio disponible */
+    max-width: 600px;
 }
 
-/* Íconos de Cuenta y Carrito */
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper input {
+    width: 100%;
+    background-color: var(--search-bg);
+    border: none;
+    border-radius: 12px; /* Bordes redondeados modernos */
+    padding: 10px 10px 10px 40px; /* Padding izquierdo para el icono */
+    font-size: 0.95rem;
+    color: #1f2937;
+    outline: none;
+    transition: box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.search-input-wrapper input:focus {
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.5); /* Focus dorado sutil */
+    background-color: #fff;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    pointer-events: none;
+}
+
+/* 3. Icono Carrito */
 .icons-container {
     display: flex;
     align-items: center;
-    gap: 15px; 
-    color: #fff;
     flex-shrink: 0;
 }
 
@@ -78,55 +87,112 @@
     position: relative;
     cursor: pointer;
     padding: 5px;
-}
-
-.cart-icon {
-    width: 26px; 
-    height: 26px;
-    color: #fff; /* Icono de carrito blanco */
+    color: var(--icon-color);
 }
 
 .cart-count {
-    /* Mantenemos el estilo del contador */
     position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: var(--secondary-color); /* Color de destaque (negro más oscuro) */
+    top: -2px;
+    right: -2px;
+    background-color: #dc3545; /* Rojo notificación */
     color: #fff;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: none; 
-    justify-content: center;
-    align-items: center;
-    font-size: 0.8em;
-    font-weight: bold;
-}
-
-/* --- Estilos de Navegación (Header Nav) --- */
-
-.header-nav {
-    padding: 10px 20px;
-    background-color: var(--secondary-color); /* Negro Muy Oscuro */
-}
-
-.header-nav ul {
-    list-style: none;
+    width: 18px;
+    height: 18px;
     display: flex;
     justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap; 
+    align-items: center;
+    font-size: 0.7em;
+    font-weight: 700;
 }
 
-.header-nav a {
-    color: #fff;
+/* --- Menú Lateral (Sidebar) --- */
+.header-nav-sidebar {
+    position: fixed;
+    top: 0;
+    left: calc(-1 * var(--sidebar-width)); /* Oculto a la izquierda */
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: #fff;
+    z-index: 2000;
+    transition: left 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.header-nav-sidebar.is-open {
+    left: 0; /* Mostrar */
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #111;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.close-sidebar-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #6b7280;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidebar-list li {
+    border-bottom: 1px solid #f9fafb;
+}
+
+.sidebar-list a {
+    display: block;
+    padding: 15px 20px;
+    color: #374151;
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.85em;
-    transition: color 0.2s;
-    letter-spacing: 0.5px;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s;
 }
 
-.header-nav a:hover {
-    color: #cccccc; /* Gris claro al pasar el mouse */
+.sidebar-list a:hover, .sidebar-list a.active {
+    background-color: #fffbef; /* Fondo dorado muy suave */
+    color: #d97706; /* Texto dorado oscuro */
+}
+
+/* Overlay oscuro */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.sidebar-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
 }

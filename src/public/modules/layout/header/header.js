@@ -2,88 +2,121 @@
 
 import { CartService } from '../../../../services/store/cart.service.js';
 import { openCartModal } from '../../store/cart-modal/cart-modal.js'; 
-// Importamos la nueva función del servicio
 import { getMenuCategories } from '../../../../services/store/products.service.js';
 
 const CART_COUNT_ID = 'cart-count-value';
 const HEADER_HTML_PATH = 'src/public/modules/layout/header/header.html'; 
 
-/**
- * Inyecta el HTML del encabezado y establece los listeners iniciales.
- */
 export async function initHeader(containerId) {
     const headerElement = document.getElementById(containerId);
     if (!headerElement) return;
 
     try {
-        // 1. Cargar el HTML de forma asíncrona
+        // 1. Cargar HTML
         const response = await fetch(HEADER_HTML_PATH);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const headerHtml = await response.text();
-        
-        // 2. Inyectar el HTML cargado
-        headerElement.innerHTML = headerHtml;
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        headerElement.innerHTML = await response.text();
 
-        // 3. Renderizar las categorías dinámicas (NUEVO)
-        await renderDynamicMenu();
+        // 2. Renderizar Categorías en el Menú Lateral
+        await renderSidebarMenu();
 
-        // 4. Adjuntar evento: Abrir el carrito al hacer clic
+        // 3. Lógica del Carrito
         headerElement.querySelector('.cart-icon-container').addEventListener('click', openCartModal);
-
-        // 5. Lógica del Menú de Hamburguesa
-        const menuButton = headerElement.querySelector('.menu-toggle-btn');
-        const headerNav = headerElement.querySelector('.header-nav');
-
-        if (menuButton && headerNav) {
-            menuButton.addEventListener('click', () => {
-                headerNav.classList.toggle('is-open'); 
-            });
-        }
-        
-        // 6. Carga inicial del conteo al iniciar la página
         updateCartCount();
 
+        // 4. Lógica del Menú Hamburguesa (Sidebar)
+        setupSidebarLogic();
+
+        // 5. Lógica de Búsqueda (Dispara evento para el grid)
+        setupSearchLogic();
+
     } catch (error) {
-        console.error("Error al cargar o inicializar el encabezado:", error);
-        headerElement.innerHTML = `
-            <div id="main-header" style="background-color: #000; padding: 15px 20px;">
-                <p style="color:#ff0000; font-weight: bold;">Error: ${error.message}</p>
-            </div>
-        `;
+        console.error("Error init header:", error);
     }
 }
 
-/**
- * Obtiene las categorías de la BD y las añade al menú.
- */
-async function renderDynamicMenu() {
+async function renderSidebarMenu() {
     const navList = document.getElementById('header-nav-list');
     if (!navList) return;
 
-    const categories = await getMenuCategories();
+    try {
+        const categories = await getMenuCategories();
+        
+        // Limpiamos la lista (dejando el "Ver Todo" si se desea o recreándolo)
+        navList.innerHTML = `<li><a href="#" class="nav-link" data-category="all">Ver Todo</a></li>`;
 
-    if (categories && categories.length > 0) {
         categories.forEach(cat => {
             const li = document.createElement('li');
             const a = document.createElement('a');
-            
             a.href = "#"; 
-            a.textContent = cat.nombre.toUpperCase(); // Convertimos a mayúsculas para mantener el estilo
-            a.dataset.categoryId = cat.id; // Guardamos el ID por si queremos filtrar luego
+            a.textContent = cat.nombre; 
+            a.dataset.categoryId = cat.id;
             
-            // Opcional: Aquí podrías agregar un evento 'click' para filtrar productos
+            // Al hacer clic en una categoría del menú lateral
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Cerrar sidebar
+                toggleSidebar(false);
+                // Disparar evento para filtrar grid
+                window.dispatchEvent(new CustomEvent('category-selected', { 
+                    detail: { categoryId: cat.id } 
+                }));
+            });
             
             li.appendChild(a);
             navList.appendChild(li);
         });
+
+        // Listener para "Ver Todo"
+        navList.querySelector('[data-category="all"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleSidebar(false);
+            window.dispatchEvent(new CustomEvent('category-selected', { detail: { categoryId: 'all' } }));
+        });
+
+    } catch (e) { console.error(e); }
+}
+
+function setupSidebarLogic() {
+    const toggleBtn = document.getElementById('menu-toggle-btn');
+    const closeBtn = document.getElementById('close-sidebar-btn');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (toggleBtn) toggleBtn.addEventListener('click', () => toggleSidebar(true));
+    if (closeBtn) closeBtn.addEventListener('click', () => toggleSidebar(false));
+    if (overlay) overlay.addEventListener('click', () => toggleSidebar(false));
+}
+
+function toggleSidebar(open) {
+    const sidebar = document.getElementById('header-nav-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (open) {
+        sidebar.classList.add('is-open');
+        overlay.classList.add('is-visible');
+    } else {
+        sidebar.classList.remove('is-open');
+        overlay.classList.remove('is-visible');
     }
 }
 
-/**
- * Actualiza el número de ítems mostrados en el ícono del carrito.
- */
+function setupSearchLogic() {
+    const searchInput = document.getElementById('global-search-input');
+    if (!searchInput) return;
+
+    let timeout;
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            const term = e.target.value.trim();
+            // Disparamos evento global 'search-query'
+            window.dispatchEvent(new CustomEvent('search-query', { 
+                detail: { term: term } 
+            }));
+        }, 300); // Pequeño delay para no saturar
+    });
+}
+
 export function updateCartCount() {
     const cart = CartService.getCart();
     const totalItems = cart.reduce((total, item) => total + item.qty, 0); 
