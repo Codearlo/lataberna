@@ -8,17 +8,21 @@
     margin-right: -20px;      /* Mover a la derecha */
     margin-top: -20px;        /* Mover ARRIBA para eliminar el hueco con el header */
     
-    margin-bottom: 20px;      /* Espacio antes de los productos */
+    margin-bottom: 10px;      /* Espacio reducido antes de los productos */
     background-color: #ffffff;
-    padding: 15px 0 10px 0;   /* Ajuste interno para respiración */
     
-    /* Sticky: Se pega debajo del header (60px aprox) */
+    /* CAMBIO: Reducido el padding superior de 15px a 2px para quitar el espacio blanco */
+    padding: 2px 0 10px 0;   
+    
+    /* Sticky: Se pega debajo del header (60px es la altura del header) */
+    position: -webkit-sticky; /* Soporte Safari */
     position: sticky;
-    top: 60px; 
-    z-index: 90;
-    position: relative;
+    top: 60px; /* Coincide con la altura de .header-top-row en header.css */
+    
+    z-index: 990; /* Alto, pero debajo del header (que es 1000) */
+    
     border-bottom: 1px solid #f0f0f0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02); /* Sombra muy sutil */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); /* Sombra un poco más visible para notar que flota */
 }
 
 .categories-bar-wrapper {
