@@ -98,24 +98,19 @@ function populateForm(pack) {
     });
     
     // --- LÓGICA DE DEDUCCIÓN DE NOMBRE BASE ---
-    // Intentamos "limpiar" el nombre del pack quitándole "Pack " y los nombres de los extras
-    // para quedarnos con el nombre del producto base original.
-    let deducedName = pack.name.replace(/^Pack\s+/i, ""); // Quita "Pack " del inicio
+    let deducedName = pack.name.replace(/^Pack\s+/i, ""); 
     
     pack.composition.forEach(item => {
-        // Quitamos " + ExtraName" (insensible a mayúsculas y espacios)
         const regex = new RegExp(`\\s*\\+\\s*${escapeRegExp(item.name)}`, 'gi');
         deducedName = deducedName.replace(regex, "");
     });
     
     baseProductName = deducedName.trim();
-    // Mostramos el nombre base en el input readonly de producto (solo visual)
     document.getElementById('product_search').value = baseProductName;
 
     renderCompositionList();
 }
 
-// Utilidad para escapar strings en Regex
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -124,11 +119,7 @@ function escapeRegExp(string) {
 function updatePackName() {
     const nameInput = document.getElementById('name');
     
-    if (!baseProductName) {
-        // Si falló la deducción, mantenemos lo que hay para no romperlo,
-        // o podríamos forzar un string genérico. Por seguridad, concatenamos.
-        return; 
-    }
+    if (!baseProductName) return; 
 
     let generatedName = `Pack ${baseProductName}`;
     
@@ -139,7 +130,7 @@ function updatePackName() {
     nameInput.value = generatedName;
 }
 
-// --- RESTO DE FUNCIONES (SIMILAR A ADD-PACK) ---
+// --- EVENTOS ---
 
 function attachEventListeners() {
     const form = document.getElementById('pack-form');
@@ -147,11 +138,15 @@ function attachEventListeners() {
     
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
+    
+    // --- NUEVO: ESCUCHA EL EVENTO PEGAR (PASTE) ---
+    document.addEventListener('paste', handlePaste);
+
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) imageBox.addEventListener('click', (e) => { if (e.target.tagName !== 'LABEL') imgInput.click(); });
 
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
-    document.getElementById('create-extra-btn').addEventListener('click', handleCreateExtra); // NUEVO
+    document.getElementById('create-extra-btn').addEventListener('click', handleCreateExtra); 
     
     document.getElementById('delete-product-btn').addEventListener('click', openDeleteModal);
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
@@ -286,7 +281,6 @@ function addExtraToComposition() {
 
     packComposition.set(id, { id, name, qty });
     
-    // ⚡ ACTUALIZAR NOMBRE
     updatePackName();
     
     renderCompositionList();
@@ -300,7 +294,6 @@ function addExtraToComposition() {
 
 function removeExtraFromComposition(id) {
     packComposition.delete(id);
-    // ⚡ ACTUALIZAR NOMBRE AL BORRAR
     updatePackName();
     renderCompositionList();
     showToast("🗑️ Eliminado.");
@@ -326,10 +319,29 @@ function renderCompositionList() {
     });
 }
 
-// --- IMAGEN ---
-function handleImageSelection(e) { /* Igual que add-pack */
+// --- IMAGEN, PASTE Y CROPPER ---
+
+function handlePaste(e) {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.includes('image/')) {
+            const blob = item.getAsFile();
+            openCropper(blob);
+            break;
+        }
+    }
+}
+
+function handleImageSelection(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) {
+        openCropper(file);
+        e.target.value = '';
+    }
+}
+
+function openCropper(file) {
     const reader = new FileReader();
     reader.onload = (ev) => {
         document.getElementById('image-to-crop').src = ev.target.result;
@@ -337,13 +349,17 @@ function handleImageSelection(e) { /* Igual que add-pack */
         document.getElementById('crop-modal').classList.add('visible');
         if(cropper) cropper.destroy();
         // eslint-disable-next-line no-undef
-        cropper = new Cropper(document.getElementById('image-to-crop'), { aspectRatio:1, viewMode:1, autoCropArea:0.8, background:false });
+        cropper = new Cropper(document.getElementById('image-to-crop'), { 
+            aspectRatio: 1, 
+            viewMode: 1, 
+            autoCropArea: 0.8, 
+            background: false 
+        });
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
 }
 
-function cropAndSave() { /* Igual que add-pack */
+function cropAndSave() {
     if (!cropper) return;
     let canvas = cropper.getCroppedCanvas({ width:800, height:800, fillColor:'#fff' });
     if (document.getElementById('remove-bg-check').checked) {
@@ -366,10 +382,12 @@ function cropAndSave() { /* Igual que add-pack */
         showToast("✂️ Imagen lista!");
     }, 'image/webp', 0.85);
 }
+
 function closeCropModal() {
     document.getElementById('crop-modal').classList.remove('visible');
     if(cropper) { cropper.destroy(); cropper=null; }
 }
+
 function renderImagePreview(url) {
     const prev = document.getElementById('image-preview');
     if(url) {

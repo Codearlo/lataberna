@@ -61,6 +61,9 @@ function attachEventListeners() {
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
 
+    // --- NUEVO: ESCUCHA EL EVENTO PEGAR (PASTE) ---
+    document.addEventListener('paste', handlePaste);
+
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) {
         imageBox.addEventListener('click', (e) => {
@@ -367,24 +370,56 @@ function renderCompositionList() {
     });
 }
 
-// --- IMAGEN Y CROPPER ---
+// --- IMAGEN, PASTE Y CROPPER ---
+
+// Función para manejar Ctrl+V
+function handlePaste(e) {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.includes('image/')) {
+            const blob = item.getAsFile();
+            openCropper(blob); // Usamos la misma función de apertura
+            break;
+        }
+    }
+}
 
 function handleImageSelection(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) {
+        openCropper(file);
+        e.target.value = ''; // Reset para permitir re-selección
+    }
+}
+
+// Función común para abrir el editor de recorte
+function openCropper(file) {
     const reader = new FileReader();
     reader.onload = (event) => {
         const imageElement = document.getElementById('image-to-crop');
         imageElement.src = event.target.result;
+        
         document.getElementById('remove-bg-check').checked = false;
         const modal = document.getElementById('crop-modal');
         modal.classList.add('visible');
-        if (cropper) cropper.destroy();
+
+        if (cropper) {
+            cropper.destroy();
+        }
+        
         // eslint-disable-next-line no-undef
-        cropper = new Cropper(imageElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, movable: true, zoomable: true, scalable: false, background: false });
+        cropper = new Cropper(imageElement, { 
+            aspectRatio: 1, 
+            viewMode: 1, 
+            autoCropArea: 0.8, 
+            movable: true, 
+            zoomable: true, 
+            scalable: false, 
+            background: false 
+        });
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; 
 }
 
 function cropAndSave() {
@@ -430,7 +465,7 @@ function closeCropModal() {
     if (cropper) { cropper.destroy(); cropper = null; }
 }
 
-// --- ENVÍO DEL FORMULARIO (PASO 3 CLAVE) ---
+// --- ENVÍO DEL FORMULARIO ---
 
 async function handleFormSubmit(e) {
     e.preventDefault();
