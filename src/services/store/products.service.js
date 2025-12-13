@@ -67,9 +67,12 @@ export async function getProductsPaged({
             .gte('price', minPrice)
             .lte('price', maxPrice);
 
-        // 1. Categorías
-        if (categoryIds.length > 0) {
-            query = query.in('categoria_id', categoryIds);
+        // 1. Categorías (Solo si NO estamos en modo "Solo Packs" forzado por la barra, o si hay IDs reales)
+        // Nota: Si categoryIds contiene 'packs', lo ignoramos en la query SQL
+        const realCategoryIds = categoryIds.filter(id => id !== 'packs');
+        
+        if (realCategoryIds.length > 0) {
+            query = query.in('categoria_id', realCategoryIds);
         }
 
         // 2. Packs
@@ -119,18 +122,29 @@ export async function getActiveProducts() {
 
 /**
  * Obtiene las categorías para el menú de navegación.
- * AHORA INCLUYE 'image_url' PARA MOSTRAR FOTOS REALES.
+ * AHORA INCLUYE 'image_url' E INYECTA LA CATEGORÍA VIRTUAL 'PACKS'.
  */
 export async function getMenuCategories() {
     try {
         const { data, error } = await supabase
             .from('categorias')
-            .select('id, nombre, image_url') // <--- AQUÍ ESTÁ EL CAMBIO IMPORTANTE
+            .select('id, nombre, image_url') 
             .neq('nombre', 'SIN CATEGORIA')
             .order('nombre', { ascending: true });
         
         if (error) throw error;
-        return data;
+
+        // --- INYECCIÓN DE CATEGORÍA VIRTUAL "PACKS" ---
+        const packsCategory = {
+            id: 'packs', // ID de texto especial
+            nombre: 'PACKS',
+            // Asegúrate de poner tu imagen aquí: assets/icons/packs.webp
+            image_url: 'assets/icons/packs.webp' 
+        };
+
+        // Retornamos Packs primero, luego el resto
+        return [packsCategory, ...data];
+
     } catch (err) {
         console.error("Error obteniendo categorías:", err);
         return [];

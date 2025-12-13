@@ -24,7 +24,7 @@ export async function initCategoriesBar() {
         const categories = await getMenuCategories();
         renderBar(container, categories);
 
-        // Sincronización con el Sidebar
+        // Sincronización con el Sidebar (externo)
         window.addEventListener('category-selected', (e) => {
             const externalCatId = e.detail.categoryId;
             selectedCategories.clear();
@@ -54,7 +54,8 @@ function renderBar(container, categories) {
     categories.forEach(cat => {
         const item = document.createElement('div');
         item.className = 'cat-nav-item';
-        item.dataset.id = cat.id;
+        // Guardamos el ID tal cual (puede ser numero o string 'packs')
+        item.dataset.id = cat.id; 
 
         // CAMBIO: Usar la imagen de la base de datos si existe
         const fallbackIcon = `https://cdn-icons-png.flaticon.com/512/3565/3565405.png`; 
@@ -68,9 +69,14 @@ function renderBar(container, categories) {
         `;
 
         item.addEventListener('click', () => {
+            // Manejo de toggle
             if (selectedCategories.has(cat.id)) {
                 selectedCategories.delete(cat.id);
             } else {
+                // Comportamiento "Radio" (solo uno a la vez) es mejor para móvil
+                // Si prefieres selección múltiple, quita la siguiente línea:
+                selectedCategories.clear(); 
+                
                 selectedCategories.add(cat.id);
             }
 
@@ -98,7 +104,12 @@ function renderBar(container, categories) {
 function updateBarVisualState() {
     const allItems = document.querySelectorAll('.cat-nav-item');
     allItems.forEach(item => {
-        const id = Number(item.dataset.id);
+        // Recuperamos el ID. Si es numérico lo convertimos, si es 'packs' lo dejamos como string
+        let id = item.dataset.id;
+        if (!isNaN(id)) {
+            id = Number(id);
+        }
+
         if (selectedCategories.has(id)) {
             item.classList.add('active');
         } else {

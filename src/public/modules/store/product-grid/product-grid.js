@@ -76,9 +76,25 @@ export async function initProductGrid(containerId) {
         resetAndReload();
     });
 
-    // C. Barra de Categorías
+    // C. Barra de Categorías (MODIFICADO PARA SOPORTAR PACKS VIRTUAL)
     window.addEventListener('categories-selection-changed', (e) => {
-        gridState.filters.categoryIds = e.detail.selectedIds;
+        const selectedIds = e.detail.selectedIds;
+        
+        // Verificamos si se seleccionó la categoría virtual 'packs'
+        const packsSelected = selectedIds.includes('packs');
+
+        if (packsSelected) {
+            // Activamos el modo "Solo Packs"
+            gridState.filters.onlyPacks = true;
+            // Quitamos 'packs' de la lista de IDs para que no falle el SQL
+            // y usamos cualquier otro ID seleccionado si lo hubiera (aunque en modo single select no habrá)
+            gridState.filters.categoryIds = selectedIds.filter(id => id !== 'packs');
+        } else {
+            // Desactivamos modo packs
+            gridState.filters.onlyPacks = false;
+            gridState.filters.categoryIds = selectedIds;
+        }
+
         gridState.filters.searchTerm = ''; // Limpiar búsqueda
         resetAndReload();
     });
@@ -87,6 +103,8 @@ export async function initProductGrid(containerId) {
     window.addEventListener('search-query', (e) => {
         gridState.filters.searchTerm = e.detail.term;
         gridState.filters.categoryIds = []; // Prioridad a búsqueda global
+        // Reset de packs si busca por texto
+        gridState.filters.onlyPacks = false; 
         resetAndReload();
     });
 
@@ -95,6 +113,7 @@ export async function initProductGrid(containerId) {
         const catId = e.detail.categoryId;
         gridState.filters.categoryIds = (catId === 'all') ? [] : [catId];
         gridState.filters.searchTerm = '';
+        gridState.filters.onlyPacks = false; // Reset packs
         resetAndReload();
     });
 }
