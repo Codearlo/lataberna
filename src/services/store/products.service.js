@@ -3,8 +3,7 @@
 import { supabase } from '../../config/supabaseClient.js'; 
 
 /**
- * Obtiene METADATA ligera de TODOS los productos (id, nombre, precio, categoría).
- * Esto sirve para calcular los rangos de precio y marcas en el Sidebar.
+ * Obtiene METADATA ligera de TODOS los productos.
  */
 export async function getProductsMetadata() {
     try {
@@ -17,7 +16,7 @@ export async function getProductsMetadata() {
         
         // Procesamos marcas
         return data.map(p => {
-            let cleanName = p.name.replace(/Pack\s+/i, "").replace(/Botella\s+/i, "");
+            let cleanName = p.name.replace(/Pack\s+/i, "").replace(/Botella\s+/i, "").replace(/Combo\s+/i, "");
             const generics = ["RON", "PISCO", "GIN", "VODKA", "WHISKY", "CERVEZA", "VINO", "ESPUMANTE", "LATA", "SIXPACK"];
             const words = cleanName.trim().split(" ");
             let brand = "Genérico";
@@ -67,15 +66,13 @@ export async function getProductsPaged({
             .gte('price', minPrice)
             .lte('price', maxPrice);
 
-        // 1. Categorías (Solo si NO estamos en modo "Solo Packs" forzado por la barra, o si hay IDs reales)
-        // Nota: Si categoryIds contiene 'packs', lo ignoramos en la query SQL
+        // 1. Categorías
         const realCategoryIds = categoryIds.filter(id => id !== 'packs');
-        
         if (realCategoryIds.length > 0) {
             query = query.in('categoria_id', realCategoryIds);
         }
 
-        // 2. Packs
+        // 2. Packs (Ahora conceptualmente "Combos")
         if (onlyPacks) {
             query = query.eq('is_pack', true);
         }
@@ -115,14 +112,12 @@ export async function getProductsPaged({
     }
 }
 
-// Compatibilidad Admin
 export async function getActiveProducts() {
     return [];
 }
 
 /**
- * Obtiene las categorías para el menú de navegación.
- * AHORA INCLUYE 'image_url' E INYECTA LA CATEGORÍA VIRTUAL 'PACKS'.
+ * Obtiene las categorías E INYECTA LA CATEGORÍA VIRTUAL 'COMBOS'.
  */
 export async function getMenuCategories() {
     try {
@@ -134,16 +129,14 @@ export async function getMenuCategories() {
         
         if (error) throw error;
 
-        // --- INYECCIÓN DE CATEGORÍA VIRTUAL "PACKS" ---
-        const packsCategory = {
-            id: 'packs', // ID de texto especial
-            nombre: 'PACKS',
-            // Asegúrate de poner tu imagen aquí: assets/icons/packs.webp
-            image_url: 'assets/icons/packs.webp' 
+        // --- INYECCIÓN DE CATEGORÍA VIRTUAL "COMBOS" ---
+        const combosCategory = {
+            id: 'packs', // Mantenemos el ID 'packs' internamente para no romper la lógica
+            nombre: 'COMBOS', // Nombre visible cambiado a COMBOS
+            image_url: 'assets/icons/combos.webp' // Asegúrate de que este archivo exista
         };
 
-        // Retornamos Packs primero, luego el resto
-        return [packsCategory, ...data];
+        return [combosCategory, ...data];
 
     } catch (err) {
         console.error("Error obteniendo categorías:", err);
