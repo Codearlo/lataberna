@@ -98,7 +98,8 @@ function populateForm(pack) {
     });
     
     // --- LÓGICA DE DEDUCCIÓN DE NOMBRE BASE ---
-    let deducedName = pack.name.replace(/^Pack\s+/i, ""); 
+    // Elimina "Pack " O "Combo " del inicio para obtener el nombre base
+    let deducedName = pack.name.replace(/^(Pack|Combo)\s+/i, ""); 
     
     pack.composition.forEach(item => {
         const regex = new RegExp(`\\s*\\+\\s*${escapeRegExp(item.name)}`, 'gi');
@@ -115,13 +116,14 @@ function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// --- ACTUALIZACIÓN DE NOMBRE AUTOMÁTICO ---
+// --- ACTUALIZACIÓN DE NOMBRE AUTOMÁTICO (CAMBIADO A COMBO) ---
 function updatePackName() {
     const nameInput = document.getElementById('name');
     
     if (!baseProductName) return; 
 
-    let generatedName = `Pack ${baseProductName}`;
+    // CAMBIO: Ahora genera "Combo ..."
+    let generatedName = `Combo ${baseProductName}`;
     
     packComposition.forEach(extra => {
         generatedName += ` + ${extra.name}`;
@@ -139,7 +141,7 @@ function attachEventListeners() {
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
     
-    // --- NUEVO: ESCUCHA EL EVENTO PEGAR (PASTE) ---
+    // PASTE
     document.addEventListener('paste', handlePaste);
 
     const imageBox = document.getElementById('image-preview-box');
@@ -382,12 +384,10 @@ function cropAndSave() {
         showToast("✂️ Imagen lista!");
     }, 'image/webp', 0.85);
 }
-
 function closeCropModal() {
     document.getElementById('crop-modal').classList.remove('visible');
     if(cropper) { cropper.destroy(); cropper=null; }
 }
-
 function renderImagePreview(url) {
     const prev = document.getElementById('image-preview');
     if(url) {

@@ -24,7 +24,7 @@ let processedImageFile = null;
 let cropper = null; 
 
 export async function initAddPack(containerId) {
-    console.log("Iniciando Add Pack..."); 
+    console.log("Iniciando Add Pack (Modo Combo)..."); 
     initToastNotification();
 
     try {
@@ -61,7 +61,7 @@ function attachEventListeners() {
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
 
-    // --- NUEVO: ESCUCHA EL EVENTO PEGAR (PASTE) ---
+    // ESCUCHA EL EVENTO PEGAR (PASTE)
     document.addEventListener('paste', handlePaste);
 
     const imageBox = document.getElementById('image-preview-box');
@@ -102,7 +102,7 @@ function attachEventListeners() {
     });
 }
 
-// --- LÓGICA DE NOMBRE AUTOMÁTICO (VISUAL) ---
+// --- LÓGICA DE NOMBRE AUTOMÁTICO (VISUAL - CAMBIADO A COMBO) ---
 function updatePackName() {
     const nameInput = document.getElementById('name');
     
@@ -111,7 +111,8 @@ function updatePackName() {
         return;
     }
 
-    let generatedName = `Pack ${selectedProductName}`;
+    // CAMBIO: Usamos "Combo" en lugar de "Pack"
+    let generatedName = `Combo ${selectedProductName}`;
     
     packComposition.forEach(extra => {
         generatedName += ` + ${extra.name}`;
@@ -372,14 +373,13 @@ function renderCompositionList() {
 
 // --- IMAGEN, PASTE Y CROPPER ---
 
-// Función para manejar Ctrl+V
 function handlePaste(e) {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     for (let index in items) {
         const item = items[index];
         if (item.kind === 'file' && item.type.includes('image/')) {
             const blob = item.getAsFile();
-            openCropper(blob); // Usamos la misma función de apertura
+            openCropper(blob);
             break;
         }
     }
@@ -389,11 +389,10 @@ function handleImageSelection(e) {
     const file = e.target.files[0];
     if (file) {
         openCropper(file);
-        e.target.value = ''; // Reset para permitir re-selección
+        e.target.value = '';
     }
 }
 
-// Función común para abrir el editor de recorte
 function openCropper(file) {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -469,15 +468,10 @@ function closeCropModal() {
 
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
-    // Obtenemos los valores. El 'name' es solo visual/temporal.
     const name = document.getElementById('name').value;
     const price = parseFloat(document.getElementById('price').value);
     const categoriaId = parseInt(document.getElementById('category_id').value);
-    
-    // CAPTURAMOS EL ID DE LA BOTELLA (PRODUCTO BASE)
     const baseProductId = parseInt(document.getElementById('product_id').value); 
-    
     const isActive = document.getElementById('is_active').checked;
     
     if (!categoriaId) return showToast("⚠️ Selecciona una categoría.");
@@ -493,7 +487,7 @@ async function handleFormSubmit(e) {
         const imageUrl = await uploadImage(processedImageFile);
         
         const packData = {
-            name: name, // El Trigger de BD ignorará esto y pondrá el nombre correcto
+            name: name, // El Trigger de BD lo sobreescribirá con "Combo ..."
             price: price,
             categoria_id: categoriaId,
             is_active: isActive,
@@ -505,10 +499,9 @@ async function handleFormSubmit(e) {
             quantity: item.qty
         }));
         
-        // PASAMOS baseProductId PARA QUE EL TRIGGER FUNCIONE
         await createPack(packData, compositionData, baseProductId);
         
-        showToast(`✅ Pack creado y nombrado automáticamente por BD!`);
+        showToast(`✅ Combo creado exitosamente!`);
         
         setTimeout(() => {
             window.location.href = '../list-packs/list-packs.html'; 
