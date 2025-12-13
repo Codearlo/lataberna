@@ -239,7 +239,7 @@ function renderBatch(container, products) {
 function getTitleText() {
     const f = gridState.filters;
     if (f.searchTerm) return `Resultados para "${f.searchTerm}"`;
-    if (f.onlyPacks) return "Packs y Combos";
+    if (f.onlyPacks) return "Combos";
     if (f.categoryIds.length > 0) return "Tu Selección";
     if (f.onlyOffers) return "Ofertas Especiales";
     return null; // Home por defecto sin título

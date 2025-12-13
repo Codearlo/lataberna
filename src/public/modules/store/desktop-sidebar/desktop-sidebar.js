@@ -70,7 +70,7 @@ function renderSidebarHTML(container, min, max, brands) {
                 <label class="custom-check-label">
                     <input type="checkbox" id="packs-check">
                     <span class="checkmark"></span>
-                    Solo Packs y Combos
+                    Solo Combos
                 </label>
             </div>
 
