@@ -46,11 +46,15 @@ export async function initEditProduct(containerId) {
     }
     
     try {
-        await loadCategories(); 
-        await loadProductData(parseInt(productId)); 
+        // 1. PRIMERO: Configurar listeners y lógica visual
+        // Esto asegura que cuando los datos lleguen y muevan los switches, la UI reaccione
         attachEventListeners();
         setupSwitch(); 
-        setupDiscountSwitch(); // Nuevo
+        setupDiscountSwitch(); 
+
+        // 2. SEGUNDO: Cargar datos
+        await loadCategories(); 
+        await loadProductData(parseInt(productId)); 
         
     } catch (error) {
         console.error("Error init:", error);
@@ -85,9 +89,12 @@ function setupCategorySearch() {
     const searchInput = document.getElementById('category_search');
     
     if (searchInput) {
+        // Normalización para búsquedas sin acentos
+        const normalize = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+
         const filterFn = (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = categoriesList.filter(cat => cat.nombre.toLowerCase().includes(term));
+            const term = normalize(e.target.value);
+            const filtered = categoriesList.filter(cat => normalize(cat.nombre).includes(term));
             renderCategoriesCustomDropdown(filtered);
             dropdownContainer.classList.add('active-dropdown');
         };
@@ -107,20 +114,25 @@ async function loadProductData(id) {
     document.getElementById('product-id').value = product.id;
     document.getElementById('name').value = product.name;
     document.getElementById('price').value = product.price;
-    document.getElementById('is_active').checked = product.is_active;
+    
     document.getElementById('current_image_url').value = product.image_url || '';
     document.getElementById('category_id').value = product.categoria_id;
     document.getElementById('category_search').value = product.category || ''; 
 
+    // Estado Activo
+    const activeSwitch = document.getElementById('is_active');
+    activeSwitch.checked = product.is_active;
+    activeSwitch.dispatchEvent(new Event('change')); // Actualizar texto "Producto Activo"
+
     // Cargar descuento
-    document.getElementById('has_discount').checked = !!product.has_discount;
+    const discountSwitch = document.getElementById('has_discount');
+    discountSwitch.checked = !!product.has_discount;
     document.getElementById('discount_percentage').value = product.discount_percentage || '';
     
-    // Disparar evento para actualizar UI
-    document.getElementById('has_discount').dispatchEvent(new Event('change'));
+    // Disparar evento para actualizar UI (Ahora sí funcionará porque setupDiscountSwitch ya corrió)
+    discountSwitch.dispatchEvent(new Event('change'));
 
     renderImagePreview(product.image_url);
-    updateStatusText(product.is_active);
 }
 
 function renderImagePreview(url) {
@@ -273,11 +285,17 @@ function setupDiscountSwitch() {
     const sw = document.getElementById('has_discount');
     const txt = document.getElementById('discount-text');
     const box = document.getElementById('discount-input-container');
+    
+    // Configuración inicial del listener
     sw.addEventListener('change', () => {
         if(sw.checked) {
-            txt.textContent='Con Descuento'; txt.style.color='#dc3545'; box.style.display='flex';
+            txt.textContent='Con Descuento'; 
+            txt.style.color='#dc3545'; 
+            box.style.display='flex';
         } else {
-            txt.textContent='Sin Descuento'; txt.style.color='#495057'; box.style.display='none';
+            txt.textContent='Sin Descuento'; 
+            txt.style.color='#495057'; 
+            box.style.display='none';
             document.getElementById('discount_percentage').value='';
         }
     });

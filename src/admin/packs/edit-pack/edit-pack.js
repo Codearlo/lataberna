@@ -23,6 +23,9 @@ let baseProductName = "";
 let processedImageFile = null; 
 let cropper = null; 
 
+// Normalización para búsquedas (Añadido en paso anterior)
+const normalize = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+
 window.openDeleteModal = () => document.getElementById('delete-modal-container').classList.add('visible');
 window.closeDeleteModal = () => document.getElementById('delete-modal-container').classList.remove('visible');
 
@@ -40,12 +43,18 @@ export async function initEditPack(containerId) {
     }
     
     try {
-        await loadInitialData();
-        setupCategoryDropdown();
-        setupExtraDropdown();
+        // 1. Configurar listeners UI PRIMERO
         attachEventListeners();
         setupSwitch();
-        setupDiscountSwitch(); // Nuevo
+        setupDiscountSwitch(); 
+
+        // 2. Cargar datos DESPUÉS
+        await loadInitialData();
+        
+        // 3. Setup de Dropdowns con datos cargados
+        setupCategoryDropdown();
+        setupExtraDropdown();
+        
     } catch (error) {
         console.error("Error al inicializar:", error);
         showToast(`❌ Error: ${error.message}`);
@@ -61,25 +70,32 @@ async function loadInitialData() {
     categoriesList = cats;
     availableExtras = extras;
     currentPack = pack;
-    populateForm(pack);
+    populateForm(pack); // Al ejecutarse esto, los listeners de arriba ya existen
 }
 
 function populateForm(pack) {
     document.getElementById('pack-id').value = pack.id;
     document.getElementById('name').value = pack.name;
     document.getElementById('price').value = pack.price;
-    document.getElementById('is_active').checked = pack.is_active;
+    
     document.getElementById('current_image_url').value = pack.image_url || '';
     
     document.getElementById('category_id').value = pack.categoria_id;
     document.getElementById('category_search').value = pack.category || ''; 
 
+    // Estado activo
+    const activeSwitch = document.getElementById('is_active');
+    activeSwitch.checked = pack.is_active;
+    activeSwitch.dispatchEvent(new Event('change'));
+
     // Cargar descuento
-    document.getElementById('has_discount').checked = !!pack.has_discount;
+    const discountSwitch = document.getElementById('has_discount');
+    discountSwitch.checked = !!pack.has_discount;
     document.getElementById('discount_percentage').value = pack.discount_percentage || '';
-    document.getElementById('has_discount').dispatchEvent(new Event('change'));
     
-    updateStatusText(pack.is_active);
+    // Disparar evento para actualizar UI visualmente
+    discountSwitch.dispatchEvent(new Event('change'));
+    
     renderImagePreview(pack.image_url);
     document.getElementById('product-to-delete-name').textContent = pack.name;
 
@@ -138,16 +154,18 @@ function attachEventListeners() {
     });
 }
 
-// --- DROPDOWNS ---
+// --- DROPDOWNS (Con Normalize) ---
 function setupCustomDropdown(containerId, searchInputId, hiddenInputId, optionsListId, sourceData, onSelectCallback = () => {}) {
     const dropdownContainer = document.getElementById(containerId);
     const searchInput = document.getElementById(searchInputId);
     const hiddenInput = document.getElementById(hiddenInputId);
     const optionsList = document.getElementById(optionsListId);
     if (!searchInput) return;
-    const filterFn = (term) => {
+    
+    const filterFn = (e) => {
+        const term = normalize(e.target.value);
         const filtered = sourceData.filter(item => 
-            !packComposition.has(item.id) && item.nombre.toLowerCase().includes(term)
+            !packComposition.has(item.id) && normalize(item.nombre).includes(term)
         );
         optionsList.innerHTML = ''; 
         if (filtered.length === 0) {
@@ -167,8 +185,9 @@ function setupCustomDropdown(containerId, searchInputId, hiddenInputId, optionsL
         document.querySelectorAll('.custom-dropdown-container').forEach(c => { if(c.id!==containerId) c.classList.remove('active-dropdown'); });
         dropdownContainer.classList.add('active-dropdown');
     };
-    const inputHandler = (e) => filterFn(e.target.value ? e.target.value.toLowerCase() : '');
-    searchInput.addEventListener('input', inputHandler); searchInput.addEventListener('focus', inputHandler);
+    
+    searchInput.addEventListener('input', filterFn); 
+    searchInput.addEventListener('focus', filterFn);
     const chevron = dropdownContainer.querySelector('.chevron-down'); if (chevron) chevron.addEventListener('click', () => searchInput.focus());
 }
 
