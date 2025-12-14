@@ -3,8 +3,6 @@
 import { CartService } from '../../../../services/store/cart.service.js'; 
 import { showToast } from '../toast-notification/toast.js';
 
-// --- Funciones de Renderizado y Manipulación del DOM ---
-
 export function renderProductCard(product) {
     const card = document.createElement('div');
     card.classList.add('product-card');
@@ -12,25 +10,25 @@ export function renderProductCard(product) {
 
     const priceFormatted = `S/ ${product.price.toFixed(2)}`; 
 
-    // --- LÓGICA DE DESCUENTOS VISUALES ---
+    // --- LÓGICA DE DESCUENTOS REALES ---
     let priceHtml = `<span class="product-price">${priceFormatted}</span>`;
     let discountBadgeHtml = '';
 
-    // Si el producto tiene un "descuento simulado" (flag hasDiscount)
-    if (product.hasDiscount && product.fakeOriginalPrice) {
-        const fakePriceFormatted = `S/ ${product.fakeOriginalPrice.toFixed(2)}`;
+    // Usamos los campos reales de la BD: has_discount y discount_percentage
+    if (product.has_discount && product.discount_percentage > 0) {
+        // Cálculo Inverso: Precio Original = Precio Venta / (1 - Porcentaje/100)
+        // Ejemplo: Venta 80, Descuento 20%. Original = 80 / 0.8 = 100.
+        const originalPrice = product.price / (1 - (product.discount_percentage / 100));
+        const originalPriceFormatted = `S/ ${originalPrice.toFixed(2)}`;
         
-        // Calculamos el porcentaje de ahorro para el badge
-        const discountPercent = Math.round(((product.fakeOriginalPrice - product.price) / product.fakeOriginalPrice) * 100);
-
         priceHtml = `
             <div class="price-container">
-                <span class="original-price-crossed">${fakePriceFormatted}</span>
+                <span class="original-price-crossed">${originalPriceFormatted}</span>
                 <span class="product-price discount-price">${priceFormatted}</span>
             </div>
         `;
         
-        discountBadgeHtml = `<span class="discount-badge">-${discountPercent}%</span>`;
+        discountBadgeHtml = `<span class="discount-badge">-${product.discount_percentage}%</span>`;
     }
 
     card.innerHTML = `
@@ -45,7 +43,6 @@ export function renderProductCard(product) {
         <button class="add-to-cart-btn">AGREGAR +</button>
     `;
 
-    // Event Listener del carrito
     const addButton = card.querySelector('.add-to-cart-btn');
     addButton.addEventListener('click', () => {
         CartService.addToCart(product); 
@@ -56,13 +53,18 @@ export function renderProductCard(product) {
 }
 
 export function updateProductCard(updatedProduct) {
+    // Si necesitas actualizar la tarjeta en tiempo real sin recargar, 
+    // podrías volver a llamar a renderProductCard y reemplazar el nodo.
+    // Por simplicidad, aquí solo actualizamos nombre y precio base.
     const card = document.querySelector(`.product-card[data-id="${updatedProduct.id}"]`);
     if (card) {
         card.querySelector('.product-name').textContent = updatedProduct.name;
-        // Nota: Para actualizaciones completas de precio con descuento, sería mejor rerenderizar la tarjeta,
-        // pero por ahora actualizamos el precio base.
         const priceEl = card.querySelector('.product-price');
-        if (priceEl) priceEl.textContent = `S/ ${updatedProduct.price.toFixed(2)}`;
+        if (priceEl && !updatedProduct.has_discount) {
+             // Si quitamos el descuento, deberíamos limpiar la estructura compleja, 
+             // pero para actualizaciones rápidas esto basta.
+             priceEl.textContent = `S/ ${updatedProduct.price.toFixed(2)}`;
+        }
     }
 }
 

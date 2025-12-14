@@ -74,13 +74,33 @@
                 <button type="button" id="create-category-btn" class="secondary-btn create-action-btn">Crear</button>
             </div>
 
-            <h3 class="section-label">Precio del Pack</h3>
+            <h3 class="section-label">Precio y Oferta</h3>
             
             <div class="input-card">
                 <div class="input-icon-wrapper icon-green">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
                 <input type="number" id="price" name="price" class="clean-input" placeholder="Precio de Venta del Pack" step="0.01" required>
+            </div>
+
+            <div class="input-card switch-card">
+                <div class="switch-label-group">
+                    <div class="input-icon-wrapper icon-red-pack">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    </div>
+                    <span class="switch-text" id="discount-text" style="color: #495057;">Sin Descuento</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="has_discount" name="has_discount">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="input-card" id="discount-input-container" style="display: none; background-color: #fff5f5;">
+                <div class="input-icon-wrapper icon-red-pack">
+                    <span style="font-weight: 800; font-size: 1.2rem;">%</span>
+                </div>
+                <input type="number" id="discount_percentage" name="discount_percentage" class="clean-input" placeholder="Porcentaje (Ej: 20)" min="1" max="100">
             </div>
             
             <h3 class="section-label">Composición del Pack</h3>
@@ -154,18 +174,12 @@
         <div class="modal-overlay"></div>
         <div class="modal-content crop-modal-content">
             <h4 style="margin-bottom: 10px;">✂️ Recortar Imagen</h4>
-            
-            <div class="crop-image-container">
-                <img id="image-to-crop" src="" alt="Imagen para recortar">
-            </div>
-
+            <div class="crop-image-container"><img id="image-to-crop" src="" alt="Imagen para recortar"></div>
             <div class="magic-wand-option" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px;">
                 <label for="remove-bg-check" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em; font-weight: 600; color: #343a40;">
-                    <input type="checkbox" id="remove-bg-check" style="width: 18px; height: 18px; accent-color: #FFC107;">
-                    🪄 Quitar fondo blanco
+                    <input type="checkbox" id="remove-bg-check" style="width: 18px; height: 18px; accent-color: #FFC107;"> 🪄 Quitar fondo blanco
                 </label>
             </div>
-
             <div class="modal-actions">
                 <button type="button" id="btn-cancel-crop" class="btn-cancel">Cancelar</button>
                 <button type="button" id="btn-confirm-crop" class="btn-confirm-delete" style="background-color: #28a745; color: white;">Confirmar</button>

@@ -15,12 +15,10 @@ import { initToastNotification, showToast } from '../../../public/modules/store/
 let categoriesList = [];
 let productId = null;
 let currentProduct = null;
-
-// Variables para el recorte
 let processedImageFile = null; 
 let cropper = null; 
 
-// --- Funciones de Control del Modal de Eliminación ---
+// --- Control Modal ---
 window.openDeleteModal = openDeleteModal; 
 window.closeDeleteModal = closeDeleteModal; 
 
@@ -34,21 +32,16 @@ function closeDeleteModal() {
     document.getElementById('delete-modal-container').classList.remove('visible');
 }
 
-// --- Funciones de Inicialización ---
-
 function getProductIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('id');
+    return new URLSearchParams(window.location.search).get('id');
 }
 
 export async function initEditProduct(containerId) {
     productId = getProductIdFromUrl();
-    const container = document.getElementById(containerId);
-    
     initToastNotification();
 
     if (!productId) {
-        showToast("❌ Error: No se especificó un ID de producto.");
+        showToast("❌ Error: No se especificó un ID.");
         return;
     }
     
@@ -57,9 +50,10 @@ export async function initEditProduct(containerId) {
         await loadProductData(parseInt(productId)); 
         attachEventListeners();
         setupSwitch(); 
+        setupDiscountSwitch(); // Nuevo
         
     } catch (error) {
-        console.error("Error al inicializar la edición:", error);
+        console.error("Error init:", error);
         showToast(`❌ Error: ${error.message}`);
     }
 }
@@ -72,12 +66,9 @@ function attachEventListeners() {
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
     
     const imageBox = document.getElementById('image-preview-box');
-    if (imageBox) {
-        imageBox.addEventListener('click', (e) => {
-            if (e.target.tagName === 'LABEL' || e.target.closest('label')) return;
-            imgInput.click();
-        });
-    }
+    if (imageBox) imageBox.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'LABEL') imgInput.click();
+    });
 
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
     document.getElementById('delete-product-btn').addEventListener('click', openDeleteModal);
@@ -86,39 +77,30 @@ function attachEventListeners() {
     document.getElementById('btn-confirm-crop').addEventListener('click', cropAndSave);
     document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
 
+    setupCategorySearch();
+}
+
+function setupCategorySearch() {
     const dropdownContainer = document.getElementById('category-dropdown');
     const searchInput = document.getElementById('category_search');
     
-    if (searchInput && dropdownContainer) {
+    if (searchInput) {
         const filterFn = (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = categoriesList.filter(cat => cat.nombre.toLowerCase().includes(term));
             renderCategoriesCustomDropdown(filtered);
             dropdownContainer.classList.add('active-dropdown');
         };
-
         searchInput.addEventListener('input', filterFn);
         searchInput.addEventListener('focus', filterFn);
-
-        document.addEventListener('click', (e) => {
-            if (!dropdownContainer.contains(e.target)) {
-                dropdownContainer.classList.remove('active-dropdown');
-            }
-        });
-        
-        const chevron = dropdownContainer.querySelector('.chevron-down');
-        if (chevron) {
-            chevron.addEventListener('click', () => searchInput.focus());
-        }
+        document.addEventListener('click', (e) => { if (!dropdownContainer.contains(e.target)) dropdownContainer.classList.remove('active-dropdown'); });
+        dropdownContainer.querySelector('.chevron-down').addEventListener('click', () => searchInput.focus());
     }
 }
 
 async function loadProductData(id) {
     const product = await getProductById(id);
-
-    if (!product) {
-         throw new Error(`Producto con ID ${id} no encontrado.`);
-    }
+    if (!product) throw new Error(`Producto ${id} no encontrado.`);
     
     currentProduct = product;
     
@@ -127,321 +109,178 @@ async function loadProductData(id) {
     document.getElementById('price').value = product.price;
     document.getElementById('is_active').checked = product.is_active;
     document.getElementById('current_image_url').value = product.image_url || '';
-    
     document.getElementById('category_id').value = product.categoria_id;
     document.getElementById('category_search').value = product.category || ''; 
 
-    renderImagePreview(product.image_url);
+    // Cargar descuento
+    document.getElementById('has_discount').checked = !!product.has_discount;
+    document.getElementById('discount_percentage').value = product.discount_percentage || '';
     
-    const statusText = document.getElementById('status-text');
-    if(statusText) {
-        statusText.textContent = product.is_active ? 'Producto Activo' : 'Producto Inactivo';
-        statusText.style.color = product.is_active ? '#28a745' : '#dc3545';
-    }
+    // Disparar evento para actualizar UI
+    document.getElementById('has_discount').dispatchEvent(new Event('change'));
+
+    renderImagePreview(product.image_url);
+    updateStatusText(product.is_active);
 }
 
 function renderImagePreview(url) {
-    const previewContainer = document.getElementById('image-preview');
-    const uploadPlaceholder = document.getElementById('upload-placeholder');
-    
-    previewContainer.innerHTML = '';
-    
+    const prev = document.getElementById('image-preview');
+    prev.innerHTML = '';
     if (url) {
-        const img = document.createElement('img');
-        img.src = url;
-        img.alt = 'Preview';
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'contain';
-        // Fondo de cuadrícula para ver transparencia
-        img.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
-        img.style.backgroundSize = '20px 20px';
-        img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
-
-        previewContainer.appendChild(img);
-        
-        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        const img = document.createElement('img'); img.src = url;
+        img.style.width='100%'; img.style.height='100%'; img.style.objectFit='contain';
+        prev.appendChild(img);
+        document.getElementById('upload-placeholder').style.display='none';
     } else {
-        if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
+        document.getElementById('upload-placeholder').style.display='flex';
     }
 }
 
-// --- GESTIÓN DE IMAGEN, CROPPER Y FONDO BLANCO ---
-
+// --- IMAGEN ---
 function handleImageSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (event) => {
-        const imageElement = document.getElementById('image-to-crop');
-        imageElement.src = event.target.result;
-        
+        document.getElementById('image-to-crop').src = event.target.result;
         document.getElementById('remove-bg-check').checked = false;
-
-        const modal = document.getElementById('crop-modal');
-        modal.classList.add('visible');
-
-        if (cropper) {
-            cropper.destroy();
-        }
-        
-        cropper = new Cropper(imageElement, {
-            aspectRatio: 1, 
-            viewMode: 1,
-            autoCropArea: 0.8,
-            movable: true,
-            zoomable: true,
-            scalable: false,
-            background: false 
-        });
+        document.getElementById('crop-modal').classList.add('visible');
+        if(cropper) cropper.destroy();
+        // eslint-disable-next-line no-undef
+        cropper = new Cropper(document.getElementById('image-to-crop'), { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: false });
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; 
+    e.target.value='';
 }
 
 function cropAndSave() {
     if (!cropper) return;
-
-    // 1. Obtener el canvas
-    let canvas = cropper.getCroppedCanvas({
-        width: 800,
-        height: 800,
-        fillColor: '#fff' // Default blanco
-    });
-
-    // 2. Verificar eliminación de fondo
-    const removeBg = document.getElementById('remove-bg-check').checked;
-    
-    if (removeBg) {
-        // Regenerar sin fondo base
-        canvas = cropper.getCroppedCanvas({
-            width: 800, 
-            height: 800
-        });
-        canvas = removeWhiteBackground(canvas);
+    let canvas = cropper.getCroppedCanvas({ width:800, height:800, fillColor:'#fff' });
+    if(document.getElementById('remove-bg-check').checked) {
+        canvas = cropper.getCroppedCanvas({ width:800, height:800 });
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0,0,800,800);
+        const d = imgData.data;
+        for(let i=0; i<d.length; i+=4) if(d[i]>230 && d[i+1]>230 && d[i+2]>230) d[i+3]=0;
+        ctx.putImageData(imgData,0,0);
     }
-
-    // 3. Convertir a WebP
-    canvas.toBlob((blob) => {
-        if (!blob) {
-            showToast("❌ Error al recortar imagen");
-            return;
-        }
-
-        processedImageFile = new File([blob], "edit_image.webp", { type: 'image/webp' });
-
-        const previewUrl = URL.createObjectURL(processedImageFile);
-        renderImagePreview(previewUrl);
-
-        const msg = removeBg ? "✂️ Recortado y fondo eliminado!" : "✂️ Imagen lista!";
-        showToast(msg);
+    canvas.toBlob(blob => {
+        processedImageFile = new File([blob], "edit.webp", { type:'image/webp' });
+        renderImagePreview(URL.createObjectURL(processedImageFile));
+        showToast("✂️ Imagen lista!");
         closeCropModal();
-
-    }, 'image/webp', 0.85); 
+    }, 'image/webp', 0.85);
 }
+function closeCropModal() { document.getElementById('crop-modal').classList.remove('visible'); if(cropper) { cropper.destroy(); cropper=null; } }
 
-/**
- * Función que hace transparente lo blanco
- */
-function removeWhiteBackground(originalCanvas) {
-    const ctx = originalCanvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
-    const data = imageData.data;
-    const threshold = 230; 
-
-    for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        
-        if (r > threshold && g > threshold && b > threshold) {
-            data[i + 3] = 0; 
-        }
-    }
-    
-    ctx.putImageData(imageData, 0, 0);
-    return originalCanvas;
-}
-
-function closeCropModal() {
-    const modal = document.getElementById('crop-modal');
-    modal.classList.remove('visible');
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
-    }
-}
-
-// --- Lógica del Formulario (Update & Delete) ---
-
+// --- SUBMIT ---
 async function handleFormSubmit(e) {
     e.preventDefault();
     
     const id = parseInt(document.getElementById('product-id').value);
     const name = document.getElementById('name').value;
     const price = parseFloat(document.getElementById('price').value);
-    const categoriaId = parseInt(document.getElementById('category_id').value);
-    const isActive = document.getElementById('is_active').checked;
-    
-    const currentImageUrl = document.getElementById('current_image_url').value;
-    
-    if (!categoriaId) {
-        showToast("⚠️ Por favor, selecciona una categoría.");
-        return;
-    }
-    
-    let imageUrl = currentImageUrl; 
+    const catId = parseInt(document.getElementById('category_id').value);
+    const active = document.getElementById('is_active').checked;
+    const currentImg = document.getElementById('current_image_url').value;
+
+    const hasDiscount = document.getElementById('has_discount').checked;
+    const discountPercentage = hasDiscount ? parseInt(document.getElementById('discount_percentage').value) : 0;
+
+    if (!catId) return showToast("⚠️ Selecciona categoría.");
+    if (hasDiscount && (!discountPercentage || discountPercentage <= 0)) return showToast("⚠️ Porcentaje inválido.");
 
     try {
-        const saveBtn = document.getElementById('save-product-btn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Actualizando...';
+        const btn = document.getElementById('save-product-btn');
+        btn.disabled = true; btn.textContent = 'Guardando...';
 
-        // Si hay una nueva imagen procesada
+        let finalUrl = currentImg;
         if (processedImageFile) {
-            imageUrl = await uploadImage(processedImageFile);
-            
-            if (currentImageUrl && currentImageUrl !== imageUrl) {
-                await deleteImage(currentImageUrl);
-            }
+            finalUrl = await uploadImage(processedImageFile);
+            if (currentImg && currentImg !== finalUrl) await deleteImage(currentImg);
         }
         
-        const productData = {
-            name: name,
-            price: price,
-            categoria_id: categoriaId,
-            is_active: isActive,
-            image_url: imageUrl,
+        const data = { 
+            name, price, categoria_id: catId, is_active: active, image_url: finalUrl,
+            has_discount: hasDiscount, discount_percentage: discountPercentage 
         };
 
-        const result = await updateProduct(id, productData);
-        showToast(`✅ Producto "${result.name}" actualizado!`);
-        
-        setTimeout(() => {
-             window.location.href = '../list-products/list-products.html'; 
-        }, 1500);
-
-    } catch (error) {
-        console.error("Error al actualizar:", error);
-        showToast(`❌ Error: ${error.message}`);
+        await updateProduct(id, data);
+        showToast("✅ Producto actualizado!");
+        setTimeout(() => window.location.href = '../list-products/list-products.html', 1500);
+    } catch (e) {
+        showToast(`❌ Error: ${e.message}`);
         document.getElementById('save-product-btn').disabled = false;
-        document.getElementById('save-product-btn').textContent = 'Actualizar';
     }
 }
 
 async function confirmDelete() {
-    if (!currentProduct) return;
-
+    if(!currentProduct) return;
     try {
-        const deleteBtn = document.getElementById('confirm-delete-btn');
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = 'Eliminando...';
-        
-        if (currentProduct.image_url) {
-            await deleteImage(currentProduct.image_url);
-        }
-        
+        document.getElementById('confirm-delete-btn').disabled = true;
+        if(currentProduct.image_url) await deleteImage(currentProduct.image_url);
         await deleteProduct(currentProduct.id);
-        
-        closeDeleteModal();
-        showToast(`🗑️ Producto eliminado.`);
-        
-        setTimeout(() => {
-            window.location.href = '../list-products/list-products.html'; 
-        }, 1500);
-        
-    } catch (error) {
-        console.error("Error al eliminar:", error);
-        showToast(`❌ Error al eliminar: ${error.message}`);
-        closeDeleteModal();
-    }
+        showToast("🗑️ Eliminado.");
+        setTimeout(() => window.location.href = '../list-products/list-products.html', 1500);
+    } catch (e) { showToast(`❌ Error: ${e.message}`); closeDeleteModal(); }
 }
 
+// --- UTIL ---
 async function loadCategories() {
-    try {
-        categoriesList = await getCategories();
-        renderCategoriesCustomDropdown(categoriesList);
-    } catch (error) {
-        console.error("Error al cargar categorías:", error);
-    }
+    categoriesList = await getCategories();
+    renderCategoriesCustomDropdown(categoriesList);
 }
 
-function renderCategoriesCustomDropdown(listToRender) {
-    const optionsList = document.getElementById('dropdown-options');
-    const hiddenInput = document.getElementById('category_id');
-    const searchInput = document.getElementById('category_search');
-    
-    if (!optionsList) return;
-    optionsList.innerHTML = ''; 
-    
-    if (listToRender.length === 0) {
-        const li = document.createElement('li');
-        li.className = 'dropdown-item';
-        li.textContent = "No se encontraron resultados";
-        li.style.color = "#999";
-        optionsList.appendChild(li);
-        return;
-    }
-    
-    listToRender.forEach(category => {
-        const li = document.createElement('li');
-        li.className = 'dropdown-item';
-        li.textContent = category.nombre;
-        
+function renderCategoriesCustomDropdown(list) {
+    const ul = document.getElementById('dropdown-options');
+    ul.innerHTML = list.length ? '' : '<li class="dropdown-item" style="color:#999">Sin resultados</li>';
+    list.forEach(c => {
+        const li = document.createElement('li'); li.className='dropdown-item'; li.textContent=c.nombre;
         li.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            hiddenInput.value = category.id;
-            searchInput.value = category.nombre; 
+            e.stopPropagation(); document.getElementById('category_id').value=c.id;
+            document.getElementById('category_search').value=c.nombre;
             document.getElementById('category-dropdown').classList.remove('active-dropdown');
         });
-        
-        optionsList.appendChild(li);
+        ul.appendChild(li);
     });
 }
 
 async function handleCreateCategory() {
-    const newCatInput = document.getElementById('new_category_name');
-    const newCategoryName = newCatInput.value.trim();
-    
-    if (!newCategoryName) {
-        showToast("⚠️ Introduce un nombre para la categoría.");
-        return;
-    }
-
+    const name = document.getElementById('new_category_name').value.trim();
+    if(!name) return showToast("⚠️ Nombre vacío.");
     try {
-        const createBtn = document.getElementById('create-category-btn');
-        createBtn.disabled = true;
-        
-        const newCategory = await createCategory(newCategoryName);
-        showToast(`✅ Categoría creada.`);
-        
-        categoriesList.push(newCategory);
+        const newCat = await createCategory(name);
+        showToast("✅ Categoría creada.");
+        categoriesList.push(newCat);
         renderCategoriesCustomDropdown(categoriesList);
-        
-        document.getElementById('category_id').value = newCategory.id;
-        document.getElementById('category_search').value = newCategory.nombre;
-        
-        newCatInput.value = '';
-        createBtn.disabled = false;
-
-    } catch (error) {
-        showToast(`❌ Error: ${error.message}`);
-    }
+        document.getElementById('category_id').value=newCat.id;
+        document.getElementById('category_search').value=newCat.nombre;
+        document.getElementById('new_category_name').value='';
+    } catch (e) { showToast(`❌ Error: ${e.message}`); }
 }
 
 function setupSwitch() {
-    const sw = document.getElementById('is_active');
-    const txt = document.getElementById('status-text');
-    
-    if (sw && txt) {
-        sw.addEventListener('change', () => {
-            txt.textContent = sw.checked ? 'Producto Activo' : 'Producto Inactivo';
-            txt.style.color = sw.checked ? '#28a745' : '#dc3545'; 
-        });
-    }
+    document.getElementById('is_active').addEventListener('change', (e) => updateStatusText(e.target.checked));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initEditProduct('app-content');
-});
+function updateStatusText(active) {
+    const txt = document.getElementById('status-text');
+    txt.textContent = active ? 'Producto Activo' : 'Producto Inactivo';
+    txt.style.color = active ? '#28a745' : '#dc3545';
+}
+
+function setupDiscountSwitch() {
+    const sw = document.getElementById('has_discount');
+    const txt = document.getElementById('discount-text');
+    const box = document.getElementById('discount-input-container');
+    sw.addEventListener('change', () => {
+        if(sw.checked) {
+            txt.textContent='Con Descuento'; txt.style.color='#dc3545'; box.style.display='flex';
+        } else {
+            txt.textContent='Sin Descuento'; txt.style.color='#495057'; box.style.display='none';
+            document.getElementById('discount_percentage').value='';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => initEditProduct('app-content'));

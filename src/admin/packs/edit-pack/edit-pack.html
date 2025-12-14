@@ -10,7 +10,8 @@
 
     <link rel="stylesheet" href="../../../public/main.css"> 
     <link rel="stylesheet" href="../../auth/auth.css">
-    <link rel="stylesheet" href="./edit-pack.css"> <link rel="stylesheet" href="../../../public/modules/store/toast-notification/toast.css">
+    <link rel="stylesheet" href="./edit-pack.css"> 
+    <link rel="stylesheet" href="../../../public/modules/store/toast-notification/toast.css">
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 </head>
@@ -66,7 +67,6 @@
                 <div class="input-icon-wrapper icon-blue">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                 </div>
-                
                 <div class="dropdown-trigger">
                     <input type="text" id="category_search" class="dropdown-search-input" placeholder="Buscar categoría..." autocomplete="off">
                     <input type="hidden" id="category_id" name="categoria_id">
@@ -92,38 +92,51 @@
                 <input type="number" id="price" name="price" class="clean-input" placeholder="Precio de Venta" step="0.01" required>
             </div>
 
+            <div class="input-card switch-card">
+                <div class="switch-label-group">
+                    <div class="input-icon-wrapper icon-red-pack">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    </div>
+                    <span class="switch-text" id="discount-text" style="color: #495057;">Sin Descuento</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="has_discount" name="has_discount">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="input-card" id="discount-input-container" style="display: none; background-color: #fff5f5;">
+                <div class="input-icon-wrapper icon-red-pack">
+                    <span style="font-weight: 800; font-size: 1.2rem;">%</span>
+                </div>
+                <input type="number" id="discount_percentage" name="discount_percentage" class="clean-input" placeholder="Porcentaje (Ej: 20)" min="1" max="100">
+            </div>
+
             <h3 class="section-label">Composición del Pack</h3>
             
             <div class="input-card custom-dropdown-container" id="product-dropdown">
                 <div class="input-icon-wrapper icon-red-pack">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                 </div>
-                
                 <div class="dropdown-trigger">
-                    <input type="text" id="product_search" class="dropdown-search-input" placeholder="Producto Base (Solo lectura en edición)" readonly style="color:#6c757d; cursor: default;">
-                    </div>
+                    <input type="text" id="product_search" class="dropdown-search-input" placeholder="Producto Base (Solo lectura)" readonly style="color:#6c757d; cursor: default;">
+                </div>
             </div>
 
             <div class="pack-composition-container">
                 <h4 style="font-size: 0.9rem; font-weight: 700; color: #6c757d; margin: 0;">Extras Incluidos</h4>
-                <div id="composition-list" class="composition-list">
-                </div>
+                <div id="composition-list" class="composition-list"></div>
                 
                 <div class="input-card input-with-button-card custom-dropdown-container" id="extra-dropdown">
                     <div class="input-icon-wrapper icon-orange">
                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v-2h-2v2zm0-4h2V7h-2v6z"/></svg>
                     </div>
-                    
                     <div class="dropdown-trigger" style="height: 40px; align-items: flex-start; padding-top: 5px;">
                         <input type="text" id="extra_search" class="dropdown-search-input" placeholder="Añadir Extra..." autocomplete="off">
                         <input type="hidden" id="extra_id">
                         <input type="number" id="extra_qty" min="1" value="1" class="input-quantity" placeholder="Qty" style="margin-left: 10px; height: 36px; padding: 0 5px; flex-shrink: 0; display: none;">
                     </div>
-                    
-                    <button type="button" id="add-extra-btn" class="secondary-btn create-action-btn" disabled>
-                        Añadir
-                    </button>
-
+                    <button type="button" id="add-extra-btn" class="secondary-btn create-action-btn" disabled>Añadir</button>
                     <ul class="dropdown-options" id="extra-dropdown-options"></ul>
                 </div>
 
@@ -134,7 +147,6 @@
                     <input type="text" id="new_extra_name" class="clean-input" placeholder="Crear nuevo extra...">
                     <button type="button" id="create-extra-btn" class="secondary-btn create-action-btn">Crear</button>
                 </div>
-
             </div>
 
             <h3 class="section-label">Estado</h3>
@@ -156,12 +168,8 @@
         </main>
 
         <footer class="form-footer">
-            <button type="button" id="delete-product-btn" class="action-btn action-btn--delete">
-                Eliminar
-            </button>
-            <button type="submit" id="save-product-btn" class="action-btn action-btn--primary">
-                Actualizar
-            </button>
+            <button type="button" id="delete-product-btn" class="action-btn action-btn--delete">Eliminar</button>
+            <button type="submit" id="save-product-btn" class="action-btn action-btn--primary">Actualizar</button>
         </footer>
     </form>
     
@@ -169,18 +177,12 @@
         <div class="modal-overlay"></div>
         <div class="modal-content crop-modal-content">
             <h4 style="margin-bottom: 10px;">✂️ Recortar Imagen</h4>
-            
-            <div class="crop-image-container">
-                <img id="image-to-crop" src="" alt="Imagen para recortar">
-            </div>
-
+            <div class="crop-image-container"><img id="image-to-crop" src="" alt="Imagen para recortar"></div>
             <div class="magic-wand-option" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px;">
                 <label for="remove-bg-check" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em; font-weight: 600; color: #343a40;">
-                    <input type="checkbox" id="remove-bg-check" style="width: 18px; height: 18px; accent-color: #FFC107;">
-                    🪄 Quitar fondo blanco
+                    <input type="checkbox" id="remove-bg-check" style="width: 18px; height: 18px; accent-color: #FFC107;"> 🪄 Quitar fondo blanco
                 </label>
             </div>
-
             <div class="modal-actions">
                 <button type="button" id="btn-cancel-crop" class="btn-cancel">Cancelar</button>
                 <button type="button" id="btn-confirm-crop" class="btn-confirm-delete" style="background-color: #28a745; color: white;">Confirmar</button>

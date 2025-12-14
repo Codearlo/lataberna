@@ -9,7 +9,7 @@ export async function getProductsMetadata() {
     try {
         const { data, error } = await supabase
             .from('products')
-            .select('id, name, price, categoria_id, is_pack') 
+            .select('id, name, price, categoria_id, is_pack, has_discount, discount_percentage') 
             .eq('is_active', true);
         
         if (error) throw error;
@@ -113,7 +113,24 @@ export async function getProductsPaged({
 }
 
 export async function getActiveProducts() {
-    return [];
+    // Función auxiliar usada por el buscador global del header
+    try {
+        const { data, error } = await supabase
+            .from('products')
+            .select('id, name, price, image_url, categoria:categorias(nombre)') 
+            .eq('is_active', true)
+            .limit(50); // Límite razonable para caché de búsqueda rápida
+        
+        if (error) throw error;
+        
+        return data.map(product => ({
+            ...product,
+            category: product.categoria ? product.categoria.nombre : 'Sin Categoría'
+        }));
+    } catch (err) {
+        console.error("Error fetching active products:", err);
+        return [];
+    }
 }
 
 /**

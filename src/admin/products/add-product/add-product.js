@@ -21,6 +21,7 @@ export async function initAddProduct(containerId) {
         await loadCategories();
         attachEventListeners();
         setupSwitch();
+        setupDiscountSwitch(); // Nuevo
     } catch (error) {
         console.error("Error en la inicialización:", error);
     }
@@ -76,36 +77,20 @@ function setupCategorySearch() {
     }
 }
 
-// --- GESTIÓN DE IMAGEN, CROPPER Y FONDO BLANCO ---
-
+// --- GESTIÓN DE IMAGEN ---
 function handleImageSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (event) => {
         const imageElement = document.getElementById('image-to-crop');
         imageElement.src = event.target.result;
-        
-        // Resetear checkbox de fondo
         document.getElementById('remove-bg-check').checked = false;
-
         const modal = document.getElementById('crop-modal');
         modal.classList.add('visible');
-
-        if (cropper) {
-            cropper.destroy();
-        }
-        
-        cropper = new Cropper(imageElement, {
-            aspectRatio: 1, 
-            viewMode: 1,    
-            autoCropArea: 0.8,
-            movable: true,
-            zoomable: true,
-            scalable: false,
-            background: false // Importante para ver transparencia si la hubiera
-        });
+        if (cropper) cropper.destroy();
+        // eslint-disable-next-line no-undef
+        cropper = new Cropper(imageElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, movable: true, zoomable: true, scalable: false, background: false });
     };
     reader.readAsDataURL(file);
     e.target.value = ''; 
@@ -113,95 +98,47 @@ function handleImageSelection(e) {
 
 function cropAndSave() {
     if (!cropper) return;
-
-    // 1. Obtener el canvas recortado
-    let canvas = cropper.getCroppedCanvas({
-        width: 800, 
-        height: 800,
-        fillColor: '#fff' // Por defecto llenar con blanco si hay huecos
-    });
-
-    // 2. Verificar si se pidió quitar el fondo
+    let canvas = cropper.getCroppedCanvas({ width: 800, height: 800, fillColor: '#fff' });
     const removeBg = document.getElementById('remove-bg-check').checked;
-    
     if (removeBg) {
-        // Si vamos a quitar el fondo, regeneramos el canvas SIN fillColor para tener base transparente
-        canvas = cropper.getCroppedCanvas({
-            width: 800, 
-            height: 800
-        });
-        // Aplicar el filtro de eliminación de blanco
+        canvas = cropper.getCroppedCanvas({ width: 800, height: 800 });
         canvas = removeWhiteBackground(canvas);
     }
-
-    // 3. Convertir a WebP
     canvas.toBlob((blob) => {
-        if (!blob) {
-            showToast("❌ Error al procesar imagen");
-            return;
-        }
-
+        if (!blob) return showToast("❌ Error al procesar imagen");
         processedImageFile = new File([blob], "imagen_producto.webp", { type: 'image/webp' });
-
         const previewContainer = document.getElementById('image-preview');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
         const previewUrl = URL.createObjectURL(processedImageFile);
-
         previewContainer.innerHTML = '';
         const img = document.createElement('img');
         img.src = previewUrl;
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'contain';
-        // Añadir un fondo de cuadrícula gris suave para ver la transparencia
+        img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'contain';
         img.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
-        img.style.backgroundSize = '20px 20px';
-        img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
-        
+        img.style.backgroundSize = '20px 20px'; img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
         previewContainer.appendChild(img);
-
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
-
-        const msg = removeBg ? "✂️ Recortado y fondo eliminado!" : "✂️ Imagen recortada lista!";
-        showToast(msg);
+        showToast(removeBg ? "✂️ Recortado y sin fondo!" : "✂️ Imagen recortada lista!");
         closeCropModal();
-
     }, 'image/webp', 0.85); 
 }
 
-/**
- * Recorre los píxeles del canvas y vuelve transparentes los que son blancos o casi blancos.
- */
 function removeWhiteBackground(originalCanvas) {
     const ctx = originalCanvas.getContext('2d');
     const imageData = ctx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
     const data = imageData.data;
-    
-    // Umbral de "blancura" (0-255). 230 es bastante permisivo.
     const threshold = 230; 
-
     for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        
-        // Si los tres canales son muy altos, es blanco (o gris muy claro)
-        if (r > threshold && g > threshold && b > threshold) {
-            data[i + 3] = 0; // Alpha a 0 (Totalmente transparente)
-        }
+        const r = data[i], g = data[i+1], b = data[i+2];
+        if (r > threshold && g > threshold && b > threshold) data[i+3] = 0; 
     }
-    
     ctx.putImageData(imageData, 0, 0);
     return originalCanvas;
 }
 
 function closeCropModal() {
-    const modal = document.getElementById('crop-modal');
-    modal.classList.remove('visible');
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
-    }
+    document.getElementById('crop-modal').classList.remove('visible');
+    if (cropper) { cropper.destroy(); cropper = null; }
 }
 
 // --- ENVÍO DEL FORMULARIO ---
@@ -214,15 +151,13 @@ async function handleFormSubmit(e) {
     const categoriaId = parseInt(document.getElementById('category_id').value);
     const isActive = document.getElementById('is_active').checked;
     
-    if (!categoriaId) {
-        showToast("⚠️ Selecciona una categoría.");
-        return;
-    }
+    // Descuento
+    const hasDiscount = document.getElementById('has_discount').checked;
+    const discountPercentage = hasDiscount ? parseInt(document.getElementById('discount_percentage').value) : 0;
 
-    if (!processedImageFile) {
-        showToast("⚠️ Debes subir y recortar una imagen.");
-        return;
-    }
+    if (!categoriaId) return showToast("⚠️ Selecciona una categoría.");
+    if (!processedImageFile) return showToast("⚠️ Debes subir y recortar una imagen.");
+    if (hasDiscount && (!discountPercentage || discountPercentage <= 0)) return showToast("⚠️ Ingresa un porcentaje de descuento válido.");
 
     try {
         const saveBtn = document.getElementById('save-product-btn');
@@ -237,9 +172,11 @@ async function handleFormSubmit(e) {
             categoria_id: categoriaId,
             is_active: isActive,
             image_url: imageUrl,
+            has_discount: hasDiscount,
+            discount_percentage: discountPercentage
         };
 
-        const result = await createProduct(productData);
+        await createProduct(productData);
         showToast(`✅ Producto agregado!`);
         
         setTimeout(() => {
@@ -322,6 +259,27 @@ function setupSwitch() {
         sw.addEventListener('change', () => {
             txt.textContent = sw.checked ? 'Producto Activo' : 'Producto Inactivo';
             txt.style.color = sw.checked ? '#28a745' : '#dc3545'; 
+        });
+    }
+}
+
+function setupDiscountSwitch() {
+    const sw = document.getElementById('has_discount');
+    const txt = document.getElementById('discount-text');
+    const inputContainer = document.getElementById('discount-input-container');
+    
+    if (sw && txt && inputContainer) {
+        sw.addEventListener('change', () => {
+            if (sw.checked) {
+                txt.textContent = 'Con Descuento';
+                txt.style.color = '#dc3545';
+                inputContainer.style.display = 'flex';
+            } else {
+                txt.textContent = 'Sin Descuento';
+                txt.style.color = '#495057';
+                inputContainer.style.display = 'none';
+                document.getElementById('discount_percentage').value = '';
+            }
         });
     }
 }
