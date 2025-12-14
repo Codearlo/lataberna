@@ -155,7 +155,8 @@ function setupLiveSearch() {
         const matchedProducts = searchProductsCache.filter(p => 
             p.name.toLowerCase().includes(term) || 
             (p.category && p.category.toLowerCase().includes(term))
-        ).slice(0, 6); // Límite de 6 productos para no saturar
+        ); 
+        // .slice(0, 6);  <-- LÍMITE ELIMINADO: Muestra todos los resultados encontrados
 
         if (matchedCategories.length > 0 || matchedProducts.length > 0) {
             renderDropdownResults(matchedCategories, matchedProducts, dropdown, performSearch);

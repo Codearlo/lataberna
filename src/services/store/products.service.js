@@ -118,8 +118,8 @@ export async function getActiveProducts() {
         const { data, error } = await supabase
             .from('products')
             .select('id, name, price, image_url, categoria:categorias(nombre)') 
-            .eq('is_active', true)
-            .limit(50); // Límite razonable para caché de búsqueda rápida
+            .eq('is_active', true);
+            // .limit(50);  <-- LÍMITE ELIMINADO: Ahora trae TODOS los activos
         
         if (error) throw error;
         
