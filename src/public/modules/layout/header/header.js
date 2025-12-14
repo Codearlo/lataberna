@@ -11,6 +11,12 @@ const HEADER_HTML_PATH = 'src/public/modules/layout/header/header.html';
 let searchProductsCache = [];
 let searchCategoriesCache = [];
 
+// --- FUNCIÓN DE UTILIDAD PARA IGNORAR ACENTOS ---
+function normalizeText(text) {
+    if (!text) return '';
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 export async function initHeader(containerId) {
     const headerElement = document.getElementById(containerId);
     if (!headerElement) return;
@@ -20,18 +26,12 @@ export async function initHeader(containerId) {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         headerElement.innerHTML = await response.text();
 
-        // 1. Cargar TODOS los datos necesarios (Categorías y Productos)
         await loadSearchData();
-
-        // 2. Renderizar Sidebar Inicial
         renderSidebarMenu(searchCategoriesCache);
 
-        // 3. Eventos UI
         headerElement.querySelector('.cart-icon-container').addEventListener('click', openCartModal);
         updateCartCount();
         setupSidebarLogic();
-        
-        // 4. Lógica de Búsqueda Inteligente (Categorías + Productos)
         setupLiveSearch();
 
     } catch (error) {
@@ -104,7 +104,7 @@ function toggleSidebar(open) {
     }
 }
 
-/* --- LÓGICA DE BÚSQUEDA AVANZADA --- */
+/* --- LÓGICA DE BÚSQUEDA AVANZADA (SIN ACENTOS) --- */
 function setupLiveSearch() {
     const searchInput = document.getElementById('global-search-input');
     const dropdown = document.getElementById('search-results-dropdown');
@@ -117,20 +117,17 @@ function setupLiveSearch() {
         searchInput.classList.remove('has-results');
     };
 
-    // Al seleccionar algo de la lista o dar Enter
     const performSearch = (type, value) => {
         closeDropdown();
-        searchInput.value = ''; // Limpiamos para dar sensación de navegación
+        searchInput.value = ''; 
         searchInput.blur();
 
         if (type === 'category') {
-            // Si eligió una categoría, filtramos por ID
             window.dispatchEvent(new CustomEvent('category-selected', { 
                 detail: { categoryId: value } 
             }));
         } else {
-            // Si eligió producto o texto libre, filtramos por texto
-            searchInput.value = value; // Ponemos el nombre para que sepa qué buscó
+            searchInput.value = value; 
             window.dispatchEvent(new CustomEvent('search-query', { 
                 detail: { term: value } 
             }));
@@ -138,25 +135,25 @@ function setupLiveSearch() {
     };
 
     searchInput.addEventListener('input', (e) => {
-        const term = e.target.value.trim().toLowerCase();
+        const rawTerm = e.target.value.trim();
+        const term = normalizeText(rawTerm); // Normalizamos lo que escribe el usuario
         
-        if (term.length < 1) {
+        if (rawTerm.length < 1) {
             closeDropdown();
             window.dispatchEvent(new CustomEvent('search-query', { detail: { term: '' } }));
             return;
         }
 
-        // 1. Filtrar Categorías
+        // 1. Filtrar Categorías (Ignorando acentos)
         const matchedCategories = searchCategoriesCache.filter(c => 
-            c.nombre.toLowerCase().includes(term)
+            normalizeText(c.nombre).includes(term)
         );
 
-        // 2. Filtrar Productos
+        // 2. Filtrar Productos (Ignorando acentos)
         const matchedProducts = searchProductsCache.filter(p => 
-            p.name.toLowerCase().includes(term) || 
-            (p.category && p.category.toLowerCase().includes(term))
+            normalizeText(p.name).includes(term) || 
+            (p.category && normalizeText(p.category).includes(term))
         ); 
-        // .slice(0, 6);  <-- LÍMITE ELIMINADO: Muestra todos los resultados encontrados
 
         if (matchedCategories.length > 0 || matchedProducts.length > 0) {
             renderDropdownResults(matchedCategories, matchedProducts, dropdown, performSearch);
@@ -187,7 +184,7 @@ function setupLiveSearch() {
 function renderDropdownResults(categories, products, container, onSelect) {
     container.innerHTML = '';
 
-    // --- SECCIÓN 1: CATEGORÍAS ---
+    // SECCIÓN 1: CATEGORÍAS
     if (categories.length > 0) {
         const catTitle = document.createElement('li');
         catTitle.className = 'search-section-title';
@@ -210,7 +207,7 @@ function renderDropdownResults(categories, products, container, onSelect) {
         });
     }
 
-    // --- SECCIÓN 2: PRODUCTOS ---
+    // SECCIÓN 2: PRODUCTOS
     if (products.length > 0) {
         const prodTitle = document.createElement('li');
         prodTitle.className = 'search-section-title';
