@@ -5,70 +5,74 @@ import { supabase } from '../../../config/supabaseClient.js';
 const TABLE_NAME = 'products';
 const SELECT_QUERY = 'id, name, price, is_active, image_url, categoria:categorias(nombre)';
 
+// Helper para normalizar texto (quitar acentos)
+function normalizeText(text) {
+    if (!text) return '';
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 /**
- * Obtiene productos filtrados y paginados.
- * @param {object} options - Opciones de filtrado y paginación.
- * @param {string} options.searchTerm - Término de búsqueda para nombre o ID.
- * @param {string} options.filterBy - Filtro de estado ('active', 'inactive', 'all').
- * @param {number} options.itemsPerPage - Número de ítems por página.
- * @param {number} options.pageNumber - Número de página.
- * @returns {Promise<{products: object[], totalCount: number}>} Lista de productos y el conteo total.
+ * Obtiene productos filtrados y paginados con búsqueda insensible a acentos.
  */
 export async function getFilteredProductsPaged({ searchTerm = '', filterBy = 'active', itemsPerPage = 10, pageNumber = 1 }) {
     
-    const offset = (pageNumber - 1) * itemsPerPage;
-    const limit = itemsPerPage;
+    // 1. Consulta Base: Traer TODO lo que coincida con los filtros de estado
+    // (Ya no paginamos en la BD para poder filtrar texto en JS correctamente)
+    let query = supabase.from(TABLE_NAME).select(SELECT_QUERY);
     
-    let query = supabase.from(TABLE_NAME).select(SELECT_QUERY, { count: 'exact' });
-    
-    // --- FILTRO CRÍTICO: Excluir Packs de la lista de Productos individuales ---
+    // Solo Productos Individuales
     query = query.eq('is_pack', false);
     
-    // 1. Aplicar filtro de estado
+    // Filtro Estado
     if (filterBy === 'active') {
         query = query.eq('is_active', true);
     } else if (filterBy === 'inactive') {
         query = query.eq('is_active', false);
     }
     
-    // 2. Aplicar búsqueda (por nombre o ID)
-    if (searchTerm) {
-        // La búsqueda puede ser por el ID (si es un número) o por el nombre (si no lo es)
-        const isIdSearch = !isNaN(searchTerm) && searchTerm.length < 5; // Asumir que IDs cortos son IDs
-        
-        if (isIdSearch) {
-            query = query.eq('id', parseInt(searchTerm));
-        } else {
-            // Usar iLike para búsqueda insensible a mayúsculas y minúsculas en el nombre
-            query = query.ilike('name', `%${searchTerm}%`);
-        }
-    }
-    
-    // 3. Aplicar ordenación (por nombre de categoría y luego por ID)
-    // FIX: Se utiliza el alias 'categoria' en lugar del nombre de tabla 'categorias'
-    // en la opción 'foreignTable' para asegurar la correcta ordenación cuando se usa el alias en el SELECT.
-    query = query
-        .order('nombre', { foreignTable: 'categoria', ascending: true }) 
-        .order('id', { ascending: false }); 
-        
-    // 4. Aplicar paginación
-    query = query.range(offset, offset + limit - 1);
-    
-    const { data, error, count } = await query;
+    // Ordenación por defecto
+    query = query.order('id', { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) {
-        console.error("Error fetching paginated products:", error);
+        console.error("Error fetching products:", error);
         throw error;
     }
 
-    // Mapear y aplanar los datos
-    const products = data.map(product => ({
+    // 2. Filtrado en Memoria (JavaScript) - Aquí ocurre la magia de los acentos
+    let filteredData = data;
+    
+    if (searchTerm) {
+        const normalizedTerm = normalizeText(searchTerm);
+        
+        filteredData = data.filter(product => {
+            // Buscamos por ID (exacto) o por Nombre (normalizado)
+            if (!isNaN(searchTerm) && searchTerm.length < 5 && product.id.toString() === searchTerm) {
+                return true;
+            }
+            // Búsqueda de texto normalizada
+            const normalizedName = normalizeText(product.name);
+            const normalizedCategory = product.categoria ? normalizeText(product.categoria.nombre) : '';
+            const normalizedBrand = ""; // Si tuviéramos marca separada
+
+            return normalizedName.includes(normalizedTerm) || normalizedCategory.includes(normalizedTerm);
+        });
+    }
+
+    // 3. Paginación en Memoria
+    const totalCount = filteredData.length;
+    const offset = (pageNumber - 1) * itemsPerPage;
+    const pagedData = filteredData.slice(offset, offset + itemsPerPage);
+
+    // Mapear datos
+    const products = pagedData.map(product => ({
         ...product,
         category: product.categoria ? product.categoria.nombre : 'Sin Categoría'
     }));
     
     return { 
         products, 
-        totalCount: count || 0
+        totalCount
     };
 }
