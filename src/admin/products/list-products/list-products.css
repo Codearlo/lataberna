@@ -1,17 +1,8 @@
 /* src/admin/products/list-products/list-products.css */
 
-/* Variables de color de La Taberna:
-   --primary-color: #000000;
-   --background-color: #ffffff;
-   Dorado: #FFC107
-   Gris Claro (Borde): #e9ecef
-   Gris Oscuro (Texto): #343a40
-   Gris Muted: #6c757d
-*/
-
 body {
-    background-color: #ffffff; /* Fondo BLANCO */
-    color: #343a40; /* Texto oscuro */
+    background-color: #ffffff;
+    color: #343a40;
     font-family: var(--font-family, sans-serif);
     padding-bottom: 90px;
 }
@@ -21,13 +12,11 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    /* Ajuste para usar el max-width del layout general */
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
 }
 
-/* --- HEADER --- */
 .page-header {
     display: flex;
     flex-direction: column;
@@ -37,7 +26,7 @@ body {
 .page-title {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #343a40; /* Texto oscuro */
+    color: #343a40;
     margin: 0;
     letter-spacing: -0.5px;
 }
@@ -45,18 +34,17 @@ body {
 /* --- FILTROS (TABS) --- */
 .filter-tabs {
     display: flex;
-    background-color: #f8f9fa; /* Gris muy claro/fondo sutil */
+    background-color: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 8px; 
     padding: 4px;
-    /* ANTES tenía: max-width: 300px; AHORA OCUPA EL 100% DEL ESPACIO DISPONIBLE */
 }
 
 .tab-btn {
     flex: 1;
     background: transparent;
     border: none;
-    color: #6c757d; /* Gris Muted */
+    color: #6c757d;
     padding: 8px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -67,30 +55,30 @@ body {
 }
 
 .tab-btn.active {
-    background-color: #fffbe8; /* Dorado muy pálido */
-    color: #FFC107; /* Dorado */
+    background-color: #fffbe8;
+    color: #FFC107;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 /* --- BUSCADOR Y BOTÓN --- */
-.search-and-action-container { /* NUEVO CONTENEDOR FLEX */
+.search-and-action-container {
     display: flex;
-    gap: 10px; /* Espacio entre el buscador y el botón */
+    gap: 10px;
     align-items: center;
     margin-bottom: 4px; 
 }
 
 .search-container { 
     margin-bottom: 0; 
-    flex-grow: 1; /* Permite que el buscador ocupe el espacio restante */
+    flex-grow: 1;
 }
 
 .search-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
-    background-color: #ffffff; /* Fondo blanco */
-    border: 1px solid #ced4da; /* Borde estándar */
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
     border-radius: 8px;
     padding: 0 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -104,19 +92,19 @@ body {
     width: 100%;
     background: transparent;
     border: none;
-    color: #343a40; /* Texto oscuro */
+    color: #343a40;
     padding: 14px 10px;
     font-size: 0.95rem;
     outline: none;
     font-family: inherit;
 }
 
-.add-product-btn { /* NUEVO ESTILO PARA EL BOTÓN DE AGREGAR PRODUCTO */
-    background-color: #FFC107; /* Dorado */
-    color: #343a40; /* Icono oscuro */
-    width: 48px; /* Tamaño del botón */
-    height: 48px; /* Altura igual a la del input + padding */
-    border-radius: 8px; /* Esquinas ligeramente redondeadas, como el input */
+.add-product-btn {
+    background-color: #FFC107;
+    color: #343a40;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,7 +113,7 @@ body {
 }
 
 .add-product-btn:hover {
-    background-color: #e0a800; /* Dorado más oscuro */
+    background-color: #e0a800;
 }
 
 .add-product-btn svg {
@@ -142,10 +130,9 @@ body {
     gap: 12px;
 }
 
-/* Tarjeta unificada (Product Card) */
 .product-card {
-    background-color: #ffffff; /* Fondo Blanco */
-    border: 1px solid #e9ecef; /* Borde muy sutil */
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
     border-radius: 12px;
     padding: 16px;
     display: flex;
@@ -158,11 +145,10 @@ body {
 }
 
 .product-card:active {
-    background-color: #f8f9fa; /* Fondo gris claro al presionar */
-    border-color: #FFC107; /* Borde Dorado al presionar */
+    background-color: #f8f9fa;
+    border-color: #FFC107;
 }
 
-/* Lado Izquierdo (Imagen + Textos) */
 .product-card-left {
     display: flex;
     align-items: center;
@@ -171,16 +157,15 @@ body {
     min-width: 0; 
 }
 
-/* Caja de Imagen/Icono */
 .product-icon-box {
     width: 42px;
     height: 42px;
-    background: rgba(255, 193, 7, 0.1); /* Dorado muy pálido */
+    background: rgba(255, 193, 7, 0.1);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #FFC107; /* Dorado */
+    color: #FFC107;
     flex-shrink: 0;
     overflow: hidden; 
 }
@@ -191,7 +176,6 @@ body {
     object-fit: cover;
 }
 
-/* Textos */
 .product-details {
     display: flex;
     flex-direction: column;
@@ -202,7 +186,7 @@ body {
 .product-name {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #343a40; /* Texto oscuro */
+    color: #343a40;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -211,13 +195,32 @@ body {
 
 .product-meta {
     font-size: 0.75rem;
-    color: #888; /* Gris medio para subtítulos */
+    color: #888;
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-/* Lado Derecho (Precio + Badge) */
+/* ESTILOS NUEVOS PARA ETIQUETA DE DESCUENTO */
+.discount-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px; /* Separación del nombre o ID */
+}
+
+/* Icono Relleno (Activo) */
+.discount-icon-solid {
+    color: #dc3545; /* Rojo Intenso */
+    fill: #dc3545;
+}
+
+/* Icono Contorno (Inactivo) */
+.discount-icon-outline {
+    color: #f1aeb5; /* Rojo Claro / Pastel */
+    stroke-width: 2.5;
+}
+
 .product-card-right {
     text-align: right;
     display: flex;
@@ -231,10 +234,9 @@ body {
 .product-price {
     font-weight: 800;
     font-size: 1rem;
-    color: #343a40; /* Texto oscuro */
+    color: #343a40;
 }
 
-/* Badges de Stock (Alineados a Dorado/Gris) */
 .stock-badge {
     font-size: 0.7rem;
     padding: 2px 6px;
@@ -243,29 +245,25 @@ body {
     white-space: nowrap;
 }
 
-/* Adaptando colores de stock a la paleta blanco/dorado/rojo/verde */
-.stock-high { color: #155724; background: #d4edda; } /* Verde claro */
-.stock-medium { color: #856404; background: #fff3cd; } /* Dorado muy pálido */
-.stock-low { color: #721c24; background: #f8d7da; } /* Rojo pálido */
-.stock-none { color: #6c757d; background: #e9ecef; } /* Gris */
+.stock-high { color: #155724; background: #d4edda; }
+.stock-medium { color: #856404; background: #fff3cd; }
+.stock-low { color: #721c24; background: #f8d7da; }
+.stock-none { color: #6c757d; background: #e9ecef; }
 
-/* Utilidades */
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .u-flex-center { display: flex; justify-content: center; align-items: center; width: 100%; }
 
-/* Clases de compatibilidad */
 .products-grid {
-    display: none; /* FIX CLAVE: Ocultar por defecto para evitar duplicación visual */
+    display: none;
     flex-direction: column;
     gap: 12px;
 }
 .products-grid.active-view {
-    display: flex; /* FIX CLAVE: Solo mostrar cuando esté activo */
+    display: flex;
 }
 
-/* --- NUEVOS ESTILOS DE PAGINACIÓN --- */
-
+/* PAGINACIÓN */
 .pagination-area {
     margin-top: 25px;
     margin-bottom: 20px;
@@ -275,7 +273,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 6px; /* Espacio entre botones */
+    gap: 6px;
 }
 
 .pagination-btn {
@@ -284,12 +282,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    border: 1px solid #dee2e6; /* Borde sutil */
+    border: 1px solid #dee2e6;
     background-color: #ffffff;
     color: #343a40;
-    
-    border-radius: 6px; /* Cuadrado con bordes redondeados */
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 600;
@@ -303,9 +299,8 @@ body {
     border-color: #ced4da;
 }
 
-/* Estilo para la página ACTIVA */
 .pagination-btn.active {
-    background-color: #495057; /* Gris Oscuro/Negro suave */
+    background-color: #495057;
     color: #ffffff;
     border-color: #495057;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);

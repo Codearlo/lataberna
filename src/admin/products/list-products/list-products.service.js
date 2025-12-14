@@ -3,7 +3,8 @@
 import { supabase } from '../../../config/supabaseClient.js'; 
 
 const TABLE_NAME = 'products';
-const SELECT_QUERY = 'id, name, price, is_active, image_url, categoria:categorias(nombre)';
+// SE AGREGO: has_discount para poder mostrar el icono
+const SELECT_QUERY = 'id, name, price, is_active, image_url, has_discount, categoria:categorias(nombre)';
 
 // Helper para normalizar texto (quitar acentos)
 function normalizeText(text) {
@@ -16,8 +17,7 @@ function normalizeText(text) {
  */
 export async function getFilteredProductsPaged({ searchTerm = '', filterBy = 'active', itemsPerPage = 10, pageNumber = 1 }) {
     
-    // 1. Consulta Base: Traer TODO lo que coincida con los filtros de estado
-    // (Ya no paginamos en la BD para poder filtrar texto en JS correctamente)
+    // 1. Consulta Base
     let query = supabase.from(TABLE_NAME).select(SELECT_QUERY);
     
     // Solo Productos Individuales
@@ -40,21 +40,18 @@ export async function getFilteredProductsPaged({ searchTerm = '', filterBy = 'ac
         throw error;
     }
 
-    // 2. Filtrado en Memoria (JavaScript) - Aquí ocurre la magia de los acentos
+    // 2. Filtrado en Memoria (JavaScript)
     let filteredData = data;
     
     if (searchTerm) {
         const normalizedTerm = normalizeText(searchTerm);
         
         filteredData = data.filter(product => {
-            // Buscamos por ID (exacto) o por Nombre (normalizado)
             if (!isNaN(searchTerm) && searchTerm.length < 5 && product.id.toString() === searchTerm) {
                 return true;
             }
-            // Búsqueda de texto normalizada
             const normalizedName = normalizeText(product.name);
             const normalizedCategory = product.categoria ? normalizeText(product.categoria.nombre) : '';
-            const normalizedBrand = ""; // Si tuviéramos marca separada
 
             return normalizedName.includes(normalizedTerm) || normalizedCategory.includes(normalizedTerm);
         });

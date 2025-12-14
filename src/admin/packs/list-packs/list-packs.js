@@ -4,11 +4,8 @@ import { initBottomNav } from '../../modules/bottom-nav/bottom-nav.js';
 import { getSession } from '../../auth/auth.js'; 
 import { getFilteredPacksPaged } from './list-packs.service.js';
 
-// --- Clave para guardar el estado en SessionStorage ---
 const STATE_KEY = 'lataberna_packs_state';
 
-// --- Configuración de Paginación y Estado ---
-// Recuperar estado guardado o usar defaults
 const savedState = JSON.parse(sessionStorage.getItem(STATE_KEY));
 
 const ITEMS_PER_PAGE = 10;
@@ -17,7 +14,6 @@ let currentFilter = savedState ? savedState.currentFilter : 'active';
 let currentSearchTerm = savedState ? savedState.currentSearchTerm : '';
 let totalPacks = 0;
 
-// **RUTAS DE NAVEGACIÓN**
 const PACKS_VIEW_ROUTES = {
     'products': '../../products/list-products/list-products.html',
     'packs': './list-packs.html',
@@ -30,9 +26,6 @@ const ACTIVE_PACKS_GRID_ID = 'active-packs-list';
 const ALL_PACKS_GRID_ID = 'all-packs-list';
 const PAGINATION_CONTAINER_ID = 'pagination-container'; 
 
-/**
- * Inicializa la página de gestión de packs.
- */
 export async function initListPacksPage() {
     if (window.listPacksInitialized) return;
     window.listPacksInitialized = true;
@@ -45,15 +38,10 @@ export async function initListPacksPage() {
         return;
     }
 
-    // Logueado: Inicializar la vista
     try {
-        // Restauramos visualmente el estado
         restoreUIState();
-
         attachEventListeners();
         initBottomNav('packs', '../../modules/bottom-nav/bottom-nav.html', PACKS_VIEW_ROUTES); 
-        
-        // Cargamos los packs con la paginación recordada
         await loadPacks();
         
     } catch (error) {
@@ -62,24 +50,16 @@ export async function initListPacksPage() {
     }
 }
 
-// --- Gestión del Estado ---
 function saveState() {
-    const state = {
-        currentPage,
-        currentFilter,
-        currentSearchTerm
-    };
+    const state = { currentPage, currentFilter, currentSearchTerm };
     sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
 }
 
 function restoreUIState() {
-    // Restaurar buscador
     const searchInput = document.getElementById('pack-search-input');
     if (searchInput) {
         searchInput.value = currentSearchTerm;
     }
-
-    // Restaurar tabs
     const tabs = document.querySelectorAll('.tab-btn');
     tabs.forEach(btn => {
         if (btn.dataset.filter === currentFilter) {
@@ -88,13 +68,10 @@ function restoreUIState() {
             btn.classList.remove('active');
         }
     });
-
-    // Mostrar vista correcta
     updateActiveView(currentFilter);
 }
 
 function attachEventListeners() {
-    // Buscador
     const searchInput = document.getElementById('pack-search-input');
     let searchTimeout;
     if (searchInput) {
@@ -103,13 +80,12 @@ function attachEventListeners() {
             searchTimeout = setTimeout(() => {
                 currentSearchTerm = searchInput.value.trim();
                 currentPage = 1; 
-                saveState(); // Guardar
+                saveState(); 
                 loadPacks();
             }, 300);
         });
     }
 
-    // Tabs
     const tabsContainer = document.getElementById('pack-view-tabs');
     if (tabsContainer) {
         tabsContainer.addEventListener('click', (e) => {
@@ -122,13 +98,12 @@ function attachEventListeners() {
             currentFilter = button.dataset.filter;
             currentPage = 1;
             
-            saveState(); // Guardar
+            saveState(); 
             updateActiveView(currentFilter);
             loadPacks();
         });
     }
     
-    // Paginación
     const paginationContainer = document.getElementById(PAGINATION_CONTAINER_ID);
     if (paginationContainer) {
         paginationContainer.addEventListener('click', (e) => {
@@ -138,20 +113,18 @@ function attachEventListeners() {
             const targetPage = parseInt(button.dataset.page);
             if (targetPage && targetPage !== currentPage) {
                 currentPage = targetPage;
-                saveState(); // Guardar estado de paginación
+                saveState(); 
                 loadPacks();
             }
         });
     }
 
-    // Click en tarjeta (Editar)
     const packsListViews = document.getElementById('packs-list-views');
     if (packsListViews) {
         packsListViews.addEventListener('click', (e) => {
             const listItem = e.target.closest('.product-card'); 
             if (listItem) {
                 const packId = listItem.dataset.id;
-                // La edición apunta a la nueva carpeta packs/edit-pack
                 window.location.href = `../edit-pack/edit-pack.html?id=${packId}`; 
             }
         });
@@ -240,6 +213,32 @@ function renderPackCard(pack) {
         ? `<img src="${pack.image_url}" alt="${pack.name}" class="product-thumb">`
         : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`;
 
+    // --- LÓGICA DEL ICONO DE DESCUENTO ---
+    let discountIcon = '';
+    if (pack.has_discount) {
+        if (pack.is_active) {
+            // ACTIVO + CON DESCUENTO: Icono sólido rojo
+            discountIcon = `
+                <div class="discount-icon-wrapper" title="Descuento Activo">
+                    <svg class="discount-icon-solid" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                        <circle cx="7" cy="7" r="2" fill="white"/>
+                    </svg>
+                </div>
+            `;
+        } else {
+            // INACTIVO + CON DESCUENTO: Icono contorno rojo claro
+            discountIcon = `
+                <div class="discount-icon-wrapper" title="Descuento Configurado (Pack Inactivo)">
+                    <svg class="discount-icon-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                </div>
+            `;
+        }
+    }
+
     card.innerHTML = `
         <div class="product-card-left">
             <div class="product-icon-box" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;"> 
@@ -248,8 +247,9 @@ function renderPackCard(pack) {
             <div class="product-details">
                 <h4 class="product-name">${pack.name}</h4>
                 <div class="product-meta">
+                    ${discountIcon}
                     <span>PACK • ${pack.category || 'Categoría'}</span>
-                    <span style="opacity:0.3">•</span>
+                    <span style="opacity:0.3; margin: 0 4px;">•</span>
                     <span>ID: ${pack.id}</span>
                 </div>
             </div>
@@ -281,11 +281,9 @@ function renderPagination() {
         return `<button class="pagination-btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
     };
 
-    // Botones Inicio y Anterior
     paginationHTML += createBtn(1, '&laquo;', false, currentPage === 1);
     paginationHTML += createBtn(currentPage - 1, '&#8249;', false, currentPage === 1);
 
-    // Lógica de elipsis
     const pagesToShow = [];
     if (totalPages <= 7) {
         for (let i = 1; i <= totalPages; i++) pagesToShow.push(i);
@@ -307,11 +305,10 @@ function renderPagination() {
         }
     });
 
-    // Botones Siguiente y Final
     paginationHTML += createBtn(currentPage + 1, '&#8250;', false, currentPage === totalPages);
     paginationHTML += createBtn(totalPages, '&raquo;', false, currentPage === totalPages);
     
-    paginationHTML += `</div>`; // Fin wrapper
+    paginationHTML += `</div>`; 
     
     const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalPacks);

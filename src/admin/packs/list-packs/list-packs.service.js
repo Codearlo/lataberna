@@ -3,7 +3,8 @@
 import { supabase } from '../../../config/supabaseClient.js'; 
 
 const TABLE_NAME = 'products';
-const SELECT_QUERY = 'id, name, price, is_active, image_url, categoria:categorias(nombre)';
+// SE AGREGO: has_discount
+const SELECT_QUERY = 'id, name, price, is_active, image_url, has_discount, categoria:categorias(nombre)';
 
 // Helper para normalizar texto
 function normalizeText(text) {
@@ -38,7 +39,7 @@ export async function getFilteredPacksPaged({ searchTerm = '', filterBy = 'activ
         throw error;
     }
 
-    // 2. Filtrado JS (Sin Acentos)
+    // 2. Filtrado JS
     let filteredData = data;
     
     if (searchTerm) {
