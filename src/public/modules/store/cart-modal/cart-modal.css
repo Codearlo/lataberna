@@ -173,11 +173,9 @@
   40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-/* BOTONES */
+/* --- BOTONES DE CHECKOUT --- */
 .checkout-btn {
     width: 100%;
-    background-color: #25d366;
-    color: #fff;
     margin-bottom: 12px;
     padding: 14px;
     font-size: 1rem;
@@ -185,13 +183,30 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2);
-    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
     text-transform: uppercase;
 }
-.checkout-btn:hover { background-color: #20bd5a; transform: translateY(-1px); }
+
+.checkout-btn:hover { transform: translateY(-1px); }
 .checkout-btn:active { transform: translateY(1px); }
-.checkout-btn:disabled { background-color: #a0eec0; cursor: not-allowed; box-shadow: none; transform: none; }
+.checkout-btn:disabled { background-color: #ccc !important; color: #666; cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* Botón Continuar (Paso 1) - Amarillo/Dorado */
+.btn-continue {
+    background-color: #FFC107;
+    color: #000;
+}
+.btn-continue:hover { background-color: #e0a800; }
+
+/* Botón WhatsApp (Paso 2) - Verde Oficial */
+.btn-whatsapp {
+    background-color: #25d366;
+    color: #fff;
+    font-size: 1.1rem; /* Un poco más grande para el CTA final */
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+}
+.btn-whatsapp:hover { background-color: #20bd5a; }
 
 .close-btn {
     width: 100%;
@@ -212,7 +227,10 @@
     display: none;
     text-align: center;
     padding: 30px 10px;
+    animation: fadeIn 0.3s ease-out;
 }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .reminder-icon {
     font-size: 4rem;
@@ -230,21 +248,11 @@
 }
 
 .reminder-highlight {
-    color: #0d6efd; /* Azul informativo o rojo */
+    color: #0d6efd; 
     font-weight: 800;
     background-color: #e7f1ff;
     padding: 2px 6px;
     border-radius: 4px;
-}
-
-.countdown-label { font-size: 0.9rem; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-.countdown-timer {
-    font-size: 3.5rem;
-    font-weight: 900;
-    color: #FFC107;
-    display: block;
-    line-height: 1;
 }
 
 @keyframes bounce {

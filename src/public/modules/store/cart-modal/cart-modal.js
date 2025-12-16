@@ -11,7 +11,7 @@ export function initCartModal() {
     const container = document.getElementById(MODAL_CONTAINER_ID);
     if (!container) return;
 
-    // Estructura HTML
+    // Estructura HTML actualizada para el flujo de 2 pasos
     container.innerHTML = `
         <div class="cart-modal-overlay" onclick="window.closeCartModal()"></div>
         <div class="cart-modal">
@@ -41,33 +41,46 @@ export function initCartModal() {
                     <span class="payment-disclaimer">ℹ️ No te preocupes, el pago se realiza al recibir o coordinar por WhatsApp.</span>
                 </div>
 
-                <button id="checkout-btn" class="checkout-btn">PEDIR POR WHATSAPP</button>
+                <button id="btn-continue-checkout" class="checkout-btn btn-continue">
+                    CONTINUAR 👉
+                </button>
+                
                 <button class="close-btn" onclick="window.closeCartModal()">Cerrar</button>
             </div>
 
-            <div id="location-reminder-view">
+            <div id="location-reminder-view" style="display:none;">
                 <span class="reminder-icon">📍</span>
                 <p class="reminder-text">
                     ¡Casi listo!<br>
-                    Por favor, comparte tu <span class="reminder-highlight">"Ubicación Actual"</span> en el chat de WhatsApp después de enviar el mensaje.
+                    Por favor, comparte tu <span class="reminder-highlight">"Ubicación Actual"</span> en el chat de WhatsApp después de enviar el mensaje para que el delivery llegue rápido.
                 </p>
-                <div class="countdown-label">Abriendo WhatsApp en...</div>
-                <span id="countdown-display" class="countdown-timer">3</span>
+                
+                <button id="btn-confirm-whatsapp" class="checkout-btn btn-whatsapp">
+                    ENVIAR PEDIDO AHORA 🚀
+                </button>
+                
+                <button class="close-btn" onclick="window.returnToCart()">Volver atrás</button>
             </div>
 
         </div>
     `;
 
-    document.getElementById('checkout-btn').addEventListener('click', handleCheckoutProcess);
+    // Listeners para los botones
+    document.getElementById('btn-continue-checkout').addEventListener('click', handleContinueToReminder);
+    document.getElementById('btn-confirm-whatsapp').addEventListener('click', handleFinalWhatsappRedirect);
     
-    // Funciones globales para onclick en HTML generado
+    // Funciones globales
     window.changeQuantity = changeQuantity;
     window.removeItem = removeItem;
     window.openCartModal = openCartModal; 
     window.closeCartModal = closeCartModal;
+    window.returnToCart = returnToCart;
 }
 
-function handleCheckoutProcess() {
+/**
+ * PASO 1: Valida el carrito y el pago, luego muestra el recordatorio.
+ */
+function handleContinueToReminder() {
     const cart = CartService.getCart();
     if (cart.length === 0) {
         showToast("⚠️ Tu carrito está vacío.");
@@ -79,32 +92,34 @@ function handleCheckoutProcess() {
     if (!selectedPayment) {
         showToast("⚠️ Por favor selecciona un método de pago.");
         const section = document.getElementById('payment-section');
-        section.classList.add('shake-animation'); // Añadiremos esta animación en CSS
+        section.classList.add('shake-animation');
         setTimeout(() => section.classList.remove('shake-animation'), 500);
         return;
     }
 
-    const paymentMethod = selectedPayment.value;
-
-    // Cambiar vista
+    // Cambiar a la vista de recordatorio
     document.getElementById('cart-main-view').style.display = 'none';
     document.getElementById('location-reminder-view').style.display = 'block';
+}
 
-    // Cuenta regresiva
-    let count = 3;
-    const countDisplay = document.getElementById('countdown-display');
-    countDisplay.textContent = count;
+/**
+ * PASO 2: Abre WhatsApp directamente al hacer clic (funciona en Safari).
+ */
+function handleFinalWhatsappRedirect() {
+    const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+    // Recuperamos el valor, si por alguna razón se perdió, usamos 'Efectivo' por defecto
+    const paymentMethod = selectedPayment ? selectedPayment.value : 'Efectivo';
 
-    const timer = setInterval(() => {
-        count--;
-        if (count > 0) {
-            countDisplay.textContent = count;
-        } else {
-            clearInterval(timer);
-            CartService.sendOrderToWhatsapp(paymentMethod);
-            window.closeCartModal();
-        }
-    }, 1000);
+    CartService.sendOrderToWhatsapp(paymentMethod);
+    window.closeCartModal();
+}
+
+/**
+ * Permite volver a la vista del carrito desde el recordatorio.
+ */
+function returnToCart() {
+    document.getElementById('location-reminder-view').style.display = 'none';
+    document.getElementById('cart-main-view').style.display = 'block';
 }
 
 export function renderCartItems() {
@@ -112,17 +127,17 @@ export function renderCartItems() {
     const listElement = document.getElementById(CART_LIST_ID);
     const totalElement = document.getElementById(CART_TOTAL_ID);
     const paymentSection = document.getElementById('payment-section');
-    const checkoutBtn = document.getElementById('checkout-btn');
+    const continueBtn = document.getElementById('btn-continue-checkout');
 
     if (!listElement) return;
 
     if (cart.length === 0) {
         listElement.innerHTML = '<p class="empty-cart-msg">Tu carrito está vacío. ¡Es hora de un trago!</p>';
         if (paymentSection) paymentSection.style.display = 'none';
-        if (checkoutBtn) checkoutBtn.disabled = true;
+        if (continueBtn) continueBtn.disabled = true;
     } else {
         if (paymentSection) paymentSection.style.display = 'block';
-        if (checkoutBtn) checkoutBtn.disabled = false;
+        if (continueBtn) continueBtn.disabled = false;
 
         listElement.innerHTML = cart.map(item => `
             <div class="cart-item" data-id="${item.id}">
@@ -142,15 +157,10 @@ export function renderCartItems() {
 }
 
 export function openCartModal() {
-    // Resetear vistas
-    const mainView = document.getElementById('cart-main-view');
-    const reminderView = document.getElementById('location-reminder-view');
-    if (mainView && reminderView) {
-        mainView.style.display = 'block';
-        reminderView.style.display = 'none';
-    }
+    // Resetear vistas: Siempre empezar en la vista principal
+    returnToCart(); 
 
-    // Resetear radio buttons para obligar a elegir de nuevo (opcional, buena práctica UX en este caso)
+    // Resetear selección de pago para obligar a elegir
     const radios = document.querySelectorAll('input[name="payment_method"]');
     radios.forEach(r => r.checked = false);
 
