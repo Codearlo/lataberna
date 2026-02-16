@@ -21,7 +21,7 @@ export async function initAddProduct(containerId) {
         await loadCategories();
         attachEventListeners();
         setupSwitch();
-        setupDiscountSwitch(); // Nuevo
+        setupDiscountSwitch();
     } catch (error) {
         console.error("Error en la inicialización:", error);
     }
@@ -31,9 +31,11 @@ function attachEventListeners() {
     const form = document.getElementById('product-form');
     if (form) form.addEventListener('submit', handleFormSubmit);
     
+    // 1. Input de archivo tradicional
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
 
+    // 2. Click en la caja para abrir input
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) {
         imageBox.addEventListener('click', (e) => {
@@ -42,6 +44,36 @@ function attachEventListeners() {
         });
     }
 
+    // 3. EVENTOS DRAG & DROP (Arrastrar y Soltar)
+    const uploadContainer = document.querySelector('.image-upload-container');
+    if (uploadContainer) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, () => {
+                uploadContainer.classList.add('highlight');
+                uploadContainer.style.borderColor = '#d4af37';
+                uploadContainer.style.backgroundColor = 'rgba(212, 175, 55, 0.1)';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, () => {
+                uploadContainer.classList.remove('highlight');
+                uploadContainer.style.borderColor = '#ccc';
+                uploadContainer.style.backgroundColor = 'transparent';
+            }, false);
+        });
+
+        uploadContainer.addEventListener('drop', handleDrop, false);
+    }
+
+    // 4. EVENTO PASTE (Pegar desde portapapeles)
+    document.addEventListener('paste', handlePaste);
+
+    // Botones de Categoría y Modal
     const createCatBtn = document.getElementById('create-category-btn');
     if (createCatBtn) createCatBtn.addEventListener('click', handleCreateCategory);
     
@@ -49,6 +81,11 @@ function attachEventListeners() {
     document.getElementById('btn-cancel-crop').addEventListener('click', closeCropModal);
 
     setupCategorySearch();
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
 }
 
 function setupCategorySearch() {
@@ -77,47 +114,99 @@ function setupCategorySearch() {
     }
 }
 
-// --- GESTIÓN DE IMAGEN ---
+// --- GESTIÓN DE IMAGEN (Unificada) ---
+
+// A. Input Change
 function handleImageSelection(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) openCropper(file);
+    e.target.value = ''; 
+}
+
+// B. Drop Handler
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files[0] && files[0].type.startsWith('image/')) {
+        openCropper(files[0]);
+    } else {
+        showToast("⚠️ Por favor suelta una imagen válida.");
+    }
+}
+
+// C. Paste Handler
+function handlePaste(e) {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.includes('image/')) {
+            openCropper(item.getAsFile());
+            break; 
+        }
+    }
+}
+
+// D. Función Central para abrir el Cropper
+function openCropper(file) {
     const reader = new FileReader();
     reader.onload = (event) => {
         const imageElement = document.getElementById('image-to-crop');
         imageElement.src = event.target.result;
+        
+        // Resetear checkbox
         document.getElementById('remove-bg-check').checked = false;
+        
+        // Mostrar Modal
         const modal = document.getElementById('crop-modal');
         modal.classList.add('visible');
+        
+        // Iniciar Cropper
         if (cropper) cropper.destroy();
         // eslint-disable-next-line no-undef
-        cropper = new Cropper(imageElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, movable: true, zoomable: true, scalable: false, background: false });
+        cropper = new Cropper(imageElement, { 
+            aspectRatio: 1, 
+            viewMode: 1, 
+            autoCropArea: 0.8, 
+            movable: true, 
+            zoomable: true, 
+            scalable: false, 
+            background: false 
+        });
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; 
 }
 
 function cropAndSave() {
     if (!cropper) return;
     let canvas = cropper.getCroppedCanvas({ width: 800, height: 800, fillColor: '#fff' });
     const removeBg = document.getElementById('remove-bg-check').checked;
+    
     if (removeBg) {
+        // Si removemos fondo, regeneramos canvas sin fillColor blanco
         canvas = cropper.getCroppedCanvas({ width: 800, height: 800 });
         canvas = removeWhiteBackground(canvas);
     }
+
     canvas.toBlob((blob) => {
         if (!blob) return showToast("❌ Error al procesar imagen");
+        
         processedImageFile = new File([blob], "imagen_producto.webp", { type: 'image/webp' });
+        
         const previewContainer = document.getElementById('image-preview');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
         const previewUrl = URL.createObjectURL(processedImageFile);
+        
         previewContainer.innerHTML = '';
         const img = document.createElement('img');
         img.src = previewUrl;
         img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'contain';
+        // Fondo ajedrez para ver transparencia
         img.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
         img.style.backgroundSize = '20px 20px'; img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+        
         previewContainer.appendChild(img);
         if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        
         showToast(removeBg ? "✂️ Recortado y sin fondo!" : "✂️ Imagen recortada lista!");
         closeCropModal();
     }, 'image/webp', 0.85); 

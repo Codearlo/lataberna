@@ -46,13 +46,12 @@ export async function initEditProduct(containerId) {
     }
     
     try {
-        // 1. PRIMERO: Configurar listeners y lógica visual
-        // Esto asegura que cuando los datos lleguen y muevan los switches, la UI reaccione
+        // 1. Configurar listeners y lógica visual
         attachEventListeners();
         setupSwitch(); 
         setupDiscountSwitch(); 
 
-        // 2. SEGUNDO: Cargar datos
+        // 2. Cargar datos
         await loadCategories(); 
         await loadProductData(parseInt(productId)); 
         
@@ -66,14 +65,44 @@ function attachEventListeners() {
     const form = document.getElementById('product-form');
     if (form) form.addEventListener('submit', handleFormSubmit);
     
+    // 1. Input Manual
     const imgInput = document.getElementById('image_file');
     if (imgInput) imgInput.addEventListener('change', handleImageSelection);
     
+    // 2. Click en caja
     const imageBox = document.getElementById('image-preview-box');
     if (imageBox) imageBox.addEventListener('click', (e) => {
         if (e.target.tagName !== 'LABEL') imgInput.click();
     });
 
+    // 3. Drag & Drop
+    const uploadContainer = document.querySelector('.image-upload-container');
+    if (uploadContainer) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, () => {
+                uploadContainer.style.borderColor = '#d4af37';
+                uploadContainer.style.backgroundColor = 'rgba(212, 175, 55, 0.1)';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, () => {
+                uploadContainer.style.borderColor = '#ccc'; // O el color original de tu CSS
+                uploadContainer.style.backgroundColor = 'transparent';
+            }, false);
+        });
+
+        uploadContainer.addEventListener('drop', handleDrop, false);
+    }
+
+    // 4. Paste Global
+    document.addEventListener('paste', handlePaste);
+
+    // Botones
     document.getElementById('create-category-btn').addEventListener('click', handleCreateCategory);
     document.getElementById('delete-product-btn').addEventListener('click', openDeleteModal);
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
@@ -84,12 +113,16 @@ function attachEventListeners() {
     setupCategorySearch();
 }
 
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
 function setupCategorySearch() {
     const dropdownContainer = document.getElementById('category-dropdown');
     const searchInput = document.getElementById('category_search');
     
     if (searchInput) {
-        // Normalización para búsquedas sin acentos
         const normalize = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
 
         const filterFn = (e) => {
@@ -122,14 +155,12 @@ async function loadProductData(id) {
     // Estado Activo
     const activeSwitch = document.getElementById('is_active');
     activeSwitch.checked = product.is_active;
-    activeSwitch.dispatchEvent(new Event('change')); // Actualizar texto "Producto Activo"
+    activeSwitch.dispatchEvent(new Event('change')); 
 
-    // Cargar descuento
+    // Descuento
     const discountSwitch = document.getElementById('has_discount');
     discountSwitch.checked = !!product.has_discount;
     document.getElementById('discount_percentage').value = product.discount_percentage || '';
-    
-    // Disparar evento para actualizar UI (Ahora sí funcionará porque setupDiscountSwitch ya corrió)
     discountSwitch.dispatchEvent(new Event('change'));
 
     renderImagePreview(product.image_url);
@@ -141,6 +172,9 @@ function renderImagePreview(url) {
     if (url) {
         const img = document.createElement('img'); img.src = url;
         img.style.width='100%'; img.style.height='100%'; img.style.objectFit='contain';
+        // Fondo ajedrez para ver transparencia
+        img.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)';
+        img.style.backgroundSize = '20px 20px'; img.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
         prev.appendChild(img);
         document.getElementById('upload-placeholder').style.display='none';
     } else {
@@ -148,41 +182,79 @@ function renderImagePreview(url) {
     }
 }
 
-// --- IMAGEN ---
+// --- GESTIÓN DE IMAGEN UNIFICADA ---
+
+// A. Input Change
 function handleImageSelection(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) openCropper(file);
+    e.target.value='';
+}
+
+// B. Drop Handler
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files[0] && files[0].type.startsWith('image/')) {
+        openCropper(files[0]);
+    } else {
+        showToast("⚠️ Por favor suelta una imagen válida.");
+    }
+}
+
+// C. Paste Handler
+function handlePaste(e) {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.includes('image/')) {
+            openCropper(item.getAsFile());
+            break; 
+        }
+    }
+}
+
+// D. Función Central Cropper
+function openCropper(file) {
     const reader = new FileReader();
     reader.onload = (event) => {
-        document.getElementById('image-to-crop').src = event.target.result;
+        const imgElement = document.getElementById('image-to-crop');
+        imgElement.src = event.target.result;
+        
         document.getElementById('remove-bg-check').checked = false;
         document.getElementById('crop-modal').classList.add('visible');
+        
         if(cropper) cropper.destroy();
         // eslint-disable-next-line no-undef
-        cropper = new Cropper(document.getElementById('image-to-crop'), { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: false });
+        cropper = new Cropper(imgElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: false });
     };
     reader.readAsDataURL(file);
-    e.target.value='';
 }
 
 function cropAndSave() {
     if (!cropper) return;
     let canvas = cropper.getCroppedCanvas({ width:800, height:800, fillColor:'#fff' });
-    if(document.getElementById('remove-bg-check').checked) {
+    const removeBg = document.getElementById('remove-bg-check').checked;
+
+    if(removeBg) {
         canvas = cropper.getCroppedCanvas({ width:800, height:800 });
         const ctx = canvas.getContext('2d');
         const imgData = ctx.getImageData(0,0,800,800);
         const d = imgData.data;
-        for(let i=0; i<d.length; i+=4) if(d[i]>230 && d[i+1]>230 && d[i+2]>230) d[i+3]=0;
+        const threshold = 230;
+        for(let i=0; i<d.length; i+=4) {
+            if(d[i]>threshold && d[i+1]>threshold && d[i+2]>threshold) d[i+3]=0;
+        }
         ctx.putImageData(imgData,0,0);
     }
     canvas.toBlob(blob => {
         processedImageFile = new File([blob], "edit.webp", { type:'image/webp' });
         renderImagePreview(URL.createObjectURL(processedImageFile));
-        showToast("✂️ Imagen lista!");
+        showToast(removeBg ? "✂️ Recortado y sin fondo!" : "✂️ Imagen lista!");
         closeCropModal();
     }, 'image/webp', 0.85);
 }
+
 function closeCropModal() { document.getElementById('crop-modal').classList.remove('visible'); if(cropper) { cropper.destroy(); cropper=null; } }
 
 // --- SUBMIT ---
@@ -209,6 +281,7 @@ async function handleFormSubmit(e) {
         let finalUrl = currentImg;
         if (processedImageFile) {
             finalUrl = await uploadImage(processedImageFile);
+            // Opcional: Borrar imagen vieja si existía y es diferente (y está en nuestro bucket)
             if (currentImg && currentImg !== finalUrl) await deleteImage(currentImg);
         }
         
@@ -223,6 +296,7 @@ async function handleFormSubmit(e) {
     } catch (e) {
         showToast(`❌ Error: ${e.message}`);
         document.getElementById('save-product-btn').disabled = false;
+        document.getElementById('save-product-btn').textContent = 'Actualizar'; // Texto original
     }
 }
 
@@ -286,7 +360,6 @@ function setupDiscountSwitch() {
     const txt = document.getElementById('discount-text');
     const box = document.getElementById('discount-input-container');
     
-    // Configuración inicial del listener
     sw.addEventListener('change', () => {
         if(sw.checked) {
             txt.textContent='Con Descuento'; 

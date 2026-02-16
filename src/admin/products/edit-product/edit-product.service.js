@@ -2,9 +2,7 @@
 
 import { supabase, PRODUCTS_BUCKET } from '../../../config/supabaseClient.js'; 
 
-// --- CORRECCIÓN AQUÍ ---
-// 1. Apuntamos al archivo .services.js (con 's' y 'services')
-// 2. Este archivo contiene las funciones de base de datos, no el controlador de la vista.
+// Importamos funciones reutilizables de add-product
 import { getCategories, createCategory, uploadImage } from '../add-product/add-product.services.js';
 
 /**
@@ -14,11 +12,9 @@ import { getCategories, createCategory, uploadImage } from '../add-product/add-p
 export async function deleteImage(imageUrl) {
     if (!imageUrl) return;
 
-    // Extraer el nombre del archivo del final de la URL pública
     const parts = imageUrl.split('/');
     const fileName = parts.pop();
     
-    // Si la URL no apunta a un archivo dentro del bucket, salimos
     if (fileName === PRODUCTS_BUCKET || !imageUrl.includes(PRODUCTS_BUCKET)) return; 
 
     const { error } = await supabase.storage
@@ -32,7 +28,6 @@ export async function deleteImage(imageUrl) {
 
 /**
  * Obtiene un producto específico por ID.
- * @param {number} id - El ID del producto.
  */
 export async function getProductById(id) {
     try {
@@ -52,14 +47,12 @@ export async function getProductById(id) {
 
     } catch (err) {
         console.error("Error al obtener producto por ID:", err);
-        throw new Error(`Producto con ID ${id} no encontrado o error de base de datos.`);
+        throw new Error(`Producto con ID ${id} no encontrado.`);
     }
 }
 
 /**
  * Actualiza un producto existente.
- * @param {number} id - El ID del producto a actualizar.
- * @param {object} productData - Los datos del producto.
  */
 export async function updateProduct(id, productData) {
     const { data, error } = await supabase
@@ -75,7 +68,6 @@ export async function updateProduct(id, productData) {
 
 /**
  * Elimina un producto.
- * @param {number} id - El ID del producto a eliminar.
  */
 export async function deleteProduct(id) {
     const { error } = await supabase
@@ -86,6 +78,4 @@ export async function deleteProduct(id) {
     if (error) throw error;
 }
 
-// Reexportamos SOLO las funciones importadas.
-// deleteImage YA fue exportada arriba, así que no la ponemos aquí para evitar el error "Duplicate export".
 export { getCategories, createCategory, uploadImage };
