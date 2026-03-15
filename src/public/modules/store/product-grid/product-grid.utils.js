@@ -2,6 +2,7 @@
 
 import { CartService } from '../../../../services/store/cart.service.js'; 
 import { showToast } from '../toast-notification/toast.js';
+import { openProductModal } from '../product-modal/product-modal.js';
 
 export function renderProductCard(product) {
     const card = document.createElement('div');
@@ -44,9 +45,16 @@ export function renderProductCard(product) {
     `;
 
     const addButton = card.querySelector('.add-to-cart-btn');
-    addButton.addEventListener('click', () => {
+    addButton.addEventListener('click', (e) => {
+        e.stopPropagation();
         CartService.addToCart(product); 
         showToast(`✅ ${product.name} añadido al carrito.`); 
+    });
+
+    card.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('add-to-cart-btn')) {
+            openProductModal(product);
+        }
     });
 
     return card;

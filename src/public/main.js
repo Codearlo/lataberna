@@ -3,6 +3,7 @@
 import { initHeader } from './modules/layout/header/header.js';
 import { initProductGrid } from './modules/store/product-grid/product-grid.js';
 import { initCartModal } from './modules/store/cart-modal/cart-modal.js'; 
+import { initProductModal } from './modules/store/product-modal/product-modal.js'; 
 import { initToastNotification } from './modules/store/toast-notification/toast.js'; 
 import { initWhatsappButton } from './modules/whatsapp-button/whatsapp-button.js'; 
 import { initCategoriesBar } from './modules/store/categories-bar/categories-bar.js'; 
@@ -16,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Inicializa el Modal del Carrito
     initCartModal();
     
+    // 2.5. Inicializa el Modal de Producto
+    initProductModal();
+
     // 3. Inicializa el Toast
     initToastNotification(); 
 
