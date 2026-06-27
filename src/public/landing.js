@@ -1,30 +1,11 @@
 // src/public/landing.js
 
 import { initWhatsappButton } from './modules/whatsapp-button/whatsapp-button.js';
+import { initAgeModal } from './modules/age-modal/age-modal.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    initAgeModal();
     initWhatsappButton('whatsapp-button-container');
-
-    /* --- MODAL EDAD --- */
-    const modal = document.getElementById('welcome-modal');
-    const btnYes = document.getElementById('btn-age-yes');
-    const btnNo = document.getElementById('btn-age-no');
-
-    setTimeout(() => {
-        if (modal) modal.classList.add('visible');
-    }, 500);
-
-    if (btnYes) {
-        btnYes.addEventListener('click', () => {
-            modal.classList.remove('visible');
-        });
-    }
-
-    if (btnNo) {
-        btnNo.addEventListener('click', () => {
-            window.location.href = "https://www.google.com";
-        });
-    }
 
     /* --- CARRUSEL DE BANNERS --- */
     initBannerCarousel();

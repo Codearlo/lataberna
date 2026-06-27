@@ -8,9 +8,11 @@ import { initToastNotification } from './modules/store/toast-notification/toast.
 import { initWhatsappButton } from './modules/whatsapp-button/whatsapp-button.js'; 
 import { initCategoriesBar } from './modules/store/categories-bar/categories-bar.js'; 
 import { initDesktopSidebar } from './modules/store/desktop-sidebar/desktop-sidebar.js'; // IMPORT
+import { initAgeModal } from './modules/age-modal/age-modal.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    initAgeModal();
     // 1. Inicializa el Header
     initHeader('main-header'); 
 

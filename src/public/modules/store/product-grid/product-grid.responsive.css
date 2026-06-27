@@ -12,7 +12,7 @@
         margin-bottom: 20px;
     }
 
-    .product-card img { height: 150px; }
+    .card-image-wrapper { aspect-ratio: 1 / 1; height: auto; }
     .product-info { padding: 10px; }
     .product-name { font-size: 0.9em; }
 }
