@@ -43,7 +43,27 @@
 /* En PC centramos los iconos */
 @media (min-width: 1024px) {
     .categories-bar-wrapper {
-        justify-content: center;
+        justify-content: flex-start;
+        scrollbar-width: thin;
+        scrollbar-color: #c9c9c9 transparent;
+    }
+
+    .categories-bar-wrapper::-webkit-scrollbar {
+        display: block;
+        height: 8px;
+    }
+
+    .categories-bar-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .categories-bar-wrapper::-webkit-scrollbar-thumb {
+        background: #c9c9c9;
+        border-radius: 4px;
+    }
+
+    .categories-bar-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
     }
 }
 

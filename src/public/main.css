@@ -92,9 +92,9 @@ button {
 
     .store-layout-grid > #categories-bar-container {
         grid-column: 1 / -1;
-        width: 100vw;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
+        width: auto;
+        margin-left: 0;
+        margin-right: 0;
     }
 
     .store-layout-grid > #desktop-sidebar-container {
