@@ -36,13 +36,11 @@ export async function initProductGrid(containerId) {
         <div id="grid-loader" class="loader-container" style="display:none;">
             <div class="spinner"></div>
         </div>
-        <div class="load-more-container">
-            <button id="btn-load-more" class="load-more-btn" style="display:none;">Cargar más productos</button>
-        </div>
+        <div id="grid-sentinel" style="height:1px;"></div>
     `;
 
     const contentArea = document.getElementById('grid-content-area');
-    const loadMoreBtn = document.getElementById('btn-load-more');
+    const sentinel = document.getElementById('grid-sentinel');
 
     // 1. Cargar Metadata para el Sidebar
     try {
@@ -55,12 +53,14 @@ export async function initProductGrid(containerId) {
     // 2. Cargar Primera Página
     await fetchAndRender(true);
 
-    // --- EVENTOS ---
-
-    loadMoreBtn.addEventListener('click', () => {
-        gridState.page++;
-        fetchAndRender(false); 
-    });
+    // --- Auto-load al hacer scroll (sentinel siempre en layout) ---
+    new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !gridState.isLoading
+            && gridState.products.length < gridState.total) {
+            gridState.page++;
+            fetchAndRender(false);
+        }
+    }, { rootMargin: '400px 0px' }).observe(sentinel);
 
     window.addEventListener('filter-changed', (e) => {
         gridState.filters.minPrice = e.detail.minPrice;
@@ -116,12 +116,10 @@ async function fetchAndRender(isReset) {
 
     const contentArea = document.getElementById('grid-content-area');
     const loader = document.getElementById('grid-loader');
-    const loadMoreBtn = document.getElementById('btn-load-more');
 
     loader.style.display = 'flex';
-    loadMoreBtn.style.display = 'none';
     if (isReset) {
-        contentArea.innerHTML = ''; 
+        contentArea.innerHTML = '';
     }
 
     try {
@@ -149,14 +147,6 @@ async function fetchAndRender(isReset) {
             contentArea.innerHTML = '<div class="empty-state-msg">No encontramos productos.</div>';
         } else {
             renderBatch(contentArea, productsToShow);
-        }
-
-        const loadedCount = (gridState.page * ITEMS_PER_PAGE); 
-        if (loadedCount < total) {
-            loadMoreBtn.style.display = 'block';
-            loadMoreBtn.textContent = `Ver más (${total - loadedCount} restantes)`;
-        } else {
-            loadMoreBtn.style.display = 'none';
         }
 
     } catch (error) {
