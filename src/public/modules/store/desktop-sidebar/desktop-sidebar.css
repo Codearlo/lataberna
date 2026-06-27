@@ -4,12 +4,12 @@
     display: none; /* Oculto en móvil */
 }
 
-/* Visible desde Tablet (768px) */
-@media (min-width: 768px) {
+/* Visible solo en PC (1280px+) — ponytail: en tablet (incluido iPad Pro 1024px) NO se muestra */
+@media (min-width: 1280px) {
     #desktop-sidebar-container {
         display: block;
         position: sticky;
-        top: 180px; 
+        top: 180px;
         height: fit-content;
         z-index: 50;
     }

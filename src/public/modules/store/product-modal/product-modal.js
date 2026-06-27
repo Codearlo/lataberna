@@ -5,6 +5,7 @@ import { showToast } from '../toast-notification/toast.js';
 
 let currentProduct = null;
 let quantity = 1;
+let productHistoryPushed = false; // ponytail: track si pusimos entrada en history para el botón "atrás"
 
 function createModalContainer() {
     const container = document.getElementById('product-modal-container');
@@ -166,6 +167,11 @@ function extractBrand(productName) {
 function openProductModal(product) {
     currentProduct = product;
     quantity = 1;
+    // ponytail: empujar entrada al history para que el botón "atrás" cierre el modal
+    if (!productHistoryPushed) {
+        history.pushState({ modal: 'product' }, '');
+        productHistoryPushed = true;
+    }
 
     const container = createModalContainer();
     const modal = container.querySelector('.product-modal');
@@ -225,17 +231,36 @@ function openProductModal(product) {
 
     // Mostrar modal
     container.classList.add('visible');
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open'); // ponytail: lock de scroll compartido con modal de carrito
 }
 
 function closeProductModal() {
     const container = document.getElementById('product-modal-container');
     if (container) {
         container.classList.remove('visible');
-        document.body.style.overflow = '';
+        // ponytail: solo quitamos modal-open si el otro modal tampoco está abierto
+        const cartOpen = document.getElementById('cart-modal-container')?.classList.contains('visible');
+        if (!cartOpen) document.body.classList.remove('modal-open');
         currentProduct = null;
+        // ponytail: limpiar la entrada del history que pusimos al abrir
+        if (productHistoryPushed) {
+            history.replaceState(null, '');
+            productHistoryPushed = false;
+        }
     }
 }
+
+/* ponytail: el botón "atrás" del navegador cierra el modal de producto */
+window.addEventListener('popstate', () => {
+    const container = document.getElementById('product-modal-container');
+    if (container && container.classList.contains('visible')) {
+        productHistoryPushed = false;
+        container.classList.remove('visible');
+        const cartOpen = document.getElementById('cart-modal-container')?.classList.contains('visible');
+        if (!cartOpen) document.body.classList.remove('modal-open');
+        currentProduct = null;
+    }
+});
 
 function handleAddToCart() {
     if (!currentProduct) return;

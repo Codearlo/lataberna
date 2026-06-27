@@ -21,9 +21,16 @@ const CartService = {
         if (existingItemIndex > -1) {
             cart[existingItemIndex].qty += 1;
         } else {
-            cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                qty: 1,
+                image_url: product.image_url || null,
+                description: product.description || ''
+            });
         }
-        
+
         CartService._saveCart(cart);
     },
     

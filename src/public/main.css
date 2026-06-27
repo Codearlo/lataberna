@@ -7,6 +7,30 @@
     box-sizing: border-box;
 }
 
+/* ponytail: bloquea scroll del body cuando cualquier modal está abierto.
+   Lo alternan cart-modal.js y product-modal.js con body.classList.toggle('modal-open'). */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* ponytail: nunca scroll horizontal (defensa contra overflows accidentales) */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* ponytail: oculta la barra de scroll vertical en toda la página,
+   en todos los dispositivos. Firefox + WebKit. */
+html {
+    scrollbar-width: none; /* Firefox */
+}
+html::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+body::-webkit-scrollbar {
+    display: none;
+}
+
 :root {
     --primary-color: #000000; 
     --secondary-color: #0d0d0d;
@@ -52,32 +76,34 @@ button {
     margin: 0 auto;
 }
 
-/* --- LAYOUT SIDEBAR + GRID (Desde Tablet 768px) --- */
-@media (min-width: 768px) {
+/* --- LAYOUT SIDEBAR + GRID (Solo PC 1280px+) ---
+   ponytail: tablets (incluido iPad Pro 1024px) NO muestran sidebar — usan
+   layout de una columna con 4 productos por fila. */
+@media (min-width: 1280px) {
     .store-layout-grid {
         display: grid;
         grid-template-columns: 260px 1fr;
         grid-template-rows: auto 1fr;
         column-gap: 30px;
         row-gap: 20px;
-        align-items: start; 
+        align-items: start;
         padding-top: 40px;
     }
 
     .store-layout-grid > #categories-bar-container {
-        grid-column: 1 / -1; 
-        width: 100vw; 
+        grid-column: 1 / -1;
+        width: 100vw;
         margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
     }
-    
+
     .store-layout-grid > #desktop-sidebar-container {
         grid-column: 1 / 2;
     }
 
     .store-layout-grid > #product-grid-container {
         grid-column: 2 / 3;
-        margin-top: 0 !important; 
+        margin-top: 0 !important;
     }
 }
 

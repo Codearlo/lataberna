@@ -1,37 +1,70 @@
 /* src/public/modules/layout/header/header.responsive.css */
 
-/* --- TABLET Y ESCRITORIO (>= 768px) --- */
-@media (min-width: 768px) {
+/* --- TABLET (600px - 1279px): mantiene hamburguesa + sidebar deslizable --- */
+@media (min-width: 600px) and (max-width: 1279px) {
     .header-top-row {
-        padding: 10px 40px; 
-        gap: 40px; 
-    }
-    
-    /* 1. MOSTRAR MARCA / LOGO (Flex para alinear imagen y texto) */
-    .header-brand {
-        display: flex; /* CAMBIO AQUÍ: usar flex en lugar de block */
-        width: auto; /* Ancho automático según contenido */
-        min-width: 200px; /* Ancho mínimo para equilibrio */
+        padding: 10px 20px;
+        gap: 20px;
     }
 
-    /* 2. OCULTAR MENÚ HAMBURGUESA */
+    .header-brand {
+        display: flex;
+        width: auto;
+        min-width: 160px;
+    }
+
+    /* ponytail: la hamburguesa se mantiene visible en tablet (como en móvil) */
+    .menu-toggle-btn {
+        display: flex !important;
+    }
+
+    .header-search-container {
+        margin: 0 auto;
+        max-width: 500px;
+        width: 100%;
+    }
+
+    .search-input-wrapper input {
+        font-size: 1rem;
+        padding: 12px 12px 12px 45px;
+    }
+
+    .icons-container {
+        width: auto;
+        min-width: 80px;
+        justify-content: flex-end;
+    }
+}
+
+/* --- PC (>= 1280px): hamburguesa oculta, layout completo con logo grande --- */
+@media (min-width: 1280px) {
+    .header-top-row {
+        padding: 10px 40px;
+        gap: 40px;
+    }
+
+    .header-brand {
+        display: flex;
+        width: auto;
+        min-width: 200px;
+    }
+
+    /* ponytail: solo en PC real ocultamos la hamburguesa */
     .menu-toggle-btn {
         display: none !important;
     }
 
-    /* 3. CENTRAR BUSCADOR */
     .header-search-container {
-        margin: 0 auto; 
+        margin: 0 auto;
         max-width: 600px;
         width: 100%;
     }
 
     .search-input-wrapper input {
         font-size: 1rem;
-        padding: 12px 12px 12px 45px; 
+        padding: 12px 12px 12px 45px;
     }
 
-    /* 4. EQUILIBRIO DERECHA (CARRITO) */
     .icons-container {
         width: auto;
         min-width: 200px;
@@ -39,8 +72,8 @@
     }
 }
 
-/* Ajustes para Móvil (< 768px) */
-@media (max-width: 767px) {
+/* Ajustes para Móvil (< 600px) */
+@media (max-width: 599px) {
     .header-top-row {
         padding: 10px;
         gap: 10px;

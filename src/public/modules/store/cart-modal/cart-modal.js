@@ -11,16 +11,24 @@ export function initCartModal() {
     const container = document.getElementById(MODAL_CONTAINER_ID);
     if (!container) return;
 
-    // Estructura HTML actualizada para el flujo de 2 pasos
+    // Estructura HTML del modal del carrito + popup flotante del recordatorio
     container.innerHTML = `
-        <div class="cart-modal-overlay" onclick="window.closeCartModal()"></div>
+        <div class="cart-modal-overlay"></div>
         <div class="cart-modal">
-            
-            <div id="cart-main-view">
+
+            <!-- 1. HEADER: título + X roja, fijo arriba -->
+            <div class="cart-modal-header">
                 <h3>🛒 Tu Pedido</h3>
-                
+                <button class="close-modal-btn" data-action="close" aria-label="Cerrar">&times;</button>
+            </div>
+
+            <!-- 2. BODY: lista de productos, único scroll -->
+            <div class="cart-modal-body">
                 <div id="${CART_LIST_ID}"></div>
-                
+            </div>
+
+            <!-- 3. FOOTER: total + pago + botón, fijo abajo -->
+            <div class="cart-modal-footer" id="cart-modal-footer">
                 <div class="cart-summary">
                     <span>TOTAL:</span>
                     <span id="${CART_TOTAL_ID}">S/ 0.00</span>
@@ -44,22 +52,24 @@ export function initCartModal() {
                 <button id="btn-continue-checkout" class="checkout-btn btn-continue">
                     CONTINUAR 👉
                 </button>
-                
-                <button class="close-btn" onclick="window.closeCartModal()">Cerrar</button>
             </div>
 
-            <div id="location-reminder-view" style="display:none;">
-                <span class="reminder-icon">📍</span>
-                <p class="reminder-text">
-                    ¡Casi listo!<br>
-                    Por favor, comparte tu <span class="reminder-highlight">"Ubicación Actual"</span> en el chat de WhatsApp después de enviar el mensaje para que el delivery llegue rápido.
-                </p>
-                
-                <button id="btn-confirm-whatsapp" class="checkout-btn btn-whatsapp">
-                    ENVIAR PEDIDO AHORA 🚀
-                </button>
-                
-                <button class="close-btn" onclick="window.returnToCart()">Volver atrás</button>
+            <!-- ponytail: popup flotante del recordatorio, vive DENTRO del carrito
+                 para que se centre en el panel (no en la página) y el backdrop
+                 solo cubra el área del carrito -->
+            <div id="location-reminder-popup" style="display: none;">
+                <div class="location-reminder-overlay"></div>
+                <div class="location-reminder-modal">
+                    <span class="reminder-icon">📍</span>
+                    <p class="reminder-text">
+                        ¡Casi listo!<br>
+                        Por favor, comparte tu <span class="reminder-highlight">"Ubicación Actual"</span> en el chat de WhatsApp después de enviar el mensaje para que el delivery llegue rápido.
+                    </p>
+                    <button id="btn-confirm-whatsapp" class="checkout-btn btn-whatsapp">
+                        ENVIAR PEDIDO AHORA 🚀
+                    </button>
+                    <button class="close-btn" data-action="back">Volver atrás</button>
+                </div>
             </div>
 
         </div>
@@ -68,6 +78,28 @@ export function initCartModal() {
     // Listeners para los botones
     document.getElementById('btn-continue-checkout').addEventListener('click', handleContinueToReminder);
     document.getElementById('btn-confirm-whatsapp').addEventListener('click', handleFinalWhatsappRedirect);
+
+    container.querySelector('.cart-modal-overlay').addEventListener('click', closeCartModal);
+    // ponytail: listener global para TODOS los botones de cerrar/volver, estén
+    // dentro del carrito o del modal independiente del recordatorio
+    document.querySelectorAll('.close-btn, .close-modal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.dataset.action === 'back') returnToCart();
+            else closeCartModal();
+        });
+    });
+    // ponytail: cerrar el modal independiente al hacer click en su overlay
+    const reminderOverlay = document.querySelector('.location-reminder-overlay');
+    if (reminderOverlay) {
+        reminderOverlay.addEventListener('click', returnToCart);
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const reminderOpen = document.getElementById('location-reminder-popup')?.style.display === 'block';
+            if (reminderOpen) returnToCart();
+            else if (container.classList.contains('visible')) closeCartModal();
+        }
+    });
     
     // Funciones globales
     window.changeQuantity = changeQuantity;
@@ -97,9 +129,18 @@ function handleContinueToReminder() {
         return;
     }
 
-    // Cambiar a la vista de recordatorio
-    document.getElementById('cart-main-view').style.display = 'none';
-    document.getElementById('location-reminder-view').style.display = 'block';
+    // Cambiar a la vista de recordatorio (popup superpuesto al carrito)
+    setLocationReminderVisible(true);
+}
+
+/**
+ * ponytail: muestra/oculta el popup flotante del recordatorio de ubicación.
+ * NO oculta los 3 bloques del carrito — el popup se superpone encima para
+ * que el contenido del carrito se siga viendo (borroso) detrás. */
+function setLocationReminderVisible(visible) {
+    const popup = document.getElementById('location-reminder-popup');
+    if (!popup) return;
+    popup.style.display = visible ? 'block' : 'none';
 }
 
 /**
@@ -118,8 +159,7 @@ function handleFinalWhatsappRedirect() {
  * Permite volver a la vista del carrito desde el recordatorio.
  */
 function returnToCart() {
-    document.getElementById('location-reminder-view').style.display = 'none';
-    document.getElementById('cart-main-view').style.display = 'block';
+    setLocationReminderVisible(false);
 }
 
 export function renderCartItems() {
@@ -132,44 +172,115 @@ export function renderCartItems() {
     if (!listElement) return;
 
     if (cart.length === 0) {
-        listElement.innerHTML = '<p class="empty-cart-msg">Tu carrito está vacío. ¡Es hora de un trago!</p>';
+        listElement.innerHTML = `
+            <div class="empty-cart-state">
+                <span class="empty-cart-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                </span>
+                <p class="empty-cart-title">Tu carrito está vacío</p>
+                <p class="empty-cart-sub">Agrega tus tragos favoritos para empezar el pedido.</p>
+            </div>
+        `;
         if (paymentSection) paymentSection.style.display = 'none';
         if (continueBtn) continueBtn.disabled = true;
+        const summary = document.querySelector('.cart-summary');
+        if (summary) summary.style.display = 'none';
     } else {
+        const summary = document.querySelector('.cart-summary');
+        if (summary) summary.style.display = 'flex';
         if (paymentSection) paymentSection.style.display = 'block';
         if (continueBtn) continueBtn.disabled = false;
 
-        listElement.innerHTML = cart.map(item => `
+        listElement.innerHTML = cart.map(item => {
+            const imgSrc = item.image_url || 'assets/icons/icon.webp';
+            return `
             <div class="cart-item" data-id="${item.id}">
-                <span>${item.name}</span>
-                <div class="quantity-controls">
-                    <button onclick="window.changeQuantity(${item.id}, -1)">-</button>
-                    <span>${item.qty}</span>
-                    <button onclick="window.changeQuantity(${item.id}, 1)">+</button>
+                <img class="cart-item-img" src="${imgSrc}" alt="${item.name}" onerror="this.src='assets/icons/icon.webp'">
+
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">S/ ${(item.price * item.qty).toFixed(2)}</div>
                 </div>
-                <span>S/ ${(item.price * item.qty).toFixed(2)}</span>
-                <button class="remove-item-btn" onclick="window.removeItem(${item.id})">❌</button>
+
+                <div class="cart-item-actions">
+                    <button class="remove-item-btn" onclick="window.removeItem(${item.id})" aria-label="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    <div class="quantity-controls">
+                        <button onclick="window.changeQuantity(${item.id}, -1)">−</button>
+                        <span>${item.qty}</span>
+                        <button onclick="window.changeQuantity(${item.id}, 1)">+</button>
+                    </div>
+                </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     totalElement.textContent = `S/ ${CartService.getCartTotal().toFixed(2)}`;
 }
 
-export function openCartModal() {
-    // Resetear vistas: Siempre empezar en la vista principal
-    returnToCart(); 
+/* ponytail: manejo de history API para que el botón "atrás" del navegador cierre el modal
+   en vez de navegar a la página anterior. sessionStorage guarda el estado para recargas. */
+let cartHistoryPushed = false;
 
-    // Resetear selección de pago para obligar a elegir
+function showCartModal() {
+    returnToCart();
     const radios = document.querySelectorAll('input[name="payment_method"]');
     radios.forEach(r => r.checked = false);
-
-    renderCartItems(); 
+    renderCartItems();
     document.getElementById(MODAL_CONTAINER_ID).classList.add('visible');
+    document.body.classList.add('cart-open');
+    document.body.classList.add('modal-open'); // ponytail: lock de scroll compartido con modal de producto
+}
+
+function hideCartModal() {
+    document.getElementById(MODAL_CONTAINER_ID).classList.remove('visible');
+    document.body.classList.remove('cart-open');
+    // ponytail: solo quitamos modal-open si el otro modal tampoco está abierto
+    const productOpen = document.getElementById('product-modal-container')?.classList.contains('visible');
+    if (!productOpen) document.body.classList.remove('modal-open');
+}
+
+export function openCartModal() {
+    showCartModal();
+    sessionStorage.setItem('lataberna_open_modal', 'cart');
+    if (!cartHistoryPushed) {
+        history.pushState({ modal: 'cart' }, '');
+        cartHistoryPushed = true;
+    }
 }
 
 export function closeCartModal() {
-    document.getElementById(MODAL_CONTAINER_ID).classList.remove('visible');
+    hideCartModal();
+    sessionStorage.removeItem('lataberna_open_modal');
+    if (cartHistoryPushed) {
+        history.replaceState(null, '');
+        cartHistoryPushed = false;
+    }
+}
+
+/* ponytail: el botón "atrás" del navegador cierra el modal en vez de cambiar de página */
+window.addEventListener('popstate', () => {
+    const container = document.getElementById(MODAL_CONTAINER_ID);
+    if (container && container.classList.contains('visible')) {
+        cartHistoryPushed = false;
+        hideCartModal();
+        sessionStorage.removeItem('lataberna_open_modal');
+    }
+});
+
+/* ponytail: al recargar la página con el carrito abierto, reabrirlo SIN
+   pushear otra entrada al history (la entrada previa a la recarga sigue ahí). */
+export function restoreOpenModal() {
+    const saved = sessionStorage.getItem('lataberna_open_modal');
+    if (saved === 'cart') {
+        showCartModal();
+        // Marcamos como "ya pusheado" para que al cerrar no se reemplace la entrada vieja
+        cartHistoryPushed = true;
+    }
 }
 
 function changeQuantity(id, change) {

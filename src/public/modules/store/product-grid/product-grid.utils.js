@@ -39,20 +39,28 @@ export function renderProductCard(product) {
         </div>
         <div class="product-info">
             <h3 class="product-name">${product.name}</h3>
-            ${priceHtml}
+            <div class="price-row">
+                ${priceHtml}
+                <button class="add-to-cart-btn" aria-label="Agregar al carrito">
+                    <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <button class="add-to-cart-btn">AGREGAR +</button>
     `;
 
     const addButton = card.querySelector('.add-to-cart-btn');
     addButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        CartService.addToCart(product); 
-        showToast(`✅ ${product.name} añadido al carrito.`); 
+        CartService.addToCart(product);
+        showToast(`✅ ${product.name} añadido al carrito.`);
     });
 
     card.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('add-to-cart-btn')) {
+        if (!e.target.closest('.add-to-cart-btn')) {
             openProductModal(product);
         }
     });

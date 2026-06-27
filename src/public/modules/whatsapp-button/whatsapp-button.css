@@ -39,3 +39,8 @@
     }
     /* La imagen sigue siendo 24x24 como se especificó */
 }
+
+/* Se esconde cuando el carrito está abierto (lo controla cart-modal.js con body.cart-open) */
+body.cart-open #whatsapp-float-btn {
+    display: none;
+}
