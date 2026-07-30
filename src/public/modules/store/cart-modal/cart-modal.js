@@ -63,10 +63,13 @@ export function initCartModal() {
                     <span class="reminder-icon">📍</span>
                     <p class="reminder-text">
                         ¡Casi listo!<br>
-                        Por favor, comparte tu <span class="reminder-highlight">"Ubicación Actual"</span> en el chat de WhatsApp después de enviar el mensaje para que el delivery llegue rápido.
+                        Para que el delivery llegue rápido, ¿cómo quieres enviarnos tu <span class="reminder-highlight">ubicación</span>?
                     </p>
-                    <button id="btn-confirm-whatsapp" class="checkout-btn btn-whatsapp">
-                        ENVIAR PEDIDO AHORA 🚀
+                    <button id="btn-share-location" class="checkout-btn btn-whatsapp">
+                        📍 COMPARTIR MI UBICACIÓN
+                    </button>
+                    <button id="btn-confirm-whatsapp" class="checkout-btn btn-whatsapp btn-whatsapp-secondary">
+                        💬 LA ENVIARÉ POR WHATSAPP
                     </button>
                     <button class="close-btn" data-action="back">Volver atrás</button>
                 </div>
@@ -77,7 +80,8 @@ export function initCartModal() {
 
     // Listeners para los botones
     document.getElementById('btn-continue-checkout').addEventListener('click', handleContinueToReminder);
-    document.getElementById('btn-confirm-whatsapp').addEventListener('click', handleFinalWhatsappRedirect);
+    document.getElementById('btn-share-location').addEventListener('click', handleShareLocation);
+    document.getElementById('btn-confirm-whatsapp').addEventListener('click', () => handleFinalWhatsappRedirect(null));
 
     container.querySelector('.cart-modal-overlay').addEventListener('click', closeCartModal);
     // ponytail: listener global para TODOS los botones de cerrar/volver, estén
@@ -131,6 +135,7 @@ function handleContinueToReminder() {
 
     // Cambiar a la vista de recordatorio (popup superpuesto al carrito)
     setLocationReminderVisible(true);
+    prefetchLocation();
 }
 
 /**
@@ -145,14 +150,49 @@ function setLocationReminderVisible(visible) {
 
 /**
  * PASO 2: Abre WhatsApp directamente al hacer clic (funciona en Safari).
+ * locationUrl: enlace de Google Maps si el usuario compartió su ubicación.
  */
-function handleFinalWhatsappRedirect() {
+function handleFinalWhatsappRedirect(locationUrl) {
     const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
     // Recuperamos el valor, si por alguna razón se perdió, usamos 'Efectivo' por defecto
     const paymentMethod = selectedPayment ? selectedPayment.value : 'Efectivo';
 
-    CartService.sendOrderToWhatsapp(paymentMethod);
+    CartService.sendOrderToWhatsapp(paymentMethod, locationUrl);
     window.closeCartModal();
+}
+
+/* ponytail: la ubicación se pide AL ABRIR el recordatorio, no al hacer clic en
+   enviar. Así el window.open final ocurre dentro del gesto del clic: Safari no
+   bloquea nada y nunca aparece una pestaña en blanco. Mientras el GPS responde,
+   el botón de compartir queda deshabilitado (imposible hacer clic "muy rápido"). */
+let cachedLocationLink = null;
+
+function prefetchLocation() {
+    cachedLocationLink = null;
+    const btn = document.getElementById('btn-share-location');
+    if (!btn) return;
+    if (!navigator.geolocation) return setShareUnavailable(btn, false);
+    btn.disabled = true;
+    btn.textContent = '⏳ OBTENIENDO UBICACIÓN...';
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            cachedLocationLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+            btn.disabled = false;
+            btn.textContent = '📍 COMPARTIR MI UBICACIÓN';
+        },
+        () => setShareUnavailable(btn, true),
+        { timeout: 10000 }
+    );
+}
+
+function setShareUnavailable(btn, showToastMsg) {
+    btn.disabled = true;
+    btn.textContent = '📍 UBICACIÓN NO DISPONIBLE';
+    if (showToastMsg) showToast("⚠️ No se pudo obtener tu ubicación. Puedes enviarla por WhatsApp.");
+}
+
+function handleShareLocation() {
+    if (cachedLocationLink) handleFinalWhatsappRedirect(cachedLocationLink);
 }
 
 /**

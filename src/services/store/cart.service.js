@@ -60,7 +60,7 @@ const CartService = {
         return cart.reduce((total, item) => total + (item.price * item.qty), 0);
     },
 
-    sendOrderToWhatsapp: (paymentMethod) => {
+    sendOrderToWhatsapp: (paymentMethod, locationUrl = null) => {
         const cart = CartService.getCart();
         const total = CartService.getCartTotal();
         const phoneNumber = "51961367961"; 
@@ -82,8 +82,12 @@ const CartService = {
         message += `*TOTAL A PAGAR: S/ ${total.toFixed(2)}*\n`; 
         message += `Método de Pago: ${paymentMethod}\n`;
 
-        // Frase corregida y amigable
-        message += `Mi dirección de envío es: 👇🏻 (Enviaré mi ubicación actual a continuación)`; 
+        // Si compartió su ubicación, va el enlace de Google Maps; si no, la enviará por el chat
+        if (locationUrl) {
+            message += `Mi dirección de envío es: ${locationUrl}`;
+        } else {
+            message += `Mi dirección de envío es: 👇🏻 (Enviaré mi ubicación actual a continuación)`;
+        }
         
         const encodedMessage = encodeURIComponent(message);
         

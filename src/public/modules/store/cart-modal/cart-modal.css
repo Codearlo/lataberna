@@ -348,6 +348,14 @@
 }
 .btn-whatsapp:hover { background-color: #20bd5a; }
 
+/* Variante secundaria (enviar ubicación manual por el chat) */
+.btn-whatsapp-secondary {
+    background-color: #6c757d;
+    box-shadow: none;
+    font-size: 1rem;
+}
+.btn-whatsapp-secondary:hover { background-color: #5a6268; }
+
 .close-btn {
     width: 100%;
     background: transparent;
